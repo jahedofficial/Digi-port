@@ -21,8 +21,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (baseUrl.includes(':18789') || baseUrl.includes('digiport.neexion.com')) {
+      if (secretKey.startsWith('sk-or-v1-')) {
+        return NextResponse.json(
+          { 
+            success: false, 
+            error: '195.35.7.50:18789 হলো আপনার এই Digi-Port ওয়েবসাইটের নিজস্ব সার্ভার পোর্ট, এটি কোনো AI সার্ভার নয়। আপনার API Key-টি যেহেতু OpenRouter-এর (sk-or-v1-...), অনুগ্রহ করে AI Gateway Base URL ফিল্ডে "https://openrouter.ai/api/v1" লিখুন বা ফিল্ডটি সম্পূর্ণ খালি রাখুন।' 
+          },
+          { status: 400 }
+        );
+      }
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: '195.35.7.50:18789 হলো আপনার এই Digi-Port পোর্টালের পোর্ট, এটি AI Gateway নয়। আপনি যদি OpenRouter ব্যবহার করেন তবে Base URL ফিল্ডে "https://openrouter.ai/api/v1" দিন।' 
+        },
+        { status: 400 }
+      );
+    }
+
     // Determine verification target
-    const isOpenRouter = baseUrl.includes('openrouter.ai');
+    const isOpenRouter = baseUrl.includes('openrouter.ai') || secretKey.startsWith('sk-or-v1-');
     let verifyUrl = isOpenRouter ? 'https://openrouter.ai/api/v1/auth/key' : `${baseUrl.replace(/\/+$/, '')}/v1/models`;
 
     try {

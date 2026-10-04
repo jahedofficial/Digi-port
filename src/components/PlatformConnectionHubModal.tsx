@@ -1677,9 +1677,16 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                           className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
                         />
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-1.5 font-medium">
-                        OpenClaw VPS host or official OpenRouter endpoint.
-                      </p>
+                      <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1.5 font-medium">
+                        <span>OpenRouter-এর জন্য ডিফল্ট: <code className="text-cyan-500 font-mono">https://openrouter.ai/api/v1</code></span>
+                        <button
+                          type="button"
+                          onClick={() => setAiGatewaySettings({ ...aiGatewaySettings, baseUrl: 'https://openrouter.ai/api/v1' })}
+                          className="text-indigo-500 hover:underline font-bold"
+                        >
+                          ডিফল্ট সেট করুন
+                        </button>
+                      </div>
                     </div>
 
                     {/* API Secret Key */}
