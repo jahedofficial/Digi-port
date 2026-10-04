@@ -281,10 +281,11 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
             };
             setMessages((prev) => [...prev, aiMsg]);
             setIsTyping(false);
-          } else {
             let extraHint = '';
             if (aiData.error === 'NO_KEY') {
-              extraHint = '\n\n💡 *নোট: OpenClaw / OpenRouter API Key এখনো সেভ করা হয়নি। আসল এআই রেসপন্সের জন্য Platform Connection Hub থেকে আপনার OpenRouter Key দিয়ে "Verify & Save" করুন।*';
+              extraHint = '\n\n💡 *নোট: OpenRouter API Key কনফিগার করা হয়নি। আসল এআই রেসপন্সের জন্য openrouter.ai/keys থেকে আপনার আসল sk-or-v1-... কী নিয়ে Platform Connection Hub-এ সেভ করুন।*';
+            } else if (aiData.message) {
+              extraHint = `\n\n⚠️ *[OpenClaw Alert]: ${aiData.message}*`;
             }
             executeFallbackRunner(text, currentAttachment, extraHint);
           }

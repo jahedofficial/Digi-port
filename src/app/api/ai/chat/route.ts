@@ -1,14 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+function isValidApiKey(key: string | undefined): boolean {
+  if (!key) return false;
+  const clean = key.trim();
+  if (clean.length < 20) return false;
+  if (clean.includes('sample') || clean.includes('998410294857')) return false;
+  // Detect non-ASCII or placeholder characters (e.g. Bengali script or placeholder words)
+  if (/[\u0980-\u09FF]/.test(clean)) return false;
+  if (/আপনার|আসল|কী|পেস্ট|YOUR_KEY|PLACEHOLDER/i.test(clean)) return false;
+  return true;
+}
+
 export async function GET() {
-  const hasEnvKey = Boolean(
-    process.env.OPENROUTER_API_KEY && 
-    !process.env.OPENROUTER_API_KEY.includes('sample') &&
-    process.env.OPENROUTER_API_KEY.length > 15
-  );
+  const envKey = process.env.OPENROUTER_API_KEY;
+  const configured = isValidApiKey(envKey);
   return NextResponse.json({
-    configured: hasEnvKey,
-    model: 'DeepSeek v4 Flash (5 Fallbacks Active)',
+    configured,
+    model: configured ? 'DeepSeek v4 Flash (5 Fallbacks Active)' : 'Rule-Based (Key Required)',
   });
 }
 
@@ -22,18 +30,18 @@ export async function POST(req: NextRequest) {
       gatewaySettings = {} 
     } = body;
 
-    const apiKey = gatewaySettings?.secretKey?.trim() || process.env.OPENROUTER_API_KEY || '';
+    const apiKey = (gatewaySettings?.secretKey?.trim() || process.env.OPENROUTER_API_KEY?.trim() || '');
     const rawBaseUrl = gatewaySettings?.baseUrl?.trim() || 'https://openrouter.ai/api/v1';
     const baseUrl = rawBaseUrl.replace(/\/+$/, '');
     const modelEngine = gatewaySettings?.modelEngine || 'deepseek/deepseek-chat';
     const persona = gatewaySettings?.persona || 'Senior Performance Marketing Strategist & Copywriter';
 
-    // If no real API key is available, report clearly that OpenClaw is not configured
-    if (!apiKey || apiKey.includes('sample') || apiKey.includes('998410294857')) {
+    // If no valid API key is available, report clearly that OpenClaw is not configured
+    if (!isValidApiKey(apiKey)) {
       return NextResponse.json({
         success: false,
         error: 'NO_KEY',
-        message: 'OpenClaw API Key কনফিগার করা নেই। লোকাল ইঞ্জিন ব্যবহার করা হচ্ছে।',
+        message: 'বৈধ OpenRouter API Key পাওয়া যায়নি। অনুগ্রহ করে openrouter.ai/keys থেকে আসল sk-or-v1-... কী দিন।',
       });
     }
 
