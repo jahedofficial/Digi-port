@@ -13,7 +13,8 @@ import {
   CheckCircle2,
   Sparkles,
   Paperclip,
-  FileText
+  FileText,
+  Trash2
 } from 'lucide-react';
 import { processAgentCommand } from '@/lib/agent-runner';
 import { CampaignData, CreativeData, ActionQueueItem } from '@/types';
@@ -66,30 +67,60 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const prevClientRef = useRef(clientName);
 
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 'welcome-msg',
-      sender: 'AI',
-      text: `Hey Jahed! Ki obostha? Currently monitoring **${clientName}** (${currency}). Any ads to check, scale or optimize today?`,
-      timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
-    },
-  ]);
+  const chatStorageKey = `dm_copilot_chat_${(clientName || 'default').toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
 
-  // Alert on client switch in chat
+  const defaultWelcomeMessage: ChatMessage = {
+    id: 'welcome-msg',
+    sender: 'AI',
+    text: `Hey Jahed! Ki obostha? Currently monitoring **${clientName}** (${currency}). Any ads to check, scale or optimize today?`,
+    timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+  };
+
+  const [messages, setMessages] = useState<ChatMessage[]>([defaultWelcomeMessage]);
+  const [hasLoadedSavedMessages, setHasLoadedSavedMessages] = useState(false);
+
+  // Load chat history from localStorage on mount and when client switches
   useEffect(() => {
-    if (prevClientRef.current !== clientName) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `context-switch-${Date.now()}`,
-          sender: 'AI',
-          text: `🔄 **ক্লায়েন্ট কন্টেক্সট পরিবর্তন হয়েছে:** এখন **"${clientName}"** অ্যাকাউন্টের লাইভ ডেটা ও ক্যাম্পেইনে ফোকাস করা হচ্ছে। যেকোনো প্রশ্ন করতে পারেন।`,
-          timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
-        },
-      ]);
-      prevClientRef.current = clientName;
+    try {
+      const saved = localStorage.getItem(chatStorageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMessages(parsed);
+          setHasLoadedSavedMessages(true);
+          return;
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load chat history:', e);
     }
-  }, [clientName]);
+    setMessages([defaultWelcomeMessage]);
+    setHasLoadedSavedMessages(true);
+  }, [clientName, chatStorageKey]);
+
+  // Save chat history to localStorage whenever messages change
+  useEffect(() => {
+    if (!hasLoadedSavedMessages) return;
+    try {
+      localStorage.setItem(chatStorageKey, JSON.stringify(messages.slice(-50)));
+    } catch (e) {
+      console.error('Failed to save chat history:', e);
+    }
+  }, [messages, hasLoadedSavedMessages, chatStorageKey]);
+
+  const handleClearChat = () => {
+    try {
+      localStorage.removeItem(chatStorageKey);
+    } catch {}
+    setMessages([
+      {
+        id: `welcome-${Date.now()}`,
+        sender: 'AI',
+        text: `Hey Jahed! Ki obostha? Currently monitoring **${clientName}** (${currency}). Any ads to check, scale or optimize today?`,
+        timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+      },
+    ]);
+  };
 
   const [input, setInput] = useState('');
   const [selectedFile, setSelectedFile] = useState<{ name: string; size: string; type: string } | null>(null);
@@ -338,6 +369,21 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Clear Chat History Button */}
+          {messages.length > 1 && (
+            <button
+              onClick={handleClearChat}
+              className={`p-2 rounded-xl border transition-colors cursor-pointer ${
+                isLight 
+                  ? 'border-slate-200 text-slate-500 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200' 
+                  : 'border-slate-800 text-slate-400 hover:bg-rose-950/30 hover:text-rose-400 hover:border-rose-800'
+              }`}
+              title="নতুন চ্যাট শুরু করুন (হিস্ট্রি ক্লিয়ার করুন)"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
+
           {/* Tracking & AI Settings Button */}
           <button
             onClick={() => setIsSettingsOpen(true)}
