@@ -22,6 +22,9 @@ import { ChatbotSettingsModal, ChatbotTrackingConfig } from '@/components/Chatbo
 interface AiGrowthCopilotViewProps {
   campaigns: CampaignData[];
   creatives: CreativeData[];
+  clientName?: string;
+  currency?: string;
+  allWorkspaces?: any[];
   onActionCreated: (action: ActionQueueItem) => void;
   onActionApproved: (actionId: string) => void;
   onActionRejected: (actionId: string) => void;
@@ -50,6 +53,9 @@ interface ChatMessage {
 export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
   campaigns,
   creatives,
+  clientName = 'Main Brand Account',
+  currency = 'BDT',
+  allWorkspaces = [],
   onActionCreated,
   onActionApproved,
   onActionRejected,
@@ -58,15 +64,32 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
   const isLight = theme === 'light';
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const prevClientRef = useRef(clientName);
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome-msg',
       sender: 'AI',
-      text: 'Hey Jahed! Ki obostha? Any ads to check, scale or optimize today?',
+      text: `Hey Jahed! Ki obostha? Currently monitoring **${clientName}** (${currency}). Any ads to check, scale or optimize today?`,
       timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
     },
   ]);
+
+  // Alert on client switch in chat
+  useEffect(() => {
+    if (prevClientRef.current !== clientName) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `context-switch-${Date.now()}`,
+          sender: 'AI',
+          text: `🔄 **ক্লায়েন্ট কন্টেক্সট পরিবর্তন হয়েছে:** এখন **"${clientName}"** অ্যাকাউন্টের লাইভ ডেটা ও ক্যাম্পেইনে ফোকাস করা হচ্ছে। যেকোনো প্রশ্ন করতে পারেন।`,
+          timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+        },
+      ]);
+      prevClientRef.current = clientName;
+    }
+  }, [clientName]);
 
   const [input, setInput] = useState('');
   const [selectedFile, setSelectedFile] = useState<{ name: string; size: string; type: string } | null>(null);
@@ -143,6 +166,9 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
         activePlatform: 'ALL',
         campaigns,
         creatives,
+        clientName,
+        currency,
+        allWorkspaces,
       });
 
       let currentActionStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | undefined;
@@ -205,13 +231,18 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
             <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white dark:border-[#101624]" />
           </div>
           <div>
-            <h2 className={`text-sm font-bold leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
-              AI Copilot
-            </h2>
+            <div className="flex items-center gap-2">
+              <h2 className={`text-sm font-bold leading-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                AI Copilot
+              </h2>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                Workspace: {clientName}
+              </span>
+            </div>
             <div className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
               <span>online</span>
               <span className="text-slate-300 dark:text-slate-600">•</span>
-              <span className="text-slate-400 text-[10px]">Claude 3.5 Sonnet</span>
+              <span className="text-slate-400 text-[10px]">Unified Multi-Client Brain ({currency})</span>
             </div>
           </div>
         </div>
@@ -377,6 +408,54 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
       <div className={`p-3 border-t transition-colors ${
         isLight ? 'border-slate-200 bg-white' : 'border-slate-800 bg-[#101624]'
       }`}>
+        {/* Quick Agency / Client Command Chips */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-1 scrollbar-none">
+          <button
+            type="button"
+            onClick={() => setInput('সব ক্লায়েন্টের সামারি দাও')}
+            className={`text-[11px] px-2.5 py-1 rounded-full border whitespace-nowrap transition-colors cursor-pointer shrink-0 font-medium ${
+              isLight
+                ? 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300'
+                : 'bg-[#151c2b] border-slate-800 text-slate-300 hover:bg-slate-800 hover:border-slate-700'
+            }`}
+          >
+            🏢 সব ক্লায়েন্টের সামারি
+          </button>
+          <button
+            type="button"
+            onClick={() => setInput(`${clientName} এর রিপোর্ট দেখাও`)}
+            className={`text-[11px] px-2.5 py-1 rounded-full border whitespace-nowrap transition-colors cursor-pointer shrink-0 font-medium ${
+              isLight
+                ? 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300'
+                : 'bg-[#151c2b] border-slate-800 text-slate-300 hover:bg-slate-800 hover:border-slate-700'
+            }`}
+          >
+            📊 {clientName} রিপোর্ট
+          </button>
+          <button
+            type="button"
+            onClick={() => setInput('হাই CPA অ্যাড চেক করো')}
+            className={`text-[11px] px-2.5 py-1 rounded-full border whitespace-nowrap transition-colors cursor-pointer shrink-0 font-medium ${
+              isLight
+                ? 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300'
+                : 'bg-[#151c2b] border-slate-800 text-slate-300 hover:bg-slate-800 hover:border-slate-700'
+            }`}
+          >
+            ⚠️ হাই CPA অপ্টিমাইজ
+          </button>
+          <button
+            type="button"
+            onClick={() => setInput('নতুন অ্যাড আইডিয়া দাও')}
+            className={`text-[11px] px-2.5 py-1 rounded-full border whitespace-nowrap transition-colors cursor-pointer shrink-0 font-medium ${
+              isLight
+                ? 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300'
+                : 'bg-[#151c2b] border-slate-800 text-slate-300 hover:bg-slate-800 hover:border-slate-700'
+            }`}
+          >
+            💡 নতুন অ্যাড আইডিয়া
+          </button>
+        </div>
+
         {/* Attached file preview chip */}
         {selectedFile && (
           <div className="mb-2 px-1 flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-150">

@@ -478,6 +478,9 @@ export default function Home() {
             <AiGrowthCopilotView
               campaigns={campaigns}
               creatives={creatives}
+              clientName={activeWorkspace.clientName}
+              currency={activeWorkspace.currency}
+              allWorkspaces={workspaces}
               onActionCreated={handleActionCreated}
               onActionApproved={handleApproveAction}
               onActionRejected={handleRejectAction}

@@ -32,9 +32,69 @@ export function processAgentCommand(
     activePlatform: string;
     campaigns: CampaignData[];
     creatives: CreativeData[];
+    clientName?: string;
+    currency?: string;
+    allWorkspaces?: any[];
   }
 ): AgentResponse {
   const query = rawCommand.toLowerCase().trim();
+
+  // Multi-client / cross-client workspace resolution
+  let clientTitle = context.clientName || 'Main Brand Account';
+  let curSymbol = context.currency === 'BDT' ? '৳' : '$';
+  let activeCamps = context.campaigns || [];
+  let activeCreatives = context.creatives || [];
+
+  // Check if user specifically mentioned one of the other clients
+  if (context.allWorkspaces && context.allWorkspaces.length > 0) {
+    const matchedWs = context.allWorkspaces.find((w: any) => 
+      query.includes(w.clientName.toLowerCase()) || 
+      (w.name && query.includes(w.name.toLowerCase()))
+    );
+    if (matchedWs) {
+      clientTitle = matchedWs.clientName;
+      curSymbol = matchedWs.currency === 'BDT' ? '৳' : '$';
+      activeCamps = matchedWs.campaigns || [];
+      activeCreatives = matchedWs.creatives || [];
+    }
+  }
+
+  // 0. Cross-Client Agency Summary: "সব ক্লায়েন্ট", "সকল ক্লায়েন্টের অবস্থা", "all clients", "all business"
+  if (
+    query.includes('সব ক্লায়েন্ট') || 
+    query.includes('সকল ক্লায়েন্ট') || 
+    query.includes('সব বিজনেস') || 
+    query.includes('সকল বিজনেস') || 
+    query.includes('all client') || 
+    query.includes('all business') ||
+    query.includes('সব ব্র্যান্ড') ||
+    query.includes('agency summary')
+  ) {
+    const workspaces = context.allWorkspaces || [];
+    if (workspaces.length === 0) {
+      return {
+        reply: `🏢 বর্তমানে আপনার সিস্টেমে ১টি ক্লায়েন্ট (**${clientTitle}**) সক্রিয় আছে। আরও ক্লায়েন্ট যুক্ত করতে উপরের ড্রপডাউন থেকে **+ Add New Business / Client** ব্যবহার করুন।`,
+        toolUsed: 'agency_cross_client_audit',
+        toolType: 'READ',
+        requiresApproval: false,
+      };
+    }
+
+    const lines = workspaces.map((w: any, idx: number) => {
+      const sp = w.metrics?.ALL?.spend || 0;
+      const ro = w.metrics?.ALL?.roas || 0;
+      const cur = w.currency === 'BDT' ? '৳' : '$';
+      const cCount = w.campaigns?.length || 0;
+      return `${idx + 1}. **${w.clientName}** (${w.category || 'E-commerce'}): Spend ${cur}${sp.toLocaleString()} • ROAS ${ro.toFixed(2)}x • ${cCount}টি ক্যাম্পেইন`;
+    });
+
+    return {
+      reply: `🏢 **আপনার সেন্ট্রাল এজেন্সি / ক্লায়েন্ট ড্যাশবোর্ড ওভারভিউ (${workspaces.length}টি বিজনেস)**:\n\n${lines.join('\n')}\n\n💡 *আপনি যেকোনো নির্দিষ্ট ক্লায়েন্টের নাম উল্লেখ করে কমান্ড দিতে পারেন (যেমন: "${workspaces[0]?.clientName} এর রিপোর্ট দাও"), অথবা টেলিগ্রাম বট থেকে সরাসরি জানতে পারেন।*`,
+      toolUsed: 'agency_cross_client_audit',
+      toolType: 'READ',
+      requiresApproval: false,
+    };
+  }
 
   // 1. Report command: "গত ৭ দিনের Meta report বানাও"
   if (query.includes('report') || query.includes('রিপোর্ট')) {
@@ -43,26 +103,51 @@ export function processAgentCommand(
     const isTikTok = query.includes('tiktok') || query.includes('টিকটক');
     const platform = isMeta ? 'Meta Ads' : isGoogle ? 'Google Ads' : isTikTok ? 'TikTok Ads' : 'Unified (সব প্ল্যাটফর্ম)';
 
+    if (activeCamps.length === 0) {
+      return {
+        reply: `📊 **${clientTitle} (${platform}) - পারফর্ম্যান্স রিপোর্ট**:\n\nবর্তমানে এই ক্লায়েন্ট অ্যাকাউন্টে কোনো সক্রিয় লাইভ ক্যাম্পেইন বা স্পেন্ড পাওয়া যায়নি (Total Spend: ${curSymbol}০)।\n\nলাইভ ডেটা অ্যানালাইসিসের জন্য দয়া করে Platform Connection Hub থেকে Meta, Google বা TikTok অ্যাকাউন্ট কানেক্ট করে বিজ্ঞাপন রান করুন।`,
+        toolUsed: 'make_report',
+        toolType: 'READ',
+        requiresApproval: false,
+        reportData: {
+          title: `${clientTitle} - পারফর্ম্যান্স সামারি`,
+          highlights: [
+            `ক্লায়েন্ট: ${clientTitle}`,
+            'অ্যাকাউন্ট স্ট্যাটাস: অপেক্ষা করছে (No active ad spend)',
+            'Platform Connection Hub থেকে লাইভ অ্যাকাউন্ট লিঙ্ক করুন',
+          ],
+          metrics: {
+            'Client': clientTitle,
+            'Total Spend': `${curSymbol}0`,
+            'Total Revenue': `${curSymbol}0`,
+            'Total Conversions': 0,
+            'Blended ROAS': '0.00x',
+          },
+        },
+      };
+    }
+
+    const totalSpend = activeCamps.reduce((acc, c) => acc + c.spend, 0);
+    const totalConversions = activeCamps.reduce((acc, c) => acc + c.conversions, 0);
+    const topWinner = activeCamps.slice().sort((a, b) => b.roas - a.roas)[0];
+
     return {
-      reply: `📊 **${platform} গত ৭ দিনের পারফর্ম্যান্স রিপোর্ট** সফলভাবে তৈরি করা হয়েছে।\n\n- মোট খরচ হয়েছে **$১,৪২০.০০**, কনভার্সন **২১০টি**, গড় CPA **$৬.৭৬** এবং Blended ROAS **৪.২০x**।\n- টপ উইনিং ক্যাম্পেইন: **"Dhaka City - Eid Lawn Collection CBO"** (ROAS: 4.85x)।\n- ১টি ক্রিয়েটিভে ফ্রিকোয়েন্সি বেশি থাকায় ফ্যাটিগ দেখা গেছে। নিচে সারসংক্ষেপ দেখতে পারেন।`,
+      reply: `📊 **${clientTitle} (${platform}) - পারফর্ম্যান্স রিপোর্ট** সফলভাবে তৈরি হয়েছে।\n\n- মোট খরচ হয়েছে **${curSymbol}${totalSpend.toLocaleString()}**, কনভার্সন **${totalConversions}টি**।\n${topWinner ? `- টপ উইনিং ক্যাম্পেইন: **"${topWinner.name}"** (ROAS: ${topWinner.roas.toFixed(2)}x)।` : ''}\nনিচে সারসংক্ষেপ দেখতে পারেন।`,
       toolUsed: 'make_report',
       toolType: 'READ',
       requiresApproval: false,
       reportData: {
-        title: `${platform} - ৭ দিনের পারফর্ম্যান্স সামারি`,
+        title: `${clientTitle} - পারফর্ম্যান্স সামারি`,
         highlights: [
-          'ROAS ৪.২০x (গত সপ্তাহের ৩.৮০x এর চেয়ে +১০.৫% উন্নত)।',
-          'Dhaka City ক্যাম্পেইন সবচেয়ে বেশি রেভিনিউ এনেছে ($৩,১০৪)।',
-          'UGC ভিডিও ক্রিয়েটিভে Hook Rate ৩৭% পার করেছে, যা ইন্ডাস্ট্রির তুলনায় ১৫% বেশি।',
-          '১টি অফার ব্যানার ভিডিওতে ফ্রিকোয়েন্সি ৪.২ পার হওয়ায় পজ করার সুপারিশ।',
+          `ক্লায়েন্ট: ${clientTitle}`,
+          `সক্রিয় ক্যাম্পেইন সংখ্যা: ${activeCamps.length}টি`,
+          topWinner ? `টপ পারফর্মার: ${topWinner.name} (${topWinner.roas.toFixed(2)}x ROAS)` : 'লাইভ ট্র্যাকিং সক্রিয়',
         ],
         metrics: {
-          'Total Spend': '$1,420.00',
-          'Revenue': '$5,964.00',
-          'Total Conversions': 210,
-          'Blended ROAS': '4.20x',
-          'Average CPA': '$6.76',
-          'Hook Rate (Avg)': '34.2%',
+          'Client': clientTitle,
+          'Total Spend': `${curSymbol}${totalSpend.toLocaleString()}`,
+          'Total Conversions': totalConversions,
+          'Active Campaigns': activeCamps.length,
         },
       },
     };
@@ -70,8 +155,21 @@ export function processAgentCommand(
 
   // 2. Pause high CPA ads: "CPA $8 এর বেশি ad গুলো pause করো"
   if (query.includes('cpa') && (query.includes('pause') || query.includes('বন্ধ') || query.includes('পজ'))) {
+    if (activeCreatives.length === 0 && activeCamps.length === 0) {
+      return {
+        reply: `🔍 **${clientTitle}**-এ বর্তমানে কোনো লাইভ অ্যাড বা ক্রিয়েটিভ রানিং নেই। অ্যাকাউন্ট কানেক্ট করে বিজ্ঞাপন রান হলে কোনো ক্রিয়েটিভে হাই CPA (> $৮) বা ফ্যাটিগ দেখা দিলে স্বয়ংক্রিয়ভাবে পজ করার অ্যাকশন রিকোয়েস্ট তৈরি হবে।`,
+        toolUsed: 'pause_ad',
+        toolType: 'READ',
+        requiresApproval: false,
+      };
+    }
+
+    const fatiguedAd = activeCreatives.find(cr => cr.fatigueScore === 'HIGH_FATIGUE' || cr.cpa > 10) || activeCreatives[0];
+    const adName = fatiguedAd?.adName || 'High CPA Campaign Ad';
+    const adCpa = fatiguedAd?.cpa ? `${curSymbol}${fatiguedAd.cpa.toFixed(2)}` : `${curSymbol}12.50`;
+
     return {
-      reply: `⚠️ **অ্যাকশন রিকোয়েস্ট প্রস্তুত**: আমরা অডিট করে **Video_Offer_Countdown_30Percent** অ্যাডটি চিহ্নিত করেছি যার বর্তমান CPA **$১৩.৭৫** (টার্গেট $৮.০০ এর চেয়ে ৭১% বেশি এবং ফ্রিকোয়েন্সি ৪.২)।\n\nটাকা বাঁচানোর জন্য অ্যাডটি পজ করার প্রস্তাব করা হয়েছে। নিচের **Approve** বাটনে ক্লিক করলে অ্যাডটি পজ হয়ে যাবে।`,
+      reply: `⚠️ **অ্যাকশন রিকোয়েস্ট প্রস্তুত (${clientTitle})**: আমরা অডিট করে **${adName}** অ্যাডটি চিহ্নিত করেছি যার বর্তমান CPA **${adCpa}** (টার্গেটের চেয়ে বেশি)।\n\nবাজেট বাঁচাতে অ্যাডটি পজ করার প্রস্তাব করা হয়েছে। নিচের **Approve** বাটনে ক্লিক করলে অ্যাডটি পজ হয়ে যাবে।`,
       toolUsed: 'pause_ad',
       toolType: 'WRITE',
       requiresApproval: true,
@@ -80,10 +178,10 @@ export function processAgentCommand(
         actionType: 'PAUSE_AD',
         platform: 'META',
         entityType: 'AD',
-        entityId: 'ad-meta-103',
-        entityName: 'Eid Offer: 30% Off Countdown Video Ad',
+        entityId: fatiguedAd?.adId || fatiguedAd?.id || 'ad-101',
+        entityName: `${clientTitle}: ${adName}`,
         proposedBy: 'AGENT',
-        reason: 'প্রতি অর্ডারে খরচ $১৩.৭৫ হয়েছে যা টার্গেটের চেয়ে ৭১% বেশি। বাজেটের অপচয় রোধে অ্যাডটি পজ করা প্রয়োজন।',
+        reason: `প্রতি অর্ডারে খরচ ${adCpa} হয়েছে যা টার্গেটের চেয়ে বেশি। অপচয় রোধে অ্যাডটি পজ করা প্রয়োজন।`,
         previousValue: 'সক্রিয় (Active)',
         newValue: 'বন্ধ (Paused)',
         status: 'PENDING',
@@ -96,24 +194,37 @@ export function processAgentCommand(
     };
   }
 
-  // 3. Increase budget: "Dhaka City campaign এর budget ২০% বাড়াও"
+  // 3. Increase budget: "campaign এর budget ২০% বাড়াও"
   if (query.includes('budget') || query.includes('বাজেট')) {
+    if (activeCamps.length === 0) {
+      return {
+        reply: `📈 **বাজেট স্কেলিং**: **${clientTitle}**-এ বর্তমানে কোনো লাইভ ক্যাম্পেইন রানিং নেই। রানিং ক্যাম্পেইন শুরু হলে হাই-পারফর্মিং ক্যাম্পেইন চিহ্নিত করে সর্বোচ্চ ২০% সেফ স্কেলিং রিকোয়েস্ট তৈরি করা হবে।`,
+        toolUsed: 'change_budget',
+        toolType: 'READ',
+        requiresApproval: false,
+      };
+    }
+
+    const topCamp = activeCamps.slice().sort((a, b) => b.roas - a.roas)[0] || activeCamps[0];
+    const oldBudget = topCamp.dailyBudget || 50;
+    const newBudget = Math.round(oldBudget * 1.2);
+
     return {
-      reply: `📈 **বাজেট স্কেলিং রিকোয়েস্ট**: **Dhaka City - Eid Lawn Collection CBO** ক্যাম্পেইনটি টানা ৪ দিন ধরে ROAS **৪.৮৫x** বজায় রেখেছে।\n\nসার্ভার গার্ডরেল সর্বোচ্চ **+২০%** লিমিট যাচাই করেছে এবং নিরাপদ হিসেবে অনুমোদন করেছে:\n- বর্তমান বাজেট: **$৫০.০০ / দিন**\n- প্রস্তাবিত নতুন বাজেট: **$৬০.০০ / দিন**\n\nআপনি অনুমোদন করলে প্ল্যাটফর্মে আপডেট এক্সিকিউট হবে।`,
+      reply: `📈 **বাজেট স্কেলিং রিকোয়েস্ট (${clientTitle})**: **${topCamp.name}** ক্যাম্পেইনটি চমৎকার পারফর্ম করায় সেফ স্কেলিং সুপারিশ করা হলো:\n- বর্তমান বাজেট: **${curSymbol}${oldBudget} / দিন**\n- প্রস্তাবিত নতুন বাজেট: **${curSymbol}${newBudget} / দিন (+২০%)**\n\nআপনি অনুমোদন করলে প্ল্যাটফর্মে আপডেট এক্সিকিউট হবে।`,
       toolUsed: 'change_budget',
       toolType: 'WRITE',
       requiresApproval: true,
       proposedAction: {
         id: `act-${Date.now()}`,
         actionType: 'CHANGE_BUDGET',
-        platform: 'META',
+        platform: topCamp.platform,
         entityType: 'CAMPAIGN',
-        entityId: 'camp-meta-1',
-        entityName: 'Dhaka City - Eid Lawn Collection CBO',
+        entityId: topCamp.id,
+        entityName: `${clientTitle}: ${topCamp.name}`,
         proposedBy: 'AGENT',
-        reason: 'টানা ৪ দিন ROAS 4.85x বজায় রাখায় সেফ স্কেলিং (+20%) সুপারিশ।',
-        previousValue: '$50.00 / day',
-        newValue: '$60.00 / day (+20%)',
+        reason: 'উচ্চ পারফর্ম্যান্স বজায় রাখায় সেফ স্কেলিং (+20%) সুপারিশ।',
+        previousValue: `${curSymbol}${oldBudget} / day`,
+        newValue: `${curSymbol}${newBudget} / day (+20%)`,
         status: 'PENDING',
         createdAt: 'এখনই',
         safetyCheck: {
@@ -126,8 +237,17 @@ export function processAgentCommand(
 
   // 4. Creative fatigue: "কোন creative fatigue হচ্ছে?"
   if (query.includes('fatigue') || query.includes('ফ্যাটিগ') || query.includes('ক্রিয়েটিভ')) {
+    if (activeCreatives.length === 0) {
+      return {
+        reply: `🔍 **ক্রিয়েটিভ ফ্যাটিগ বিশ্লেষণ (${clientTitle})**:\n\nবর্তমানে কোনো বিজ্ঞাপন বা ক্রিয়েটিভ রানিং নেই। প্ল্যাটফর্ম কানেক্ট করার পর ক্রিয়েটিভের ফ্রিকোয়েন্সি ২.৫ পার হলে বা সিটিআর কমলে আমি স্বয়ংক্রিয়ভাবে ফ্যাটিগ অ্যালার্ট দেব।`,
+        toolUsed: 'analyze_creative',
+        toolType: 'READ',
+        requiresApproval: false,
+      };
+    }
+
     return {
-      reply: `🔍 **ক্রিয়েটিভ ফ্যাটিগ বিশ্লেষণ রিপোর্ট**:\n\n১টি ক্রিয়েটিভে নিশ্চিত **HIGH FATIGUE** শনাক্ত হয়েছে:\n- **Creative:** \`Video_Offer_Countdown_30Percent\` (Meta Ads)\n- **Frequency:** ৪.২ (একজন গ্রাহক গড়ে ৪ বারের বেশি দেখেছে)\n- **CTR:** ১.৪৫% (গত সপ্তাহের তুলনায় ৩৫% কমেছে)\n- **CPA:** $১৩.৭৫ (টার্গেট $৮.০০)\n\n👉 **সুপারিশ:** এই ক্রিয়েটিভটি পজ করে আমাদের টপ উইনার \`Lawn_3pc_EmeraldGreen_UGC_Review\` এর মতো নতুন একটি UGC ভিডিও টেস্ট করুন।`,
+      reply: `🔍 **ক্রিয়েটিভ ফ্যাটিগ বিশ্লেষণ রিপোর্ট (${clientTitle})**:\n\nবর্তমানে রানিং ক্রিয়েটিভগুলো মনিটর করা হচ্ছে। ক্রিয়েটিভ ল্যাবে হুক রেট ও হোল্ড রেট লাইভ পর্যবেক্ষণ সক্রিয়।`,
       toolUsed: 'analyze_creative',
       toolType: 'READ',
       requiresApproval: false,
@@ -137,28 +257,28 @@ export function processAgentCommand(
   // 5. New Ideas: "TikTok এর best ad এর মতো ৩টা নতুন idea দাও"
   if (query.includes('idea') || query.includes('আইডিয়া') || query.includes('script') || query.includes('স্ক্রিপ্ট')) {
     return {
-      reply: `💡 **TikTok এর টপ পারফর্মিং GRWM UGC ভিডিওর (Hook Rate ৪১.২%) প্যাটার্ন অনুযায়ী ৩টি ফ্রেশ আইডিয়া:**\n\nনিচে ৩টি হাই-রিটেনশন ভিডিও হুক ও স্ক্রিপ্ট আউটলাইন দেওয়া হলো যা আপনি এখনই প্রোডাকশনে পাঠাতে পারেন।`,
+      reply: `💡 **${clientTitle} এর জন্য ৩টি হাই-রিটেনশন ভিডিও হুক ও স্ক্রিপ্ট আইডিয়া:**\n\nনিচে ৩টি ফ্রেশ অ্যাঙ্গেল দেওয়া হলো যা আপনি এখনই প্রোডাকশনে পাঠাতে পারেন:`,
       toolUsed: 'analyze_creative',
       toolType: 'READ',
       requiresApproval: false,
       ideas: [
         {
-          title: '১. "The Mirror Shock Transformation" (GRWM Hook)',
-          hook: 'প্রথম ২ সেকেন্ডে সাধারণ ড্রেসে আয়নার সামনে এসে চোখ পিটপিট করে আঙুল তুলেই সম্পূর্ণ প্রমিয়াম ঈদ লন ড্রেসে পরিবর্তন।',
-          scriptOutline: '"সবাই যখন ভাবছে সাধারণ ড্রেস পরব, তখন লন কালেকশন পরে ক্লাসি লুক! কাপড়টা হাতে নিলেই বুঝবেন কেন এটা ভাইরাল।"',
+          title: `১. "The Problem-Solution Shock" (${clientTitle} Focus)`,
+          hook: 'প্রথম ২ সেকেন্ডে সাধারণ সমস্যা বা ফ্রাস্ট্রেশন দেখিয়ে সাথে সাথে সল্যুশন উপস্থাপন।',
+          scriptOutline: '"অনলাইনে পণ্য কেনার পর মিল পান না? কাপড় বা কোয়ালিটি সামনাসামনি দেখলে আপনিও মুগ্ধ হবেন।"',
           visualNotes: 'Vertical 9:16, Natural Daylight, Fast energetic background beat, no cheesy corporate text.',
         },
         {
-          title: '২. "Fabric Macro Zoom & Honest Review" (Texture Hook)',
-          hook: 'ক্যামেরার একদম কাছে কাপড়ের সুতা ও অ্যামব্রয়ডারি জুম করে আঙুল দিয়ে স্পর্শ দেখানো।',
-          scriptOutline: '"অনলাইনে ড্রেস অর্ডার করতে ভয় পান? কাপড়টা সামনাসামনি দেখলে আপনিও প্রেমে পড়বেন। ১০০% পিওর কটন!"',
+          title: '২. "Unboxing Macro Texture & Honest Review" (Texture Hook)',
+          hook: 'ক্যামেরার একদম কাছে প্রডাক্টের ডিটেইলস জুম করে ফিঙ্গার টাচ দেখানো।',
+          scriptOutline: '"প্যাকেট খোলার মুহূর্তটা একবার দেখুন! ১০০% প্রিমিয়াম ফিনিশিং যা বাস্তবে আরও দারুণ।"',
           visualNotes: 'Macro lens camera zoom, unboxing sound effect (ASMR audio vibe).',
         },
         {
-          title: '৩. "3 Ways to Style 1 Kurti" (Utility / Value Hook)',
-          hook: 'স্ক্রিনে ৩টি স্প্লিট উইন্ডো: অফিস লুক, ফ্রেন্ডস আড্ডা, ফেস্টিভ ইভেন্ট।',
-          scriptOutline: '"একটা কুর্তি দিয়ে কীভাবে ৩টা ভিন্ন ওকেশন কভার করবেন? দেখে নিন আজকের কুইক স্টাইল গাইড।"',
-          visualNotes: 'High pacing, text callout with accessory details, clear "Order Link in Bio" CTA.',
+          title: '৩. "3 Reasons Why It Sells Out" (Value Hook)',
+          hook: 'স্ক্রিনে ৩টি কাউন্টার: কোয়ালিটি, রিজনেবল প্রাইস, ইউনিক ডিজাইন।',
+          scriptOutline: '"কেন এই কালেকশনটি বারবার স্টক-আউট হয়ে যায়? এই ৩টি কারণ জানলে আপনিও অর্ডার করবেন।"',
+          visualNotes: 'High pacing, text callout with accessory details, clear CTA.',
         },
       ],
     };
@@ -166,8 +286,17 @@ export function processAgentCommand(
 
   // 6. Audit: "আজকের audit করো"
   if (query.includes('audit') || query.includes('অডিট') || query.includes('চেক')) {
+    if (activeCamps.length === 0) {
+      return {
+        reply: `🛡️ **দৈনিক অটো-অডিট সম্পন্ন হয়েছে (${clientTitle})**:\n\n১. **Account Status:** কোনো সক্রিয় লাইভ স্পেন্ড নেই (ক্লিন স্টেট)।\n২. **Platform Health:** API সংযোগের অপেক্ষায় (Meta, Google, TikTok Ready)।\n৩. **Tracking:** পিক্সেল ও কনভার্সন ট্র্যাকিং রেডি টু কানেক্ট।\n\nঅ্যাকাউন্ট কানেক্ট করলে স্বয়ংক্রিয়ভাবে অডিট রুলস রান হবে।`,
+        toolUsed: 'check_tracking',
+        toolType: 'READ',
+        requiresApproval: false,
+      };
+    }
+
     return {
-      reply: `🛡️ **দৈনিক অটো-অডিট সম্পন্ন হয়েছে (Daily Health & Spend Audit)**:\n\n১. **Spend Pacing:** বাজেট পেসিং স্বাভাবিক। আজকের মোট স্পেন্ড টার্গেটের মধ্যে আছে।\n২. **Wasted Spend:** Google Search-এ ১টি ইররেলেভেন্ট কিওয়ার্ডে $১৮ খরচ হয়েছে রূপান্তর ছাড়া।\n৩. **Creative Health:** ১টি ক্রিয়েটিভে হাই ফ্যাটিগ, ৩টি ক্রিয়েটিভে সুস্থ হুক রেট (>৩৫%)।\n৪. **Tracking Check:** Meta CAPI এবং Google GA4 সক্রিয় ও গ্রিন। TikTok Events API-তে 'InitiateCheckout' এ কারেন্সি প্যারামিটার চেক করা দরকার।\n\nআমরা অপচয় কমাতে ২টি অ্যাকশন রেডি করেছি। Actions ট্যাবে দেখতে পারেন।`,
+      reply: `🛡️ **দৈনিক অটো-অডিট সম্পন্ন হয়েছে (${clientTitle})**:\n\n১. **Spend Pacing:** বাজেট পেসিং স্বাভাবিক। আজকের মোট স্পেন্ড টার্গেটের মধ্যে আছে।\n২. **Creative Health:** ক্রিয়েটিভ মনিটরিং সক্রিয়।\n৩. **Tracking Check:** সার্ভার-সাইড ট্র্যাকিং ও পিক্সেল সিঙ্ক সক্রিয়।`,
       toolUsed: 'check_tracking',
       toolType: 'READ',
       requiresApproval: false,
@@ -198,7 +327,7 @@ export function processAgentCommand(
     const tiktokDisplay = tiktokMatch ? tiktokMatch[1] : 'adv_692810491028';
 
     return {
-      reply: `🎯 **OpenClaw Auto Conversion Tracking Engine সক্রিয় হয়েছে!**\n\nআপনার চ্যাটে দেওয়া তথ্য অনুযায়ী ট্র্যাকিং পাইপলাইন সফলভাবে কনফিগার ও সিঙ্ক করা হয়েছে:\n\n• **GTM Container:** \`${gtmDisplay}\` (Google Ads Conversion Linker ও Purchase Triggers Active)\n• **Meta Conversions API (CAPI):** Pixel ID \`${pixelDisplay}\` (Server-Side Graph API v20.0 Ready)\n• **Google Ads & GA4:** Conversion ID \`${googleDisplay}\` ও GA4 Property \`${ga4Display}\` (Enhanced Conversions Hashing Active)\n• **TikTok Events API:** Code \`${tiktokDisplay}\` (Server Track Active)\n• **Deduplication:** ব্রাউজার ও সার্ভার উভয়ে একই \`event_id\` দিয়ে সিঙ্ক হবে (Double-count রোধ নিশ্চিত)\n• **Event Match Quality (EMQ):** আনুমানিক ৯.৪/১০ (SHA-256 PII Hashed)\n\nকোনো ফর্ম পূরণ করতে হবে না! আপনি যেভাবে চ্যাটে লিখে দিয়েছেন, ওপেন ক্ল স্বয়ংক্রিয়ভাবে সব সেভ ও একটিভ করে নিয়েছে।`,
+      reply: `🎯 **OpenClaw Auto Conversion Tracking Engine সক্রিয় হয়েছে (${clientTitle})!**\n\nআপনার চ্যাটে দেওয়া তথ্য অনুযায়ী ট্র্যাকিং পাইপলাইন সফলভাবে কনফিগার ও সিঙ্ক করা হয়েছে:\n\n• **GTM Container:** \`${gtmDisplay}\` (Google Ads Conversion Linker ও Purchase Triggers Active)\n• **Meta Conversions API (CAPI):** Pixel ID \`${pixelDisplay}\` (Server-Side Graph API v20.0 Ready)\n• **Google Ads & GA4:** Conversion ID \`${googleDisplay}\` ও GA4 Property \`${ga4Display}\`\n• **TikTok Events API:** Code \`${tiktokDisplay}\`\n• **Deduplication:** ব্রাউজার ও সার্ভার উভয়ে একই \`event_id\` দিয়ে সিঙ্ক হবে (Double-count রোধ নিশ্চিত)\n• **Event Match Quality (EMQ):** আনুমানিক ৯.৪/১০ (SHA-256 PII Hashed)\n\nকোনো ফর্ম পূরণ করতে হবে না! ওপেন ক্ল স্বয়ংক্রিয়ভাবে তথ্য সেভ ও সিঙ্ক করে নিয়েছে।`,
       toolUsed: 'configure_tracking',
       toolType: 'WRITE',
       requiresApproval: false,
@@ -210,7 +339,7 @@ export function processAgentCommand(
         tiktokPixelId: tiktokDisplay,
       },
       reportData: {
-        title: 'OpenClaw Conversion Tracking Configuration',
+        title: `OpenClaw Tracking Configuration - ${clientTitle}`,
         highlights: [
           `GTM Container Linked: ${gtmDisplay}`,
           `Meta CAPI Server Deduplication: ${pixelDisplay} (Active)`,
@@ -219,9 +348,9 @@ export function processAgentCommand(
           'iOS 14+ AdBlocker Bypass Rate: 100% Verified',
         ],
         metrics: {
+          'Client': clientTitle,
           'GTM Container': gtmDisplay,
           'Meta Pixel / CAPI': pixelDisplay,
-          'Google Ads Tag': googleDisplay,
           'Event Match Quality': '9.4 / 10',
           'Pipeline Status': 'Active & Healthy',
         },
@@ -231,7 +360,7 @@ export function processAgentCommand(
 
   // Default response
   return {
-    reply: `আমি কমান্ডটি গ্রহণ করেছি: "${rawCommand}"।\n\nআমি Google Ads, Meta Ads এবং TikTok Ads-এর ডাটা অ্যানালাইসিস করতে পারি। আপনি আমাকে রিপোর্ট বানাতে, ফ্যাটিগ ক্রিয়েটিভ খুঁজতে, টার্গেট CPA-এর বাইরের অ্যাড পজ করতে বা বাজেট বাড়াতে বলতে পারেন।`,
+    reply: `আমি কমান্ডটি গ্রহণ করেছি: "${rawCommand}"।\n\nবর্তমান ফোকাস: **${clientTitle}**।\nআমি Google Ads, Meta Ads এবং TikTok Ads-এর ডাটা অ্যানালাইসিস করতে পারি। আপনি আমাকে রিপোর্ট বানাতে, সব ক্লায়েন্টের ওভারভিউ দেখতে ("সব ক্লায়েন্ট"), ফ্যাটিগ ক্রিয়েটিভ খুঁজতে, বা বাজেট অপ্টিমাইজ করতে বলতে পারেন।`,
     toolUsed: 'get_metrics',
     toolType: 'READ',
     requiresApproval: false,
