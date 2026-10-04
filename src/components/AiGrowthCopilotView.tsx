@@ -139,7 +139,7 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
         if (parsed.secretKey && !parsed.secretKey.includes('sample') && !parsed.secretKey.includes('998410294857')) {
           setGatewayStatus({
             active: true,
-            model: parsed.modelEngine === 'deepseek-v4-flash' ? 'DeepSeek v4' : parsed.modelEngine || 'OpenClaw Live',
+            model: 'DeepSeek v4 Flash (5 Fallbacks Active)',
           });
           return;
         }
@@ -252,7 +252,9 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
               sender: 'AI',
               text: aiData.reply,
               timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
-              toolUsed: `OpenClaw AI (${aiData.modelUsed || 'DeepSeek'})`,
+              toolUsed: aiData.isFallback 
+                ? `OpenClaw Fallback #${aiData.fallbackIndex} (${aiData.modelUsed})` 
+                : `OpenClaw AI (${aiData.modelUsed || 'DeepSeek v4 Flash'})`,
               toolType: 'READ',
               requiresApproval: false,
             };

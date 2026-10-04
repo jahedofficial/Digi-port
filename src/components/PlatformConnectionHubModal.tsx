@@ -1729,7 +1729,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                         <span>DEFAULT AI MODEL ENGINE (OPENROUTER LLM ROUTING)</span>
                       </label>
                       <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/25">
-                        Enterprise 4-Tier Routing Active
+                        OpenClaw 6-Tier Resilient Chain Active
                       </span>
                     </div>
 
@@ -1739,11 +1739,34 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                         onChange={(e) => setAiGatewaySettings({ ...aiGatewaySettings, modelEngine: e.target.value })}
                         className="w-full bg-transparent px-3 py-2 text-xs font-bold outline-none cursor-pointer text-inherit"
                       >
-                        <option value="deepseek-v4-flash">⚡ Tier 1: DeepSeek v4 Flash (Fast, Low Cost — Recommended Default)</option>
-                        <option value="claude-3-5-sonnet">🧠 Tier 2: Anthropic Claude 3.5 Sonnet (High Accuracy &amp; Copywriting)</option>
-                        <option value="gpt-4o">🔬 Tier 3: OpenAI GPT-4o (Complex Multi-Modal Creative Analysis)</option>
-                        <option value="llama-3-3-70b">🛡️ Tier 4: Meta Llama 3.3 70B Instruct (Open-Source Fast Fallback)</option>
+                        <option value="deepseek-v4-flash">⚡ Primary: openrouter/deepseek/deepseek-v4-flash (DeepSeek v4 Flash — Recommended Default)</option>
+                        <option value="openrouter/openai/gpt-5.4-nano">🚀 Fallback 1: openrouter/openai/gpt-5.4-nano (Ultra-fast Nano)</option>
+                        <option value="openrouter/anthropic/claude-sonnet-5">🧠 Fallback 2: openrouter/anthropic/claude-sonnet-5 (Claude Sonnet 5)</option>
+                        <option value="openrouter/openai/gpt-5.5">🔬 Fallback 3: openrouter/openai/gpt-5.5 (GPT-5.5 Pro)</option>
+                        <option value="openrouter/deepseek/deepseek-v4-pro">🛡️ Fallback 4: openrouter/deepseek/deepseek-v4-pro (DeepSeek v4 Pro)</option>
+                        <option value="openrouter/minimax/minimax-m3">⚡ Fallback 5: openrouter/minimax/minimax-m3 (MiniMax M3)</option>
                       </select>
+                    </div>
+
+                    {/* OpenClaw Active Fallback Chain Visualizer */}
+                    <div className="mt-2.5 p-3 rounded-xl border border-indigo-500/20 bg-indigo-500/5 text-[11px] space-y-1.5">
+                      <div className="font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                        <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
+                        <span>OpenClaw Zero-Downtime Autonomous Fallback Pipeline:</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 flex-wrap font-mono text-[10px]">
+                        <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">Primary: DeepSeek v4 Flash</span>
+                        <span>➔</span>
+                        <span className="px-2 py-0.5 rounded bg-slate-500/10 text-slate-600 dark:text-slate-300">1: GPT-5.4 Nano</span>
+                        <span>➔</span>
+                        <span className="px-2 py-0.5 rounded bg-slate-500/10 text-slate-600 dark:text-slate-300">2: Claude Sonnet 5</span>
+                        <span>➔</span>
+                        <span className="px-2 py-0.5 rounded bg-slate-500/10 text-slate-600 dark:text-slate-300">3: GPT-5.5</span>
+                        <span>➔</span>
+                        <span className="px-2 py-0.5 rounded bg-slate-500/10 text-slate-600 dark:text-slate-300">4: DeepSeek Pro</span>
+                        <span>➔</span>
+                        <span className="px-2 py-0.5 rounded bg-slate-500/10 text-slate-600 dark:text-slate-300">5: MiniMax M3</span>
+                      </div>
                     </div>
                   </div>
 

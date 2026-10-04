@@ -62,7 +62,6 @@ Instructions:
     // Determine target completion endpoint
     let targetEndpoint = 'https://openrouter.ai/api/v1/chat/completions';
     if (baseUrl.includes(':18789') || baseUrl.includes('digiport.neexion.com')) {
-      // Local or VPS Digi-Port OpenClaw Gateway
       targetEndpoint = `${baseUrl}/v1/chat/completions`;
     } else if (baseUrl.includes('openrouter.ai')) {
       targetEndpoint = 'https://openrouter.ai/api/v1/chat/completions';
@@ -70,49 +69,96 @@ Instructions:
       targetEndpoint = `${baseUrl}/chat/completions`;
     }
 
-    // Map model names to OpenRouter supported IDs if needed
-    let modelId = modelEngine;
-    if (modelId === 'deepseek-v4-flash') {
-      modelId = 'deepseek/deepseek-chat';
+    // Map user configured model to API string
+    const mapToOpenRouterId = (name: string): string => {
+      const clean = name.replace(/^openrouter\//i, '').trim();
+      if (clean === 'deepseek-v4-flash' || clean === 'deepseek/deepseek-v4-flash') return 'deepseek/deepseek-chat';
+      if (clean === 'openai/gpt-5.4-nano') return 'openai/gpt-4o-mini';
+      if (clean === 'anthropic/claude-sonnet-5' || clean === 'claude-3-5-sonnet') return 'anthropic/claude-3.5-sonnet';
+      if (clean === 'openai/gpt-5.5' || clean === 'gpt-4o') return 'openai/gpt-4o';
+      if (clean === 'deepseek/deepseek-v4-pro') return 'deepseek/deepseek-chat';
+      if (clean === 'minimax/minimax-m3') return 'minimax/minimax-01';
+      return clean;
+    };
+
+    // OpenClaw Cascading Model Chain (Primary + 5 Configured Fallbacks)
+    const primaryId = mapToOpenRouterId(modelEngine);
+    const candidateModels = [
+      primaryId,
+      'openai/gpt-4o-mini',           // Fallback 1: gpt-5.4-nano
+      'anthropic/claude-3.5-sonnet',  // Fallback 2: claude-sonnet-5
+      'openai/gpt-4o',                // Fallback 3: gpt-5.5
+      'deepseek/deepseek-chat',       // Fallback 4: deepseek-v4-pro
+      'minimax/minimax-01',           // Fallback 5: minimax-m3
+    ];
+
+    // Remove duplicates while preserving exact fallback order
+    const executionChain = Array.from(new Set(candidateModels));
+
+    let lastError: string | null = null;
+
+    // Execute through OpenClaw fallback chain
+    for (let i = 0; i < executionChain.length; i++) {
+      const currentModel = executionChain[i];
+      try {
+        const aiRes = await fetch(targetEndpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+            'HTTP-Referer': 'https://digiport.neexion.com',
+            'X-Title': 'DigiPort OpenClaw Copilot',
+          },
+          body: JSON.stringify({
+            model: currentModel,
+            messages: finalMessages,
+            temperature: 0.7,
+            max_tokens: 800,
+          }),
+        });
+
+        if (aiRes.ok) {
+          const data = await aiRes.json();
+          const reply = data.choices?.[0]?.message?.content;
+          if (reply) {
+            const isFallback = i > 0;
+            const modelLabel = currentModel.includes('deepseek') 
+              ? 'DeepSeek v4 Flash' 
+              : currentModel.includes('claude') 
+                ? 'Claude Sonnet' 
+                : currentModel.includes('mini') 
+                  ? 'GPT-5.4 Nano' 
+                  : currentModel;
+
+            return NextResponse.json({
+              success: true,
+              reply,
+              modelUsed: modelLabel,
+              modelId: data.model || currentModel,
+              isFallback,
+              fallbackIndex: isFallback ? i : 0,
+              gateway: 'OpenClaw Enterprise Gateway (Live)',
+            });
+          }
+        } else {
+          const errData = await aiRes.json().catch(() => null);
+          lastError = errData?.error?.message || `HTTP ${aiRes.status}`;
+          console.warn(`[OpenClaw Fallback] Model ${currentModel} returned: ${lastError}. Trying next fallback...`);
+        }
+      } catch (err: any) {
+        lastError = err.message;
+        console.warn(`[OpenClaw Fallback] Network error on ${currentModel}: ${lastError}. Trying next fallback...`);
+      }
     }
-
-    const aiRes = await fetch(targetEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': 'https://digiport.neexion.com',
-        'X-Title': 'DigiPort OpenClaw Copilot',
-      },
-      body: JSON.stringify({
-        model: modelId,
-        messages: finalMessages,
-        temperature: 0.7,
-        max_tokens: 800,
-      }),
-    });
-
-    if (!aiRes.ok) {
-      const errJson = await aiRes.json().catch(() => null);
-      const errMsg = errJson?.error?.message || `AI Gateway HTTP error ${aiRes.status}`;
-      return NextResponse.json({
-        success: false,
-        error: 'GATEWAY_ERROR',
-        message: errMsg,
-      });
-    }
-
-    const data = await aiRes.json();
-    const reply = data.choices?.[0]?.message?.content || 'কোনো উত্তর পাওয়া যায়নি।';
 
     return NextResponse.json({
-      success: true,
-      reply,
-      modelUsed: data.model || modelId,
-      gateway: 'OpenClaw / OpenRouter (Live)',
-    });
+      success: false,
+      error: 'ALL_FALLBACKS_EXHAUSTED',
+      message: `OpenClaw গেটওয়ে রেসপন্স করতে পারেনি: ${lastError || 'Unknown error'}`,
+    }, { status: 502 });
+
   } catch (error: any) {
-    console.error('AI chat endpoint error:', error);
+    console.error('AI chat endpoint fatal error:', error);
     return NextResponse.json({
       success: false,
       error: 'SERVER_ERROR',
