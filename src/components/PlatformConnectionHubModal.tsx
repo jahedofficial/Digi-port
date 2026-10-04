@@ -488,12 +488,17 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
   };
 
   const handleSaveAiGateway = async () => {
-    const baseUrl = aiGatewaySettings.baseUrl.trim();
+    let baseUrl = aiGatewaySettings.baseUrl.trim();
     const secretKey = aiGatewaySettings.secretKey.trim();
 
     if (!secretKey) {
       showNotification('⚠️ অনুগ্রহ করে OpenRouter / OpenClaw API Secret Key প্রদান করুন।');
       return;
+    }
+
+    // Auto-normalize: If secretKey is an OpenRouter key (sk-or-v1-), it must use official OpenRouter baseUrl
+    if (secretKey.startsWith('sk-or-v1-') && (baseUrl.includes('18789') || baseUrl.includes('195.35') || !baseUrl.includes('openrouter.ai'))) {
+      baseUrl = 'https://openrouter.ai/api/v1';
     }
 
     setIsVerifyingAi(true);
@@ -514,6 +519,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
       if (data.success) {
         const updated = {
           ...aiGatewaySettings,
+          baseUrl,
           isConfigured: true,
         };
         setAiGatewaySettings(updated);
@@ -1710,7 +1716,15 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                         <input
                           type={showAiKey ? 'text' : 'password'}
                           value={aiGatewaySettings.secretKey}
-                          onChange={(e) => setAiGatewaySettings({ ...aiGatewaySettings, secretKey: e.target.value })}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            const shouldAutoFixBaseUrl = val.startsWith('sk-or-v1-') && (aiGatewaySettings.baseUrl.includes('18789') || aiGatewaySettings.baseUrl.includes('195.35'));
+                            setAiGatewaySettings({
+                              ...aiGatewaySettings,
+                              secretKey: val,
+                              baseUrl: shouldAutoFixBaseUrl ? 'https://openrouter.ai/api/v1' : aiGatewaySettings.baseUrl,
+                            });
+                          }}
                           placeholder="sk-or-v1-••••••••••••••••••••"
                           className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
                         />

@@ -81,10 +81,10 @@ Instructions:
 
     // Determine target completion endpoint
     let targetEndpoint = 'https://openrouter.ai/api/v1/chat/completions';
-    if (baseUrl.includes(':18789') || baseUrl.includes('digiport.neexion.com')) {
-      targetEndpoint = `${baseUrl}/v1/chat/completions`;
-    } else if (baseUrl.includes('openrouter.ai')) {
+    if (apiKey.startsWith('sk-or-v1-') || baseUrl.includes('openrouter.ai')) {
       targetEndpoint = 'https://openrouter.ai/api/v1/chat/completions';
+    } else if (baseUrl.includes(':18789') || baseUrl.includes('digiport.neexion.com')) {
+      targetEndpoint = 'http://127.0.0.1:18789/v1/chat/completions';
     } else {
       targetEndpoint = `${baseUrl}/chat/completions`;
     }
