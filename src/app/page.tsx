@@ -60,6 +60,15 @@ export default function Home() {
       setCurrentUser(savedUser);
     }
     setIsAuthLoaded(true);
+
+    // Support direct tab links like ?tab=copilot or ?tab=ai
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab')?.toLowerCase();
+      if (tabParam === 'copilot' || tabParam === 'ai' || tabParam === 'ai_copilot') {
+        setActiveNav('AI_COPILOT');
+      }
+    } catch {}
   }, []);
 
   // Hydrate workspaces & active direct credentials from localStorage on mount
