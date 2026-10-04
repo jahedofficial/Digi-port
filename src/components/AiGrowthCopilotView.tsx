@@ -132,11 +132,14 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
   });
 
   useEffect(() => {
+    // 1. Check local storage
+    let hasLocalKey = false;
     try {
       const savedAi = localStorage.getItem('dm_ai_gateway_settings');
       if (savedAi) {
         const parsed = JSON.parse(savedAi);
         if (parsed.secretKey && !parsed.secretKey.includes('sample') && !parsed.secretKey.includes('998410294857')) {
+          hasLocalKey = true;
           setGatewayStatus({
             active: true,
             model: 'DeepSeek v4 Flash (5 Fallbacks Active)',
@@ -145,7 +148,25 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
         }
       }
     } catch {}
-    setGatewayStatus({ active: false, model: 'Rule-Based' });
+
+    // 2. Check server-side environment key
+    fetch('/api/ai/chat')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.configured) {
+          setGatewayStatus({
+            active: true,
+            model: data.model || 'DeepSeek v4 Flash (5 Fallbacks Active)',
+          });
+        } else if (!hasLocalKey) {
+          setGatewayStatus({ active: false, model: 'Rule-Based (Key Required)' });
+        }
+      })
+      .catch(() => {
+        if (!hasLocalKey) {
+          setGatewayStatus({ active: false, model: 'Rule-Based' });
+        }
+      });
   }, [isSettingsOpen]);
 
   const [trackingConfig, setTrackingConfig] = useState<ChatbotTrackingConfig>({
@@ -227,8 +248,8 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
 
     const hasRealAiKey = aiGateway?.secretKey && !aiGateway.secretKey.includes('sample') && !aiGateway.secretKey.includes('998410294857');
 
-    // If it's a casual or analytical inquiry and we have OpenClaw credentials, call real AI Gateway
-    if (!isStrictAction && hasRealAiKey && !currentAttachment) {
+    // Always attempt real AI Gateway unless it is a strict deterministic action
+    if (!isStrictAction && !currentAttachment) {
       fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -241,7 +262,7 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
             campaigns,
             creatives,
           },
-          gatewaySettings: aiGateway,
+          gatewaySettings: aiGateway || {},
         }),
       })
         .then((res) => res.json())
@@ -261,8 +282,11 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
             setMessages((prev) => [...prev, aiMsg]);
             setIsTyping(false);
           } else {
-            // If gateway reported an error, show clear error and fallback
-            executeFallbackRunner(text, currentAttachment);
+            let extraHint = '';
+            if (aiData.error === 'NO_KEY') {
+              extraHint = '\n\n💡 *নোট: OpenClaw / OpenRouter API Key এখনো সেভ করা হয়নি। আসল এআই রেসপন্সের জন্য Platform Connection Hub থেকে আপনার OpenRouter Key দিয়ে "Verify & Save" করুন।*';
+            }
+            executeFallbackRunner(text, currentAttachment, extraHint);
           }
         })
         .catch(() => {
@@ -275,7 +299,7 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
     }
   };
 
-  const executeFallbackRunner = (text: string, currentAttachment: any) => {
+  const executeFallbackRunner = (text: string, currentAttachment: any, extraHint: string = '') => {
     let replyText = '';
     if (currentAttachment && !text) {
       replyText = `📄 **${currentAttachment.name}** (${currentAttachment.size}) ডকুমেন্টটি সফলভাবে আপলোড হয়েছে।\n\nফাইল থেকে মেট্রিক্স স্ক্যান করা হয়েছে। ক্যাম্পেইনের পারফর্ম্যান্স বিশ্লেষণ করতে আমাকে যেকোনো প্রশ্ন করতে পারেন।`;
@@ -302,7 +326,7 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
     const aiMsg: ChatMessage = {
       id: `ai-${Date.now()}`,
       sender: 'AI',
-      text: replyText || res.reply,
+      text: (replyText || res.reply) + extraHint,
       timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
       toolUsed: currentAttachment ? 'parse_document' : res.toolUsed,
       toolType: res.toolType,

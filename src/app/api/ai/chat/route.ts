@@ -1,5 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export async function GET() {
+  const hasEnvKey = Boolean(
+    process.env.OPENROUTER_API_KEY && 
+    !process.env.OPENROUTER_API_KEY.includes('sample') &&
+    process.env.OPENROUTER_API_KEY.length > 15
+  );
+  return NextResponse.json({
+    configured: hasEnvKey,
+    model: 'DeepSeek v4 Flash (5 Fallbacks Active)',
+  });
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
