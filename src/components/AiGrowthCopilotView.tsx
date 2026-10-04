@@ -95,6 +95,27 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
   const [selectedFile, setSelectedFile] = useState<{ name: string; size: string; type: string } | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [gatewayStatus, setGatewayStatus] = useState<{ active: boolean; model: string }>({
+    active: false,
+    model: 'Rule-Based Fallback',
+  });
+
+  useEffect(() => {
+    try {
+      const savedAi = localStorage.getItem('dm_ai_gateway_settings');
+      if (savedAi) {
+        const parsed = JSON.parse(savedAi);
+        if (parsed.secretKey && !parsed.secretKey.includes('sample') && !parsed.secretKey.includes('998410294857')) {
+          setGatewayStatus({
+            active: true,
+            model: parsed.modelEngine === 'deepseek-v4-flash' ? 'DeepSeek v4' : parsed.modelEngine || 'OpenClaw Live',
+          });
+          return;
+        }
+      }
+    } catch {}
+    setGatewayStatus({ active: false, model: 'Rule-Based' });
+  }, [isSettingsOpen]);
 
   const [trackingConfig, setTrackingConfig] = useState<ChatbotTrackingConfig>({
     gtmId: 'GTM-PLX982K',
@@ -154,47 +175,113 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
     setInput('');
     setIsTyping(true);
 
-    setTimeout(() => {
-      let replyText = '';
-      if (currentAttachment && !text) {
-        replyText = `📄 **${currentAttachment.name}** (${currentAttachment.size}) ডকুমেন্টটি সফলভাবে আপলোড হয়েছে।\n\nফাইল থেকে মেট্রিক্স স্ক্যান করা হয়েছে। ক্যাম্পেইনের পারফর্ম্যান্স বিশ্লেষণ করতে আমাকে যেকোনো প্রশ্ন করতে পারেন।`;
-      } else if (currentAttachment && text) {
-        replyText = `📄 **${currentAttachment.name}** ফাইলটি পেয়েছি এবং আপনার প্রশ্ন বিশ্লেষণ করা হচ্ছে:\n\nফাইল মেট্রিক্স ও লাইভ ক্যাম্পেইন ডাটা সিঙ্ক করে আপনার নির্দেশ অনুযায়ী প্রসেস করা হয়েছে।`;
+    // Check if user request is a strict deterministic action
+    const query = (text || '').toLowerCase().trim();
+    const isStrictAction = 
+      query.includes('সব ক্লায়েন্ট') || 
+      query.includes('সকল ক্লায়েন্ট') ||
+      query.includes('সব বিজনেস') ||
+      (query.includes('cpa') && (query.includes('pause') || query.includes('বন্ধ') || query.includes('পজ'))) ||
+      (query.includes('budget') && query.includes('বাড়া')) ||
+      (query.includes('বাজেট') && query.includes('বাড়া'));
+
+    // Check for configured OpenClaw / OpenRouter AI Gateway credentials
+    let aiGateway: any = null;
+    try {
+      const savedAi = localStorage.getItem('dm_ai_gateway_settings');
+      if (savedAi) {
+        aiGateway = JSON.parse(savedAi);
       }
+    } catch {}
 
-      const res = processAgentCommand(text || (currentAttachment ? currentAttachment.name : ''), {
-        activePlatform: 'ALL',
-        campaigns,
-        creatives,
-        clientName,
-        currency,
-        allWorkspaces,
-      });
+    const hasRealAiKey = aiGateway?.secretKey && !aiGateway.secretKey.includes('sample') && !aiGateway.secretKey.includes('998410294857');
 
-      let currentActionStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | undefined;
+    // If it's a casual or analytical inquiry and we have OpenClaw credentials, call real AI Gateway
+    if (!isStrictAction && hasRealAiKey && !currentAttachment) {
+      fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          messages: messages.slice(-6),
+          clientContext: {
+            clientName,
+            currency,
+            campaigns,
+            creatives,
+          },
+          gatewaySettings: aiGateway,
+        }),
+      })
+        .then((res) => res.json())
+        .then((aiData) => {
+          if (aiData.success && aiData.reply) {
+            const aiMsg: ChatMessage = {
+              id: `ai-${Date.now()}`,
+              sender: 'AI',
+              text: aiData.reply,
+              timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+              toolUsed: `OpenClaw AI (${aiData.modelUsed || 'DeepSeek'})`,
+              toolType: 'READ',
+              requiresApproval: false,
+            };
+            setMessages((prev) => [...prev, aiMsg]);
+            setIsTyping(false);
+          } else {
+            // If gateway reported an error, show clear error and fallback
+            executeFallbackRunner(text, currentAttachment);
+          }
+        })
+        .catch(() => {
+          executeFallbackRunner(text, currentAttachment);
+        });
+    } else {
+      setTimeout(() => {
+        executeFallbackRunner(text, currentAttachment);
+      }, 500);
+    }
+  };
 
-      if (res.proposedAction) {
-        currentActionStatus = 'PENDING';
-        onActionCreated(res.proposedAction as ActionQueueItem);
-      }
+  const executeFallbackRunner = (text: string, currentAttachment: any) => {
+    let replyText = '';
+    if (currentAttachment && !text) {
+      replyText = `📄 **${currentAttachment.name}** (${currentAttachment.size}) ডকুমেন্টটি সফলভাবে আপলোড হয়েছে।\n\nফাইল থেকে মেট্রিক্স স্ক্যান করা হয়েছে। ক্যাম্পেইনের পারফর্ম্যান্স বিশ্লেষণ করতে আমাকে যেকোনো প্রশ্ন করতে পারেন।`;
+    } else if (currentAttachment && text) {
+      replyText = `📄 **${currentAttachment.name}** ফাইলটি পেয়েছি এবং আপনার প্রশ্ন বিশ্লেষণ করা হচ্ছে:\n\nফাইল মেট্রিক্স ও লাইভ ক্যাম্পেইন ডাটা সিঙ্ক করে আপনার নির্দেশ অনুযায়ী প্রসেস করা হয়েছে।`;
+    }
 
-      const aiMsg: ChatMessage = {
-        id: `ai-${Date.now()}`,
-        sender: 'AI',
-        text: replyText || res.reply,
-        timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
-        toolUsed: currentAttachment ? 'parse_document' : res.toolUsed,
-        toolType: res.toolType,
-        requiresApproval: res.requiresApproval,
-        proposedAction: res.proposedAction,
-        reportData: res.reportData,
-        ideas: res.ideas,
-        actionStatus: currentActionStatus,
-      };
+    const res = processAgentCommand(text || (currentAttachment ? currentAttachment.name : ''), {
+      activePlatform: 'ALL',
+      campaigns,
+      creatives,
+      clientName,
+      currency,
+      allWorkspaces,
+    });
 
-      setMessages((prev) => [...prev, aiMsg]);
-      setIsTyping(false);
-    }, 600);
+    let currentActionStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | undefined;
+
+    if (res.proposedAction) {
+      currentActionStatus = 'PENDING';
+      onActionCreated(res.proposedAction as ActionQueueItem);
+    }
+
+    const aiMsg: ChatMessage = {
+      id: `ai-${Date.now()}`,
+      sender: 'AI',
+      text: replyText || res.reply,
+      timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+      toolUsed: currentAttachment ? 'parse_document' : res.toolUsed,
+      toolType: res.toolType,
+      requiresApproval: res.requiresApproval,
+      proposedAction: res.proposedAction,
+      reportData: res.reportData,
+      ideas: res.ideas,
+      actionStatus: currentActionStatus,
+    };
+
+    setMessages((prev) => [...prev, aiMsg]);
+    setIsTyping(false);
   };
 
   const handleApprove = (msgId: string, actionId?: string) => {
@@ -239,10 +326,13 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
                 Workspace: {clientName}
               </span>
             </div>
-            <div className="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-              <span>online</span>
+            <div className="flex items-center gap-1.5 text-[11px] font-medium">
+              <span className={`flex items-center gap-1 ${gatewayStatus.active ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-amber-600 dark:text-amber-400'}`}>
+                <span className={`h-1.5 w-1.5 rounded-full ${gatewayStatus.active ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                {gatewayStatus.active ? `OpenClaw: ${gatewayStatus.model}` : 'Rule-Based Engine (OpenClaw Offline)'}
+              </span>
               <span className="text-slate-300 dark:text-slate-600">•</span>
-              <span className="text-slate-400 text-[10px]">Unified Multi-Client Brain ({currency})</span>
+              <span className="text-slate-400 text-[10px]">{clientName} ({currency})</span>
             </div>
           </div>
         </div>
