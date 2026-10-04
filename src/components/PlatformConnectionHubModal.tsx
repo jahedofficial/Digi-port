@@ -56,6 +56,12 @@ interface PlatformConnectionHubModalProps {
   onClose: () => void;
   theme: 'light' | 'dark';
   initialPlatform?: 'META' | 'GOOGLE' | 'TIKTOK';
+  onSyncPlatformData?: (data: {
+    campaigns: any[];
+    creatives: any[];
+    metrics: any;
+    platform: 'META' | 'GOOGLE' | 'TIKTOK';
+  }) => void;
 }
 
 export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProps> = ({
@@ -63,6 +69,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
   onClose,
   theme,
   initialPlatform = 'META',
+  onSyncPlatformData,
 }) => {
   const isLight = theme === 'light';
   
@@ -75,12 +82,12 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
   const [notification, setNotification] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
-  // --- 1. META DIRECT SYSTEM TOKEN STATE (Image 5) ---
+  // --- 1. META DIRECT SYSTEM TOKEN STATE ---
   const [metaSettings, setMetaSettings] = useState({
-    token: 'EAABwzL1live_sample_system_user_token_99482019482019482019',
-    adAccountId: 'act_942386384851346',
+    token: '',
+    adAccountId: '',
     scope: 'READ_WRITE' as 'READ_ONLY' | 'READ_WRITE',
-    isConnected: true,
+    isConnected: false,
   });
   const [showMetaToken, setShowMetaToken] = useState(false);
   const [isMetaGuideOpen, setIsMetaGuideOpen] = useState(false);
@@ -265,17 +272,53 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
   };
 
   // --- Direct API Verification Handlers ---
-  const handleVerifyMeta = () => {
+  const handleVerifyMeta = async () => {
+    const rawToken = metaSettings.token.trim();
+    const rawAccountId = metaSettings.adAccountId.trim();
+
+    if (!rawToken || !rawAccountId) {
+      showNotification('দয়া করে Meta System User Token এবং Target Ad Account ID দুটিই পূরণ করুন।');
+      return;
+    }
+
     setIsVerifyingMeta(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch('/api/platforms/meta/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: rawToken,
+          adAccountId: rawAccountId,
+        }),
+      });
+
+      const data = await res.json();
       setIsVerifyingMeta(false);
-      const updated = { ...metaSettings, isConnected: true };
-      setMetaSettings(updated);
-      try {
-        localStorage.setItem('dm_meta_direct_settings', JSON.stringify(updated));
-      } catch {}
-      showNotification(`✓ Meta System User Token verified! Connected to ${metaSettings.adAccountId || 'Meta Ad Account'} with Full Read & Write access.`);
-    }, 700);
+
+      if (data.success) {
+        const updated = { ...metaSettings, isConnected: true };
+        setMetaSettings(updated);
+        try {
+          localStorage.setItem('dm_meta_direct_settings', JSON.stringify(updated));
+        } catch {}
+
+        if (onSyncPlatformData) {
+          onSyncPlatformData({
+            campaigns: data.campaigns || [],
+            creatives: data.creatives || [],
+            metrics: data.metrics || {},
+            platform: 'META',
+          });
+        }
+
+        showNotification(`✓ ${data.message || 'Meta Ads সফলভাবে সিঙ্ক হয়েছে!'}`);
+      } else {
+        showNotification(`⚠️ Meta ভেরিফিকেশন ব্যর্থ হয়েছে: ${data.error || 'টোকেন বা অ্যাকাউন্ট আইডি সঠিক নয়'}`);
+      }
+    } catch (err: any) {
+      setIsVerifyingMeta(false);
+      showNotification(`⚠️ সার্ভার এরর: ${err.message || 'কানেক্ট করা সম্ভব হয়নি'}`);
+    }
   };
 
   const handleRevokeMeta = () => {

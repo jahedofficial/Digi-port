@@ -35,7 +35,7 @@ import {
   INITIAL_TRACKING_CHECKS, 
   INITIAL_OPTIMIZATION_RULES 
 } from '@/lib/mock-data';
-import { CampaignData, ActionQueueItem, UserProfile } from '@/types';
+import { CampaignData, CreativeData, ActionQueueItem, UserProfile } from '@/types';
 import { AuthLoginView } from '@/components/AuthLoginView';
 import { getStoredAuthUser, setStoredAuthUser } from '@/lib/auth-users';
 
@@ -193,6 +193,38 @@ export default function Home() {
         return a;
       })
     );
+  };
+
+  const handlePlatformSync = (data: {
+    campaigns: CampaignData[];
+    creatives: CreativeData[];
+    metrics: any;
+    platform: 'META' | 'GOOGLE' | 'TIKTOK';
+  }) => {
+    if (data.campaigns && data.campaigns.length > 0) {
+      setCampaigns(data.campaigns);
+    }
+    if (data.creatives && data.creatives.length > 0) {
+      setCreatives(data.creatives);
+    }
+    if (data.metrics) {
+      setMetrics((prev) => ({
+        ...prev,
+        [data.platform]: data.metrics,
+        ALL: {
+          ...prev.ALL,
+          spend: data.metrics.spend || 0,
+          revenue: data.metrics.revenue || 0,
+          conversions: data.metrics.conversions || 0,
+          roas: data.metrics.roas || 0,
+          cpa: data.metrics.cpa || 0,
+          impressions: data.metrics.impressions || 0,
+          clicks: data.metrics.clicks || 0,
+          ctr: data.metrics.ctr || 0,
+          cpc: data.metrics.cpc || 0,
+        },
+      }));
+    }
   };
 
   const handleToggleCampaignStatus = (campaignId: string) => {
@@ -544,6 +576,7 @@ export default function Home() {
         onClose={() => setIsConnectionHubOpen(false)}
         theme={theme}
         initialPlatform={connectionHubPlatform}
+        onSyncPlatformData={handlePlatformSync}
       />
     </div>
   );
