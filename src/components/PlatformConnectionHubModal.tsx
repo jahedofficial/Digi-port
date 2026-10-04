@@ -61,6 +61,9 @@ interface PlatformConnectionHubModalProps {
     creatives: any[];
     metrics: any;
     platform: 'META' | 'GOOGLE' | 'TIKTOK';
+    accountName?: string;
+    accountId?: string;
+    currency?: string;
   }) => void;
 }
 
@@ -124,16 +127,16 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
 
   // --- 4. OPENCLAW & OPENROUTER AI GATEWAY STATE (Image 3) ---
   const [aiGatewaySettings, setAiGatewaySettings] = useState({
-    baseUrl: 'http://195.35.7.50:18789',
-    secretKey: 'sk-or-v1-9984102948571029485710294857',
+    baseUrl: 'https://openrouter.ai/api/v1',
+    secretKey: '',
     modelEngine: 'deepseek-v4-flash',
     persona: 'Senior Performance Marketing Strategist & Copywriter for Luxury Streetwear Brand (FAKEIT)',
-    isConfigured: true,
+    isConfigured: false,
   });
   const [showAiKey, setShowAiKey] = useState(false);
   const [isVerifyingAi, setIsVerifyingAi] = useState(false);
 
-  // Load saved credentials from localStorage on mount
+  // Load saved credentials from localStorage on mount & purge legacy dummy values
   useEffect(() => {
     try {
       const savedMeta = localStorage.getItem('dm_meta_direct_settings');
@@ -153,7 +156,13 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
       const savedGoogle = localStorage.getItem('dm_google_direct_settings');
       if (savedGoogle) {
         const parsed = JSON.parse(savedGoogle);
-        if (parsed.developerToken && !parsed.developerToken.includes('sample')) {
+        if (
+          parsed.ga4PropertyId === '551294668' || 
+          parsed.developerToken?.includes('sample') || 
+          parsed.customerId === '456-233-9588'
+        ) {
+          localStorage.removeItem('dm_google_direct_settings');
+        } else if (parsed.developerToken && !parsed.developerToken.includes('sample')) {
           setGoogleSettings({ ...parsed, scope: 'READ_WRITE' });
         } else {
           localStorage.removeItem('dm_google_direct_settings');
@@ -163,7 +172,9 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
       const savedTiktok = localStorage.getItem('dm_tiktok_direct_settings');
       if (savedTiktok) {
         const parsed = JSON.parse(savedTiktok);
-        if (parsed.accessToken && !parsed.accessToken.includes('sample')) {
+        if (parsed.advertiserId === '71948102938471' || parsed.accessToken?.includes('sample')) {
+          localStorage.removeItem('dm_tiktok_direct_settings');
+        } else if (parsed.accessToken && !parsed.accessToken.includes('sample')) {
           setTiktokSettings({ ...parsed, scope: 'READ_WRITE' });
         } else {
           localStorage.removeItem('dm_tiktok_direct_settings');
@@ -171,7 +182,14 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
       }
 
       const savedAi = localStorage.getItem('dm_ai_gateway_settings');
-      if (savedAi) setAiGatewaySettings(JSON.parse(savedAi));
+      if (savedAi) {
+        const parsed = JSON.parse(savedAi);
+        if (parsed.secretKey && (parsed.secretKey.includes('998410294857') || parsed.secretKey.includes('sample'))) {
+          localStorage.removeItem('dm_ai_gateway_settings');
+        } else {
+          setAiGatewaySettings(parsed);
+        }
+      }
     } catch {
       // ignore
     }
@@ -329,6 +347,9 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
             creatives: data.creatives || [],
             metrics: data.metrics || {},
             platform: 'META',
+            accountName: data.accountName,
+            accountId: fullAccountId,
+            currency: data.currency,
           });
         }
 
@@ -351,43 +372,162 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
     showNotification('Meta System User Token revoked.');
   };
 
-  const handleVerifyGoogle = () => {
+  const handleVerifyGoogle = async () => {
+    const customerId = googleSettings.customerId.trim();
+    const developerToken = googleSettings.developerToken.trim();
+    const ga4PropertyId = googleSettings.ga4PropertyId.trim();
+
+    if (!customerId && !ga4PropertyId) {
+      showNotification('⚠️ অনুগ্রহ করে Google Ads Customer ID অথবা GA4 Property ID প্রদান করুন।');
+      return;
+    }
+
     setIsVerifyingGoogle(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch('/api/platforms/google/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerId,
+          developerToken,
+          clientId: googleSettings.clientId.trim(),
+          clientSecret: googleSettings.clientSecret.trim(),
+          ga4PropertyId,
+        }),
+      });
+
+      const data = await res.json();
       setIsVerifyingGoogle(false);
-      const updated = { ...googleSettings, isConnected: true, isGa4Connected: true };
-      setGoogleSettings(updated);
-      try {
-        localStorage.setItem('dm_google_direct_settings', JSON.stringify(updated));
-      } catch {}
-      showNotification(`✓ Google Ads API (CID: ${googleSettings.customerId}) & GA4 verified with Full Read & Write access!`);
-    }, 700);
+
+      if (data.success) {
+        const updated = {
+          ...googleSettings,
+          isConnected: Boolean(data.isGoogleConnected),
+          isGa4Connected: Boolean(data.isGa4Connected),
+        };
+        setGoogleSettings(updated);
+        try {
+          localStorage.setItem('dm_google_direct_settings', JSON.stringify(updated));
+        } catch {}
+
+        if (onSyncPlatformData) {
+          onSyncPlatformData({
+            campaigns: data.campaigns || [],
+            creatives: [],
+            metrics: data.metrics || {},
+            platform: 'GOOGLE',
+            accountName: data.accountName,
+            accountId: data.accountId || customerId,
+            currency: data.currency || 'USD',
+          });
+        }
+        showNotification(`✓ ${data.message}`);
+      } else {
+        showNotification(`⚠️ Google Ads / GA4 ভেরিফিকেশন ব্যর্থ হয়েছে: ${data.error}`);
+      }
+    } catch (err: any) {
+      setIsVerifyingGoogle(false);
+      showNotification(`⚠️ সার্ভার এরর: ${err.message || 'কানেক্ট করা সম্ভব হয়নি'}`);
+    }
   };
 
-  const handleVerifyTiktok = () => {
+  const handleVerifyTiktok = async () => {
+    const advId = tiktokSettings.advertiserId.trim();
+    const token = tiktokSettings.accessToken.trim();
+
+    if (!advId || !token) {
+      showNotification('⚠️ অনুগ্রহ করে TikTok Advertiser ID এবং Long-Lived Access Token উভয়ই পূরণ করুন।');
+      return;
+    }
+
     setIsVerifyingTiktok(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch('/api/platforms/tiktok/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          advertiserId: advId,
+          accessToken: token,
+          appId: tiktokSettings.appId.trim(),
+          appSecret: tiktokSettings.appSecret.trim(),
+        }),
+      });
+
+      const data = await res.json();
       setIsVerifyingTiktok(false);
-      const updated = { ...tiktokSettings, isConnected: true };
-      setTiktokSettings(updated);
-      try {
-        localStorage.setItem('dm_tiktok_direct_settings', JSON.stringify(updated));
-      } catch {}
-      showNotification(`✓ TikTok Marketing API verified! Connected to Advertiser ${tiktokSettings.advertiserId} with Full Read & Write access.`);
-    }, 700);
+
+      if (data.success) {
+        const updated = {
+          ...tiktokSettings,
+          isConnected: true,
+        };
+        setTiktokSettings(updated);
+        try {
+          localStorage.setItem('dm_tiktok_direct_settings', JSON.stringify(updated));
+        } catch {}
+
+        if (onSyncPlatformData) {
+          onSyncPlatformData({
+            campaigns: data.campaigns || [],
+            creatives: [],
+            metrics: data.metrics || {},
+            platform: 'TIKTOK',
+            accountName: data.accountName,
+            accountId: data.advertiserId,
+            currency: data.currency || 'USD',
+          });
+        }
+        showNotification(`✓ ${data.message}`);
+      } else {
+        showNotification(`⚠️ TikTok ভেরিফিকেশন ব্যর্থ হয়েছে: ${data.error}`);
+      }
+    } catch (err: any) {
+      setIsVerifyingTiktok(false);
+      showNotification(`⚠️ সার্ভার এরর: ${err.message || 'কানেক্ট করা সম্ভব হয়নি'}`);
+    }
   };
 
-  const handleSaveAiGateway = () => {
+  const handleSaveAiGateway = async () => {
+    const baseUrl = aiGatewaySettings.baseUrl.trim();
+    const secretKey = aiGatewaySettings.secretKey.trim();
+
+    if (!secretKey) {
+      showNotification('⚠️ অনুগ্রহ করে OpenRouter / OpenClaw API Secret Key প্রদান করুন।');
+      return;
+    }
+
     setIsVerifyingAi(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch('/api/platforms/ai/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          baseUrl,
+          secretKey,
+          modelEngine: aiGatewaySettings.modelEngine,
+        }),
+      });
+
+      const data = await res.json();
       setIsVerifyingAi(false);
-      const updated = { ...aiGatewaySettings, isConfigured: true };
-      setAiGatewaySettings(updated);
-      try {
-        localStorage.setItem('dm_ai_gateway_settings', JSON.stringify(updated));
-      } catch {}
-      showNotification(`✓ OpenClaw AI Gateway saved and connected to ${aiGatewaySettings.baseUrl}!`);
-    }, 600);
+
+      if (data.success) {
+        const updated = {
+          ...aiGatewaySettings,
+          isConfigured: true,
+        };
+        setAiGatewaySettings(updated);
+        try {
+          localStorage.setItem('dm_ai_gateway_settings', JSON.stringify(updated));
+        } catch {}
+        showNotification(`✓ ${data.message}`);
+      } else {
+        showNotification(`⚠️ AI Gateway ভেরিফিকেশন ব্যর্থ হয়েছে: ${data.error}`);
+      }
+    } catch (err: any) {
+      setIsVerifyingAi(false);
+      showNotification(`⚠️ সার্ভার এরর: ${err.message || 'কানেক্ট করা সম্ভব হয়নি'}`);
+    }
   };
 
   const totalSelectedAccounts = connections.reduce(
@@ -1119,7 +1259,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                           type="text"
                           value={googleSettings.customerId}
                           onChange={(e) => setGoogleSettings({ ...googleSettings, customerId: e.target.value })}
-                          placeholder="456-233-9588"
+                          placeholder="e.g. 123-456-7890"
                           className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
                         />
                       </div>
@@ -1229,10 +1369,17 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                         </p>
                       </div>
 
-                      <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
-                        <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span>GA4 Connected ({googleSettings.ga4PropertyId})</span>
-                      </span>
+                      {googleSettings.isGa4Connected && googleSettings.ga4PropertyId ? (
+                        <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
+                          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                          <span>GA4 Connected ({googleSettings.ga4PropertyId})</span>
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1.5 rounded-full bg-slate-500/10 px-3 py-1 text-[11px] font-medium text-slate-400 border border-slate-500/20 shrink-0">
+                          <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                          <span>Not Connected</span>
+                        </span>
+                      )}
                     </div>
 
                     <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-1">
@@ -1246,7 +1393,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                             type="text"
                             value={googleSettings.ga4PropertyId}
                             onChange={(e) => setGoogleSettings({ ...googleSettings, ga4PropertyId: e.target.value })}
-                            placeholder="551294668"
+                            placeholder="e.g. 551294668"
                             className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
                           />
                         </div>
@@ -1346,7 +1493,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                           type="text"
                           value={tiktokSettings.advertiserId}
                           onChange={(e) => setTiktokSettings({ ...tiktokSettings, advertiserId: e.target.value })}
-                          placeholder="71948102938471"
+                          placeholder="e.g. 71948102938471"
                           className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
                         />
                       </div>
@@ -1364,7 +1511,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                           type="text"
                           value={tiktokSettings.appId}
                           onChange={(e) => setTiktokSettings({ ...tiktokSettings, appId: e.target.value })}
-                          placeholder="73849182746182"
+                          placeholder="e.g. 73849182746182"
                           className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
                         />
                       </div>
@@ -1481,10 +1628,17 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                         <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 whitespace-nowrap">
                           Reasoning Engine
                         </span>
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 whitespace-nowrap">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          Configured
-                        </span>
+                        {aiGatewaySettings.isConfigured ? (
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 whitespace-nowrap">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            Configured
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-medium tracking-wide bg-slate-500/10 text-slate-400 border border-slate-500/20 whitespace-nowrap">
+                            <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                            Not Configured
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-slate-400 mt-1 font-medium line-clamp-1">
                         High-performance LLM routing, OpenRouter API keys, and autonomous ad strategy reasoning.
@@ -1498,8 +1652,8 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                       disabled={isVerifyingAi}
                       className="h-9 px-4 rounded-xl text-xs font-bold whitespace-nowrap bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm shadow-indigo-500/25 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-60"
                     >
-                      <Zap className="h-3.5 w-3.5 fill-current" />
-                      <span>Save Gateway</span>
+                      {isVerifyingAi ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5 fill-current" />}
+                      <span>Verify &amp; Save</span>
                     </button>
                   </div>
                 </div>
@@ -1519,7 +1673,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                           type="text"
                           value={aiGatewaySettings.baseUrl}
                           onChange={(e) => setAiGatewaySettings({ ...aiGatewaySettings, baseUrl: e.target.value })}
-                          placeholder="http://195.35.7.50:18789"
+                          placeholder="https://openrouter.ai/api/v1"
                           className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
                         />
                       </div>

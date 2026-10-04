@@ -19,6 +19,7 @@ import {
   Sliders,
   Zap
 } from 'lucide-react';
+import { CampaignData } from '@/types';
 
 interface TikTokAdsIntelligenceDashboardProps {
   theme: 'light' | 'dark';
@@ -26,6 +27,8 @@ interface TikTokAdsIntelligenceDashboardProps {
   onOpenHub?: () => void;
   accountName?: string;
   accountId?: string;
+  campaigns?: CampaignData[];
+  metrics?: any;
 }
 
 export const TikTokAdsIntelligenceDashboard: React.FC<TikTokAdsIntelligenceDashboardProps> = ({
@@ -34,6 +37,8 @@ export const TikTokAdsIntelligenceDashboard: React.FC<TikTokAdsIntelligenceDashb
   onOpenHub,
   accountName = 'TikTok Ads (Not connected)',
   accountId = '',
+  campaigns = [],
+  metrics,
 }) => {
   const isLight = theme === 'light';
   const [selectedDateRange, setSelectedDateRange] = useState('Last 30 days');

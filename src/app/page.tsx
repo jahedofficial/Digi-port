@@ -62,6 +62,119 @@ export default function Home() {
     setIsAuthLoaded(true);
   }, []);
 
+  // Hydrate workspaces & active direct credentials from localStorage on mount
+  React.useEffect(() => {
+    try {
+      const savedWs = localStorage.getItem('dm_client_workspaces');
+      let baseWorkspaces: ClientWorkspace[] = INITIAL_CLIENT_WORKSPACES;
+      if (savedWs) {
+        const parsed = JSON.parse(savedWs);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          baseWorkspaces = parsed;
+        }
+      }
+
+      // Check for active Meta direct credentials
+      const savedMeta = localStorage.getItem('dm_meta_direct_settings');
+      let hasMeta = false;
+      let metaId = '';
+      let metaName = 'Meta Ads';
+      if (savedMeta) {
+        const parsed = JSON.parse(savedMeta);
+        if (parsed.token && parsed.adAccountId && parsed.isConnected) {
+          hasMeta = true;
+          const cleanId = (parsed.adAccountId || '').replace(/^act_?/i, '');
+          metaId = `act_${cleanId}`;
+          metaName = 'Fakeit Meta Ads';
+        }
+      }
+
+      // Check for active Google direct credentials
+      const savedGoogle = localStorage.getItem('dm_google_direct_settings');
+      let hasGoogle = false;
+      let googleId = '';
+      if (savedGoogle) {
+        const parsed = JSON.parse(savedGoogle);
+        if (parsed.customerId && parsed.isConnected && !parsed.customerId.includes('456-233-9588')) {
+          hasGoogle = true;
+          googleId = parsed.customerId;
+        }
+      }
+
+      // Check for active TikTok direct credentials
+      const savedTiktok = localStorage.getItem('dm_tiktok_direct_settings');
+      let hasTiktok = false;
+      let tiktokId = '';
+      if (savedTiktok) {
+        const parsed = JSON.parse(savedTiktok);
+        if (parsed.advertiserId && parsed.isConnected && !parsed.advertiserId.includes('71948102938471')) {
+          hasTiktok = true;
+          tiktokId = parsed.advertiserId;
+        }
+      }
+
+      const hydrated = baseWorkspaces.map((ws, i) => {
+        if (i === 0) {
+          const updatedConnected = { ...ws.connectedAccounts };
+          if (hasMeta) {
+            updatedConnected.meta = { id: metaId, name: metaName, status: 'CONNECTED' };
+          }
+          if (hasGoogle) {
+            updatedConnected.google = { id: googleId, name: `Google Ads (${googleId})`, status: 'CONNECTED' };
+          }
+          if (hasTiktok) {
+            updatedConnected.tiktok = { id: tiktokId, name: `TikTok Ads (${tiktokId})`, status: 'CONNECTED' };
+          }
+          return {
+            ...ws,
+            clientName: hasMeta ? 'Fakeit' : ws.clientName,
+            connectedAccounts: updatedConnected,
+          };
+        }
+        return ws;
+      });
+
+      setWorkspaces(hydrated);
+    } catch (e) {
+      console.warn('Workspace hydration warning:', e);
+    }
+  }, []);
+
+  // Background sync for already-connected Meta credentials on mount
+  React.useEffect(() => {
+    try {
+      const savedMeta = localStorage.getItem('dm_meta_direct_settings');
+      if (savedMeta) {
+        const parsed = JSON.parse(savedMeta);
+        if (parsed.token && parsed.adAccountId && parsed.isConnected) {
+          fetch('/api/platforms/meta/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              token: parsed.token,
+              adAccountId: parsed.adAccountId,
+            }),
+          })
+            .then((r) => r.json())
+            .then((data) => {
+              if (data.success) {
+                handlePlatformSync({
+                  campaigns: data.campaigns || [],
+                  creatives: data.creatives || [],
+                  metrics: data.metrics || {},
+                  platform: 'META',
+                  accountName: data.accountName,
+                  accountId: parsed.adAccountId,
+                  currency: data.currency,
+                });
+              }
+            })
+            .catch(() => {});
+        }
+      }
+    } catch {}
+  }, []);
+
   const handleLogin = (user: UserProfile) => {
     setCurrentUser(user);
     setStoredAuthUser(user);
@@ -200,12 +313,21 @@ export default function Home() {
     creatives: CreativeData[];
     metrics: any;
     platform: 'META' | 'GOOGLE' | 'TIKTOK';
+    accountName?: string;
+    accountId?: string;
+    currency?: string;
   }) => {
     if (data.campaigns && data.campaigns.length > 0) {
-      setCampaigns(data.campaigns);
+      setCampaigns((prev) => {
+        const filtered = prev.filter((c) => c.platform !== data.platform);
+        return [...data.campaigns, ...filtered];
+      });
     }
     if (data.creatives && data.creatives.length > 0) {
-      setCreatives(data.creatives);
+      setCreatives((prev) => {
+        const filtered = prev.filter((c) => c.platform !== data.platform);
+        return [...data.creatives, ...filtered];
+      });
     }
     if (data.metrics) {
       setMetrics((prev) => ({
@@ -213,18 +335,73 @@ export default function Home() {
         [data.platform]: data.metrics,
         ALL: {
           ...prev.ALL,
-          spend: data.metrics.spend || 0,
-          revenue: data.metrics.revenue || 0,
-          conversions: data.metrics.conversions || 0,
-          roas: data.metrics.roas || 0,
-          cpa: data.metrics.cpa || 0,
-          impressions: data.metrics.impressions || 0,
-          clicks: data.metrics.clicks || 0,
-          ctr: data.metrics.ctr || 0,
-          cpc: data.metrics.cpc || 0,
+          spend: (prev.ALL?.spend || 0) + (data.metrics.spend || 0),
+          revenue: (prev.ALL?.revenue || 0) + (data.metrics.revenue || 0),
+          conversions: (prev.ALL?.conversions || 0) + (data.metrics.conversions || 0),
+          roas: data.metrics.roas || prev.ALL?.roas || 0,
+          cpa: data.metrics.cpa || prev.ALL?.cpa || 0,
+          impressions: (prev.ALL?.impressions || 0) + (data.metrics.impressions || 0),
+          clicks: (prev.ALL?.clicks || 0) + (data.metrics.clicks || 0),
+          ctr: data.metrics.ctr || prev.ALL?.ctr || 0,
+          cpc: data.metrics.cpc || prev.ALL?.cpc || 0,
         },
       }));
     }
+
+    setWorkspaces((prevWorkspaces) => {
+      const updated = prevWorkspaces.map((ws) => {
+        if (ws.id === activeWorkspaceId) {
+          const platKey = data.platform.toLowerCase() as 'meta' | 'google' | 'tiktok';
+          const platformAccountName = data.accountName || `${ws.clientName} ${data.platform}`;
+          const platformAccountId = data.accountId || `connected-${Date.now()}`;
+
+          const existingCampaigns = ws.campaigns.filter((c) => c.platform !== data.platform);
+          const newCampaigns = [...(data.campaigns || []), ...existingCampaigns];
+
+          const existingCreatives = ws.creatives.filter((c) => c.platform !== data.platform);
+          const newCreatives = [...(data.creatives || []), ...existingCreatives];
+
+          return {
+            ...ws,
+            clientName: data.accountName || ws.clientName,
+            currency: (data.currency as 'BDT' | 'USD') || ws.currency,
+            connectedAccounts: {
+              ...ws.connectedAccounts,
+              [platKey]: {
+                id: platformAccountId,
+                name: platformAccountName,
+                status: 'CONNECTED' as const,
+              },
+            },
+            campaigns: newCampaigns,
+            creatives: newCreatives,
+            metrics: {
+              ...ws.metrics,
+              [data.platform]: data.metrics || ws.metrics[data.platform],
+              ALL: {
+                ...ws.metrics.ALL,
+                spend: (ws.metrics.ALL?.spend || 0) + (data.metrics?.spend || 0),
+                revenue: (ws.metrics.ALL?.revenue || 0) + (data.metrics?.revenue || 0),
+                conversions: (ws.metrics.ALL?.conversions || 0) + (data.metrics?.conversions || 0),
+                roas: data.metrics?.roas || ws.metrics.ALL?.roas || 0,
+                cpa: data.metrics?.cpa || ws.metrics.ALL?.cpa || 0,
+                impressions: (ws.metrics.ALL?.impressions || 0) + (data.metrics?.impressions || 0),
+                clicks: (ws.metrics.ALL?.clicks || 0) + (data.metrics?.clicks || 0),
+                ctr: data.metrics?.ctr || ws.metrics.ALL?.ctr || 0,
+                cpc: data.metrics?.cpc || ws.metrics.ALL?.cpc || 0,
+              },
+            },
+          };
+        }
+        return ws;
+      });
+
+      try {
+        localStorage.setItem('dm_client_workspaces', JSON.stringify(updated));
+      } catch {}
+
+      return updated;
+    });
   };
 
   const handleToggleCampaignStatus = (campaignId: string) => {
@@ -454,6 +631,8 @@ export default function Home() {
               accountName={activeWorkspace.connectedAccounts.meta?.name || `${activeWorkspace.clientName} (Not connected)`}
               accountId={activeWorkspace.connectedAccounts.meta?.id || ''}
               currency={activeWorkspace.currency}
+              campaigns={activeWorkspace.campaigns.filter((c) => c.platform === 'META')}
+              metrics={activeWorkspace.metrics.META}
               onNavigatePlatform={(platform) => {
                 if (platform === 'META') setActiveNav('META_ADS');
                 if (platform === 'GOOGLE') setActiveNav('GOOGLE_ADS');
@@ -475,6 +654,8 @@ export default function Home() {
               accountName={activeWorkspace.connectedAccounts.google?.name || `${activeWorkspace.clientName} Google Ads (Not connected)`}
               accountId={activeWorkspace.connectedAccounts.google?.id || ''}
               currency={activeWorkspace.currency}
+              campaigns={activeWorkspace.campaigns.filter((c) => c.platform === 'GOOGLE')}
+              metrics={activeWorkspace.metrics.GOOGLE}
               onOpenHub={() => {
                 setConnectionHubPlatform('GOOGLE');
                 setIsConnectionHubOpen(true);
@@ -489,6 +670,8 @@ export default function Home() {
               hasActiveData={Boolean(activeWorkspace.connectedAccounts.tiktok?.id)}
               accountName={activeWorkspace.connectedAccounts.tiktok?.name || `${activeWorkspace.clientName} TikTok Ads (Not connected)`}
               accountId={activeWorkspace.connectedAccounts.tiktok?.id || ''}
+              campaigns={activeWorkspace.campaigns.filter((c) => c.platform === 'TIKTOK')}
+              metrics={activeWorkspace.metrics.TIKTOK}
               onOpenHub={() => {
                 setConnectionHubPlatform('TIKTOK');
                 setIsConnectionHubOpen(true);

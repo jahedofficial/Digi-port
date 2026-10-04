@@ -30,6 +30,8 @@ import {
   Plus
 } from 'lucide-react';
 
+import { CampaignData } from '@/types';
+
 interface GoogleAdsIntelligenceDashboardProps {
   theme: 'light' | 'dark';
   hasActiveData?: boolean;
@@ -37,6 +39,8 @@ interface GoogleAdsIntelligenceDashboardProps {
   accountName?: string;
   accountId?: string;
   currency?: 'BDT' | 'USD';
+  campaigns?: CampaignData[];
+  metrics?: any;
 }
 
 export const GoogleAdsIntelligenceDashboard: React.FC<GoogleAdsIntelligenceDashboardProps> = ({
@@ -46,6 +50,8 @@ export const GoogleAdsIntelligenceDashboard: React.FC<GoogleAdsIntelligenceDashb
   accountName = 'Google Ads (Not connected)',
   accountId = '',
   currency: initialCurrency = 'USD',
+  campaigns = [],
+  metrics,
 }) => {
   const isLight = theme === 'light';
   const [selectedDateRange, setSelectedDateRange] = useState('Last 30 days');
