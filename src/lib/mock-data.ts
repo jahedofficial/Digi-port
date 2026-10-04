@@ -65,44 +65,7 @@ export const INITIAL_CREATIVES: CreativeData[] = [];
 
 export const INITIAL_ACTION_QUEUE: ActionQueueItem[] = [];
 
-export const INITIAL_TRACKING_CHECKS: TrackingCheckItem[] = [
-  {
-    id: 'trk-1',
-    platform: 'META',
-    channel: 'SERVER_CAPI',
-    name: 'Meta Conversions API (Server-Side Gateway)',
-    status: 'GRAY',
-    eventMatchQuality: 0,
-    deduplicationActive: false,
-    eventsTested: [],
-    notes: 'অ্যাকাউন্ট কানেক্ট করে পিক্সেল আইডি দিলে অটোমেটিক CAPI এবং ব্রাউজার ইভেন্ট হেলথ চেক হবে।',
-    suggestedFix: 'Meta Ads একাউন্ট কানেক্ট করুন।',
-  },
-  {
-    id: 'trk-2',
-    platform: 'GOOGLE',
-    channel: 'GA4_ENHANCED',
-    name: 'Google Ads Enhanced Conversions & GA4',
-    status: 'GRAY',
-    eventMatchQuality: 0,
-    deduplicationActive: false,
-    eventsTested: [],
-    notes: 'GA4 Property ID ও Google Ads কানেক্ট করার অপেক্ষায়।',
-    suggestedFix: 'Google Ads বা GA4 কানেক্ট করুন।',
-  },
-  {
-    id: 'trk-3',
-    platform: 'TIKTOK',
-    channel: 'TIKTOK_EVENTS_API',
-    name: 'TikTok Events API & Pixel',
-    status: 'GRAY',
-    eventMatchQuality: 0,
-    deduplicationActive: false,
-    eventsTested: [],
-    notes: 'TikTok Business Center এবং Events API টোকেন কনফিগার করার অপেক্ষায়।',
-    suggestedFix: 'TikTok Marketing API ক্রেডেনশিয়াল কানেক্ট করুন।',
-  },
-];
+export const INITIAL_TRACKING_CHECKS: TrackingCheckItem[] = [];
 
 export const INITIAL_OPTIMIZATION_RULES: OptimizationRuleItem[] = [];
 

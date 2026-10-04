@@ -297,9 +297,24 @@ fetch('/api/track/conversion', {
         )}
       </div>
 
-      {/* 3 Health Overview Cards */}
-      <div className="grid gap-5 md:grid-cols-3">
-        {trackingChecks.map((item) => {
+      {/* Health Overview Cards or Clean Empty State */}
+      {trackingChecks.length === 0 ? (
+        <div className={`rounded-2xl border p-8 text-center transition-all ${
+          isLight ? 'border-slate-200/90 bg-white' : 'border-slate-800 bg-[#101625]'
+        }`}>
+          <div className="mx-auto h-12 w-12 rounded-full bg-slate-100 dark:bg-slate-800/80 flex items-center justify-center text-slate-400 mb-3">
+            <Radio className="h-6 w-6" />
+          </div>
+          <h3 className={`text-sm font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
+            কোনো লাইভ ট্র্যাকিং চ্যানেল সংযুক্ত নেই
+          </h3>
+          <p className={`text-xs mt-1 max-w-md mx-auto leading-relaxed ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+            Meta CAPI, Google Ads বা TikTok Events API কানেক্ট করলে রিয়েল-টাইম ইভেন্ট হেলথ, ম্যাচ কোয়ালিটি স্কোর এবং ডিডুপ্লিকেশন স্থিতি এখানে প্রদর্শিত হবে।
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-5 md:grid-cols-3">
+          {trackingChecks.map((item) => {
           const isGreen = item.status === 'GREEN';
           const isYellow = item.status === 'YELLOW';
           const isRed = item.status === 'RED';
@@ -416,7 +431,9 @@ fetch('/api/track/conversion', {
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
+

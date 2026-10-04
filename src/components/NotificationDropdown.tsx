@@ -42,7 +42,7 @@ export const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const pendingActions = actions.filter((a) => a.status === 'PENDING');
-  const trackingAlerts = trackingChecks.filter((t) => t.status !== 'GREEN');
+  const trackingAlerts = trackingChecks.filter((t) => t.status === 'RED' || t.status === 'YELLOW');
   const totalCount = pendingActions.length + trackingAlerts.length;
 
   // Close on outside click
