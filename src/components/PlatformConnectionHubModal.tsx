@@ -203,7 +203,8 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
 
   const showNotification = (msg: string) => {
     setNotification(msg);
-    setTimeout(() => setNotification(null), 3500);
+    const duration = msg.includes('⚠️') ? 7000 : 4000;
+    setTimeout(() => setNotification(null), duration);
   };
 
   const copyToClipboard = (text: string, keyName: string) => {
@@ -458,9 +459,11 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
 
         {/* Notification Toast */}
         {notification && (
-          <div className="bg-emerald-600 text-white text-xs font-bold px-4 py-2.5 text-center animate-in slide-in-from-top flex items-center justify-center gap-2 shadow-md">
-            <CheckCircle2 className="h-4 w-4" />
-            <span>{notification}</span>
+          <div className={`text-white text-xs font-bold px-4 py-3 text-center animate-in slide-in-from-top flex items-center justify-center gap-2 shadow-lg ${
+            notification.includes('⚠️') ? 'bg-rose-600' : 'bg-emerald-600'
+          }`}>
+            {notification.includes('⚠️') ? <AlertCircle className="h-4 w-4 shrink-0 text-white" /> : <CheckCircle2 className="h-4 w-4 shrink-0 text-white" />}
+            <span className="leading-snug">{notification}</span>
           </div>
         )}
 

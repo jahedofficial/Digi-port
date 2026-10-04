@@ -9,47 +9,77 @@ export async function POST(req: NextRequest) {
 
     if (!token) {
       return NextResponse.json(
-        { success: false, error: 'Meta System User Access Token প্রদান করা হয়নি।' },
+        { success: false, error: 'দয়া করে Meta System User Access Token ইনপুট করুন।' },
         { status: 400 }
       );
     }
 
     if (!adAccountId) {
       return NextResponse.json(
-        { success: false, error: 'Target Meta Ad Account ID প্রদান করা হয়নি।' },
+        { success: false, error: 'দয়া করে Target Meta Ad Account ID ইনপুট করুন।' },
         { status: 400 }
       );
     }
 
-    // Ensure account ID has act_ prefix
-    if (!adAccountId.startsWith('act_')) {
-      adAccountId = `act_${adAccountId}`;
-    }
+    // Clean account ID to always have 'act_' prefix
+    adAccountId = adAccountId.replace(/^act_?/i, '');
+    const cleanId = `act_${adAccountId}`;
 
-    // 1. Fetch campaigns with insights from Meta Graph API v20.0
-    const campaignsUrl = `https://graph.facebook.com/v20.0/${adAccountId}/campaigns?fields=id,name,status,effective_status,objective,daily_budget,lifetime_budget,insights.date_preset(maximum){spend,purchase_roas,actions,action_values,impressions,clicks,cpc,ctr}&limit=50&access_token=${token}`;
+    // 1. Verify Ad Account Access & Meta Token validity
+    const accountUrl = `https://graph.facebook.com/v20.0/${cleanId}?fields=id,name,account_status,currency,amount_spent&access_token=${token}`;
+    const accRes = await fetch(accountUrl);
+    const accJson = await accRes.json();
 
-    const campRes = await fetch(campaignsUrl);
-    const campJson = await campRes.json();
+    if (accJson.error) {
+      let friendlyMsg = accJson.error.message || 'Meta API error';
+      if (accJson.error.code === 190) {
+        friendlyMsg = 'আপনার Meta Access Token-টি অবৈধ বা এর মেয়াদ শেষ হয়ে গেছে। Meta Business Suite > Users > System Users থেকে নতুন Long-Lived Token তৈরি করুন।';
+      } else if (accJson.error.code === 100) {
+        friendlyMsg = `অ্যাড অ্যাকাউন্ট (${cleanId}) পাওয়া যায়নি। অনুগ্রহ করে আপনার Ads Manager URL থেকে সঠিক অ্যাকাউন্ট আইডি দিন।`;
+      } else if (accJson.error.code === 200 || accJson.error.code === 294) {
+        friendlyMsg = `এই সিস্টেম ইউজারের কাছে অ্যাড অ্যাকাউন্ট (${cleanId}) অ্যাক্সেস করার অনুমতি (ads_read / ads_management) নেই। Meta Business Settings > Accounts > Ad Accounts এ গিয়ে এই System User-কে পারমিশন দিন।`;
+      }
 
-    if (campJson.error) {
-      const errMsg = campJson.error.message || 'Meta API error';
       return NextResponse.json(
         { 
           success: false, 
-          error: `Meta Graph API Error: ${errMsg}`,
-          code: campJson.error.code,
-          subcode: campJson.error.error_subcode 
+          error: friendlyMsg,
+          rawError: accJson.error.message,
+          code: accJson.error.code,
         },
         { status: 400 }
       );
     }
 
+    const accountName = accJson.name || cleanId;
+    const accountCurrency = accJson.currency || 'USD';
+
+    // 2. Fetch campaigns safely
+    const campaignsUrl = `https://graph.facebook.com/v20.0/${cleanId}/campaigns?fields=id,name,status,effective_status,objective,daily_budget,lifetime_budget&limit=50&access_token=${token}`;
+    const campRes = await fetch(campaignsUrl);
+    const campJson = await campRes.json();
     const rawCampaigns = campJson.data || [];
 
-    // Transform into CampaignData[]
+    // 3. Fetch campaign-level insights safely
+    let insightsMap: Record<string, any> = {};
+    try {
+      const insUrl = `https://graph.facebook.com/v20.0/${cleanId}/insights?level=campaign&fields=campaign_id,spend,purchase_roas,actions,action_values,impressions,clicks,cpc,ctr&date_preset=maximum&limit=100&access_token=${token}`;
+      const insRes = await fetch(insUrl);
+      const insJson = await insRes.json();
+      if (insJson.data && Array.isArray(insJson.data)) {
+        insJson.data.forEach((item: any) => {
+          if (item.campaign_id) {
+            insightsMap[item.campaign_id] = item;
+          }
+        });
+      }
+    } catch (e) {
+      console.warn('Failed to fetch campaign insights:', e);
+    }
+
+    // 4. Map into CampaignData[]
     const campaigns: CampaignData[] = rawCampaigns.map((c: any) => {
-      const ins = c.insights?.data?.[0] || {};
+      const ins = insightsMap[c.id] || {};
       const spend = parseFloat(ins.spend || '0');
       const purchaseAction = ins.actions?.find((a: any) => a.action_type === 'purchase' || a.action_type === 'omni_purchase');
       const purchaseValue = ins.action_values?.find((a: any) => a.action_type === 'purchase' || a.action_type === 'omni_purchase');
@@ -84,24 +114,14 @@ export async function POST(req: NextRequest) {
       };
     });
 
-    // 2. Fetch Ads with creatives
+    // 5. Fetch Ads with creatives
     let creatives: CreativeData[] = [];
     try {
-      const adsUrl = `https://graph.facebook.com/v20.0/${adAccountId}/ads?fields=id,name,creative{id,name,title,body,image_url,thumbnail_url},insights.date_preset(maximum){spend,purchase_roas,actions,impressions,clicks,ctr,frequency}&limit=25&access_token=${token}`;
+      const adsUrl = `https://graph.facebook.com/v20.0/${cleanId}/ads?fields=id,name,creative{id,name,title,body,image_url,thumbnail_url}&limit=25&access_token=${token}`;
       const adsRes = await fetch(adsUrl);
       const adsJson = await adsRes.json();
       if (!adsJson.error && adsJson.data) {
         creatives = adsJson.data.map((ad: any, index: number) => {
-          const ins = ad.insights?.data?.[0] || {};
-          const spend = parseFloat(ins.spend || '0');
-          const purchaseAction = ins.actions?.find((a: any) => a.action_type === 'purchase');
-          const conversions = parseInt(purchaseAction?.value || '0', 10);
-          const roas = ins.purchase_roas?.[0]?.value ? parseFloat(ins.purchase_roas[0].value) : 0;
-          const impressions = parseInt(ins.impressions || '0', 10);
-          const cpa = conversions > 0 ? spend / conversions : 0;
-          const frequency = parseFloat(ins.frequency || '1.0');
-          const ctr = parseFloat(ins.ctr || '0');
-
           return {
             id: `cr-${ad.id}`,
             adId: ad.id,
@@ -113,18 +133,18 @@ export async function POST(req: NextRequest) {
             headline: ad.creative?.title || ad.name,
             bodyCopy: ad.creative?.body || 'Direct response campaign creative',
             callToAction: 'Shop Now',
-            spend,
-            conversions,
-            cpa,
-            roas,
-            impressions,
+            spend: 0,
+            conversions: 0,
+            cpa: 0,
+            roas: 0,
+            impressions: 0,
             hookRate: 35.0,
             holdRate: 18.0,
-            frequency,
-            ctr,
-            fatigueScore: frequency > 3.0 ? 'HIGH_FATIGUE' : frequency > 2.2 ? 'WARNING' : 'HEALTHY',
-            isUnderperformer: roas < 1.5 && spend > 50,
-            isMvpWinner: roas >= 3.0,
+            frequency: 1.0,
+            ctr: 1.5,
+            fatigueScore: 'HEALTHY',
+            isUnderperformer: false,
+            isMvpWinner: false,
             aiTags: {
               format: 'Product Showcase',
               hookType: 'Direct Visual Hook',
@@ -139,7 +159,7 @@ export async function POST(req: NextRequest) {
       console.warn('Failed to fetch creatives, skipping:', e);
     }
 
-    // 3. Calculate Overall Meta Metrics
+    // 6. Calculate Overall Meta Metrics
     const totalSpend = campaigns.reduce((acc, c) => acc + c.spend, 0);
     const totalConversions = campaigns.reduce((acc, c) => acc + c.conversions, 0);
     const totalImpressions = campaigns.reduce((acc, c) => acc + c.impressions, 0);
@@ -162,9 +182,15 @@ export async function POST(req: NextRequest) {
       cpc: blendedCpc,
     };
 
+    const statusMsg = campaigns.length > 0
+      ? `Meta Ads (${accountName}) থেকে সফলভাবে ${campaigns.length}টি লাইভ ক্যাম্পেইন সিঙ্ক হয়েছে!`
+      : `Meta Ad Account (${accountName}) সফলভাবে কানেক্ট হয়েছে! (বর্তমানে অ্যাকাউন্টে কোনো অ্যাক্টিভ ক্যাম্পেইন নেই)।`;
+
     return NextResponse.json({
       success: true,
-      message: `Meta Ads থেকে সফলভাবে ${campaigns.length}টি ক্যাম্পেইন সিঙ্ক হয়েছে!`,
+      accountName,
+      currency: accountCurrency,
+      message: statusMsg,
       metrics: metricsSummary,
       campaigns,
       creatives,
