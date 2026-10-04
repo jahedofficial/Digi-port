@@ -1,0 +1,79 @@
+name: CI/CD Pipeline - Auto Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate:
+    name: Build & Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Typecheck & Build Test
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+
+  deploy:
+    name: Deploy to VPS
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Execute Remote SSH Commands
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            set -e
+            echo "🚀 Starting automated deployment on VPS..."
+            
+            # Navigate to project directory
+            if [ ! -d "/var/www/Digi-port" ]; then
+              echo "Creating project directory..."
+              sudo mkdir -p /var/www
+              cd /var/www
+              git clone https://github.com/jahedofficial/Digi-port.git
+            fi
+
+            cd /var/www/Digi-port
+            
+            # Pull latest changes from main branch
+            git fetch origin main
+            git reset --hard origin/main
+
+            # Ensure .env.local exists
+            if [ ! -f ".env.local" ]; then
+              cp .env.example .env.local
+            fi
+
+            # Install dependencies and build
+            npm install
+            npx prisma generate
+            npm run build
+
+            # Zero-downtime PM2 reload
+            pm2 reload digi-port || pm2 start ecosystem.config.cjs --name digi-port
+            pm2 save
+
+            echo "✅ Digi-Port successfully deployed to VPS with zero downtime!"
