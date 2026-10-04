@@ -93,29 +93,29 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
   const [isMetaGuideOpen, setIsMetaGuideOpen] = useState(false);
   const [isVerifyingMeta, setIsVerifyingMeta] = useState(false);
 
-  // --- 2. GOOGLE ADS & GA4 DIRECT STATE (Image 4) ---
+  // --- 2. GOOGLE ADS & GA4 DIRECT STATE ---
   const [googleSettings, setGoogleSettings] = useState({
-    customerId: '456-233-9588',
-    developerToken: 'dev_token_sample_889210_live',
-    clientId: '62186636535-vbhps9mis7r3t47gka9r9afm8ubllhm2.apps.googleusercontent.com',
-    clientSecret: 'GOCSPX-sample_client_secret_9941_secure',
+    customerId: '',
+    developerToken: '',
+    clientId: '',
+    clientSecret: '',
     scope: 'READ_WRITE' as 'READ_ONLY' | 'READ_WRITE',
-    ga4PropertyId: '551294668',
-    isGa4Connected: true,
-    isConnected: true,
+    ga4PropertyId: '',
+    isGa4Connected: false,
+    isConnected: false,
   });
   const [showGoogleDevToken, setShowGoogleDevToken] = useState(false);
   const [showGoogleSecret, setShowGoogleSecret] = useState(false);
   const [isVerifyingGoogle, setIsVerifyingGoogle] = useState(false);
 
-  // --- 3. TIKTOK DIRECT MARKETING API STATE (Image 2) ---
+  // --- 3. TIKTOK DIRECT MARKETING API STATE ---
   const [tiktokSettings, setTiktokSettings] = useState({
-    advertiserId: '71948102938471',
-    appId: '73849182746182',
-    appSecret: 'sec_sample_tiktok_app_secret_881920',
-    accessToken: 'act.sample_tiktok_long_lived_token_88492019',
+    advertiserId: '',
+    appId: '',
+    appSecret: '',
+    accessToken: '',
     scope: 'READ_WRITE' as 'READ_ONLY' | 'READ_WRITE',
-    isConnected: true,
+    isConnected: false,
   });
   const [showTiktokSecret, setShowTiktokSecret] = useState(false);
   const [showTiktokToken, setShowTiktokToken] = useState(false);
@@ -139,19 +139,35 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
       const savedMeta = localStorage.getItem('dm_meta_direct_settings');
       if (savedMeta) {
         const parsed = JSON.parse(savedMeta);
-        setMetaSettings({ ...parsed, scope: 'READ_WRITE' });
+        if (parsed.token && !parsed.token.includes('sample')) {
+          setMetaSettings({ 
+            ...parsed, 
+            adAccountId: (parsed.adAccountId || '').replace(/^act_?/i, ''),
+            scope: 'READ_WRITE' 
+          });
+        } else {
+          localStorage.removeItem('dm_meta_direct_settings');
+        }
       }
 
       const savedGoogle = localStorage.getItem('dm_google_direct_settings');
       if (savedGoogle) {
         const parsed = JSON.parse(savedGoogle);
-        setGoogleSettings({ ...parsed, scope: 'READ_WRITE' });
+        if (parsed.developerToken && !parsed.developerToken.includes('sample')) {
+          setGoogleSettings({ ...parsed, scope: 'READ_WRITE' });
+        } else {
+          localStorage.removeItem('dm_google_direct_settings');
+        }
       }
 
       const savedTiktok = localStorage.getItem('dm_tiktok_direct_settings');
       if (savedTiktok) {
         const parsed = JSON.parse(savedTiktok);
-        setTiktokSettings({ ...parsed, scope: 'READ_WRITE' });
+        if (parsed.accessToken && !parsed.accessToken.includes('sample')) {
+          setTiktokSettings({ ...parsed, scope: 'READ_WRITE' });
+        } else {
+          localStorage.removeItem('dm_tiktok_direct_settings');
+        }
       }
 
       const savedAi = localStorage.getItem('dm_ai_gateway_settings');
@@ -274,13 +290,14 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
   // --- Direct API Verification Handlers ---
   const handleVerifyMeta = async () => {
     const rawToken = metaSettings.token.trim();
-    const rawAccountId = metaSettings.adAccountId.trim();
+    const rawAccountId = metaSettings.adAccountId.trim().replace(/^act_?/i, '');
 
     if (!rawToken || !rawAccountId) {
-      showNotification('দয়া করে Meta System User Token এবং Target Ad Account ID দুটিই পূরণ করুন।');
+      showNotification('দয়া করে Meta System User Token এবং Ads Manager Account ID দুটিই পূরণ করুন।');
       return;
     }
 
+    const fullAccountId = `act_${rawAccountId}`;
     setIsVerifyingMeta(true);
     try {
       const res = await fetch('/api/platforms/meta/sync', {
@@ -288,7 +305,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           token: rawToken,
-          adAccountId: rawAccountId,
+          adAccountId: fullAccountId,
         }),
       });
 
@@ -296,10 +313,13 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
       setIsVerifyingMeta(false);
 
       if (data.success) {
-        const updated = { ...metaSettings, isConnected: true };
+        const updated = { ...metaSettings, adAccountId: rawAccountId, isConnected: true };
         setMetaSettings(updated);
         try {
-          localStorage.setItem('dm_meta_direct_settings', JSON.stringify(updated));
+          localStorage.setItem('dm_meta_direct_settings', JSON.stringify({
+            ...updated,
+            adAccountId: fullAccountId,
+          }));
         } catch {}
 
         if (onSyncPlatformData) {
@@ -937,7 +957,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                     </p>
                   </div>
 
-                  {/* Target Ad Account ID */}
+                  {/* Target Ad Account ID with Automatic act_ prefix */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <label className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
@@ -947,7 +967,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                       {metaSettings.adAccountId && (
                         <button
                           type="button"
-                          onClick={() => copyToClipboard(metaSettings.adAccountId, 'metaAdAcc')}
+                          onClick={() => copyToClipboard(`act_${metaSettings.adAccountId}`, 'metaAdAcc')}
                           className="text-[11px] text-slate-400 hover:text-blue-500 flex items-center gap-1 cursor-pointer transition-colors"
                         >
                           {copiedKey === 'metaAdAcc' ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
@@ -955,19 +975,26 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                         </button>
                       )}
                     </div>
-                    <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2.5 max-w-md ${inputContainerBg}`}>
-                      <span className="text-slate-400 text-xs font-mono font-bold">#</span>
+                    <div className={`rounded-xl border transition-all flex items-stretch max-w-md overflow-hidden ${inputContainerBg}`}>
+                      <span className={`px-3 py-2.5 text-xs font-mono font-bold flex items-center border-r select-none shrink-0 ${
+                        isLight ? 'bg-slate-100 text-blue-600 border-slate-200' : 'bg-slate-800/90 text-blue-400 border-slate-700'
+                      }`}>
+                        act_
+                      </span>
                       <input
                         type="text"
                         value={metaSettings.adAccountId}
-                        onChange={(e) => setMetaSettings({ ...metaSettings, adAccountId: e.target.value })}
-                        placeholder="act_942386384851346"
-                        className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
+                        onChange={(e) => {
+                          const cleaned = e.target.value.replace(/^act_?/i, '').replace(/[^0-9]/g, '');
+                          setMetaSettings({ ...metaSettings, adAccountId: cleaned });
+                        }}
+                        placeholder="942386384851346"
+                        className="w-full px-3 py-2.5 bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
                       />
                     </div>
                     <p className="text-[11px] text-slate-400 mt-1.5 font-medium flex items-center gap-1.5 flex-wrap">
-                      <span>Found in Meta Ads Manager URL or Account Overview (e.g. <code className="text-slate-500 dark:text-slate-300">act_942396384051348</code>).</span>
-                      <span className="text-emerald-500 font-semibold">• Full Read + Write Access (<code className="text-emerald-500">ads_read</code> &amp; <code className="text-emerald-500">ads_management</code>) enabled for AI autopilot.</span>
+                      <span>শুধুমাত্র আপনার Ads Manager-এর সংখ্যাটি লিখুন (যেমন: <code className="text-blue-500 font-bold">942386384851346</code>)। <strong>act_</strong> আমরা আগে স্বয়ংক্রিয়ভাবে যুক্ত করে নেব।</span>
+                      <span className="text-emerald-500 font-semibold">• Full Read + Write Access (<code className="text-emerald-500">ads_read</code> &amp; <code className="text-emerald-500">ads_management</code>) enabled.</span>
                     </p>
                   </div>
 
