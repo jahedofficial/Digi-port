@@ -1729,6 +1729,12 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                           className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
                         />
                       </div>
+                      {aiGatewaySettings.secretKey.startsWith('sk-or-v1-') && aiGatewaySettings.secretKey.length > 0 && aiGatewaySettings.secretKey.length < 70 && (
+                        <p className="text-[11px] text-amber-500 font-semibold mt-1.5 flex items-center gap-1 animate-in fade-in duration-200">
+                          <AlertCircle className="h-3 w-3 shrink-0" />
+                          <span>কী-টি অসম্পূর্ণ মনে হচ্ছে ({aiGatewaySettings.secretKey.length}/৭৩ অক্ষর)। কপি করার সময় শেষের অংশ বাদ পড়ে থাকতে পারে।</span>
+                        </p>
+                      )}
                       <p className="text-[11px] text-slate-400 mt-1.5 font-medium">
                         Stored safely server-side with AES-256 least-privilege vault.
                       </p>

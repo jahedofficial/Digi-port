@@ -21,6 +21,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (secretKey.startsWith('sk-or-v1-') && secretKey.length < 70) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: `আপনার প্রদানকৃত OpenRouter Key-টি অসম্পূর্ণ (বর্তমান দৈর্ঘ্য ${secretKey.length} অক্ষর, যা সাধারণত ৭৩ অক্ষর হয়)। কপি করার সময় শেষের অংশ কেটে গেছে। openrouter.ai/keys থেকে নতুন কী তৈরি করে পপ-আপের [Copy] বাটনে ক্লিক করে পুরো কোডটি পেস্ট করুন।` 
+        },
+        { status: 400 }
+      );
+    }
+
     // Determine verification target
     const isLocalDigiPort = baseUrl.includes(':18789') || baseUrl.includes('digiport.neexion.com');
     const isExplicitOpenRouter = baseUrl.includes('openrouter.ai');
