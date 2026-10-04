@@ -1311,11 +1311,15 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
             <div className={`rounded-xl border p-4.5 lg:col-span-5 ${cardBg}`}>
               <div className={`flex items-center justify-between border-b pb-3 ${isLight ? 'border-slate-100' : 'border-[#1b2230]'}`}>
                 <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+                  <span className={`h-2 w-2 rounded-full ${hasLiveAttribution ? 'bg-emerald-500 animate-ping' : 'bg-slate-400'}`} />
                   <h3 className={`text-sm font-bold ${textTitle}`}>Realtime Activity (Last 30 Min)</h3>
                 </div>
-                <span className="rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 text-[10px] font-bold border border-emerald-500/30">
-                  18 Active Users
+                <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
+                  hasLiveAttribution 
+                    ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' 
+                    : isLight ? 'bg-slate-100 text-slate-500 border-slate-200' : 'bg-slate-800 text-slate-400 border-slate-700'
+                }`}>
+                  {hasLiveAttribution ? '18 Active Users' : '0 Active Users'}
                 </span>
               </div>
 
@@ -1325,20 +1329,24 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
                   USERS PER MINUTE
                 </div>
                 <div className={`mt-2 flex items-end gap-1 h-20 w-full rounded-lg p-2 border ${innerCard}`}>
-                  {[2, 3, 5, 4, 6, 8, 5, 7, 9, 12, 14, 11, 8, 10, 18].map((val, i) => (
+                  {(hasLiveAttribution ? [2, 3, 5, 4, 6, 8, 5, 7, 9, 12, 14, 11, 8, 10, 18] : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]).map((val, i) => (
                     <div
                       key={i}
                       className={`flex-1 rounded-t transition-all ${
-                        i === 14 ? 'bg-emerald-400 animate-pulse' : 'bg-emerald-500/80 hover:bg-emerald-400'
+                        hasLiveAttribution
+                          ? (i === 14 ? 'bg-emerald-400 animate-pulse' : 'bg-emerald-500/80 hover:bg-emerald-400')
+                          : 'bg-slate-200 dark:bg-slate-800'
                       }`}
-                      style={{ height: `${(val / 20) * 100}%` }}
+                      style={{ height: val > 0 ? `${(val / 20) * 100}%` : '4px' }}
                       title={`${val} users`}
                     />
                   ))}
                 </div>
                 <div className="mt-1 flex justify-between text-[9px] text-slate-400 font-mono">
                   <span>30 min ago</span>
-                  <span className="text-emerald-500 font-bold">Now (18 live)</span>
+                  <span className={hasLiveAttribution ? "text-emerald-500 font-bold" : "text-slate-400 font-medium"}>
+                    {hasLiveAttribution ? 'Now (18 live)' : 'Now (0 live)'}
+                  </span>
                 </div>
               </div>
 
@@ -1347,20 +1355,26 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
                 <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   TOP ACTIVE REGIONS
                 </div>
-                <div className="space-y-1 text-xs">
-                  <div className={`flex justify-between rounded p-2 ${innerCard}`}>
-                    <span className={`font-medium ${textTitle}`}>1. Dhaka Division</span>
-                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">11 users (61%)</span>
+                {hasLiveAttribution ? (
+                  <div className="space-y-1 text-xs">
+                    <div className={`flex justify-between rounded p-2 ${innerCard}`}>
+                      <span className={`font-medium ${textTitle}`}>1. Dhaka Division</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">11 users (61%)</span>
+                    </div>
+                    <div className={`flex justify-between rounded p-2 ${innerCard}`}>
+                      <span className={`font-medium ${textTitle}`}>2. Chittagong</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">4 users (22%)</span>
+                    </div>
+                    <div className={`flex justify-between rounded p-2 ${innerCard}`}>
+                      <span className={`font-medium ${textTitle}`}>3. Sylhet & Rajshahi</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">3 users (17%)</span>
+                    </div>
                   </div>
-                  <div className={`flex justify-between rounded p-2 ${innerCard}`}>
-                    <span className={`font-medium ${textTitle}`}>2. Chittagong</span>
-                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">4 users (22%)</span>
+                ) : (
+                  <div className={`rounded-lg p-3 text-center text-xs text-slate-400 border border-dashed ${innerCard}`}>
+                    কোনো সক্রিয় ইউজার সেশন নেই (No active sessions)
                   </div>
-                  <div className={`flex justify-between rounded p-2 ${innerCard}`}>
-                    <span className={`font-medium ${textTitle}`}>3. Sylhet & Rajshahi</span>
-                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">3 users (17%)</span>
-                  </div>
-                </div>
+                )}
               </div>
 
               {/* Device Split */}
@@ -1369,9 +1383,9 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
                   DEVICE CATEGORY
                 </div>
                 <div className="mt-1.5 flex items-center justify-between text-xs">
-                  <span className={textMuted}>Android: <strong className={textTitle}>69%</strong></span>
-                  <span className={textMuted}>iOS: <strong className={textTitle}>28%</strong></span>
-                  <span className={textMuted}>Desktop: <strong className={textTitle}>3%</strong></span>
+                  <span className={textMuted}>Android: <strong className={textTitle}>{hasLiveAttribution ? '69%' : '0%'}</strong></span>
+                  <span className={textMuted}>iOS: <strong className={textTitle}>{hasLiveAttribution ? '28%' : '0%'}</strong></span>
+                  <span className={textMuted}>Desktop: <strong className={textTitle}>{hasLiveAttribution ? '3%' : '0%'}</strong></span>
                 </div>
               </div>
             </div>
@@ -1457,14 +1471,14 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
                 }`}>
                   <tr>
                     <td className="px-4 py-3 uppercase tracking-wider text-slate-400">TOTALS</td>
-                    <td className="px-4 py-3">17,450</td>
-                    <td className="px-4 py-3">11,970</td>
+                    <td className="px-4 py-3">{hasLiveAttribution ? '17,450' : '0'}</td>
+                    <td className="px-4 py-3">{hasLiveAttribution ? '11,970' : '0'}</td>
                     <td className="px-4 py-3">{formatMoney(metrics.spend)}</td>
                     <td className="px-4 py-3">{metrics.conversions} orders</td>
                     <td className="px-4 py-3 text-emerald-600 dark:text-emerald-400">{formatMoney(metrics.revenue)}</td>
                     <td className="px-4 py-3 text-indigo-600 dark:text-indigo-400">{metrics.roas.toFixed(2)}x</td>
                     <td className="px-4 py-3">{formatMoney(metrics.cpa)}</td>
-                    <td className="px-4 py-3 text-right text-emerald-600 dark:text-emerald-400">2.41%</td>
+                    <td className="px-4 py-3 text-right text-emerald-600 dark:text-emerald-400">{hasLiveAttribution ? '2.41%' : '0.00%'}</td>
                   </tr>
                 </tfoot>
               </table>
@@ -1515,9 +1529,16 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
                   </tr>
                 </thead>
                 <tbody className={`divide-y ${tableBorder}`}>
-                  {creatives.map((cr) => {
-                    const isFatigued = cr.fatigueScore === 'HIGH_FATIGUE';
-                    const isWinner = cr.isMvpWinner;
+                  {creatives.length === 0 ? (
+                    <tr>
+                      <td colSpan={10} className="py-8 text-center text-slate-400">
+                        কোনো সক্রিয় অ্যাড ক্রিয়েটিভ নেই (অ্যাকাউন্ট কানেক্ট করলে ক্রিয়েটিভ ও হুক রেট এখানে প্রদর্শিত হবে)
+                      </td>
+                    </tr>
+                  ) : (
+                    creatives.map((cr) => {
+                      const isFatigued = cr.fatigueScore === 'HIGH_FATIGUE';
+                      const isWinner = cr.isMvpWinner;
 
                     return (
                       <tr key={cr.id} className={`transition-colors ${rowHover}`}>
@@ -1650,7 +1671,7 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
                         </td>
                       </tr>
                     );
-                  })}
+                  }))}
                 </tbody>
               </table>
             </div>
@@ -1718,23 +1739,35 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className={`p-4 rounded-xl border ${cardBg}`}>
               <div className="text-xs font-semibold text-slate-400">TOTAL SESSIONS</div>
-              <div className={`text-2xl font-black mt-2 ${textTitle}`}>17,450</div>
+              <div className={`text-2xl font-black mt-2 ${textTitle}`}>
+                {hasLiveAttribution ? '17,450' : '0'}
+              </div>
               <div className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-semibold flex items-center gap-1">
-                <TrendingUp className="h-3 w-3" /> +14.2% vs previous period
+                {hasLiveAttribution ? (
+                  <>
+                    <TrendingUp className="h-3 w-3" /> +14.2% vs previous period
+                  </>
+                ) : (
+                  <span className="text-slate-400 font-normal">অপেক্ষমান</span>
+                )}
               </div>
             </div>
 
             <div className={`p-4 rounded-xl border ${cardBg}`}>
               <div className="text-xs font-semibold text-slate-400">ENGAGED SESSIONS</div>
-              <div className={`text-2xl font-black mt-2 text-indigo-600 dark:text-indigo-400`}>12,630</div>
+              <div className={`text-2xl font-black mt-2 text-indigo-600 dark:text-indigo-400`}>
+                {hasLiveAttribution ? '12,630' : '0'}
+              </div>
               <div className="text-[11px] text-slate-400 mt-1">
-                Engagement Rate: <strong className={textTitle}>72.38%</strong>
+                Engagement Rate: <strong className={textTitle}>{hasLiveAttribution ? '72.38%' : '0.00%'}</strong>
               </div>
             </div>
 
             <div className={`p-4 rounded-xl border ${cardBg}`}>
               <div className="text-xs font-semibold text-slate-400">AVG ENGAGEMENT TIME</div>
-              <div className={`text-2xl font-black mt-2 text-cyan-600 dark:text-cyan-400`}>2m 48s</div>
+              <div className={`text-2xl font-black mt-2 text-cyan-600 dark:text-cyan-400`}>
+                {hasLiveAttribution ? '2m 48s' : '0s'}
+              </div>
               <div className="text-[11px] text-slate-400 mt-1">
                 Active user browsing time
               </div>
@@ -1742,7 +1775,9 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
 
             <div className={`p-4 rounded-xl border ${cardBg}`}>
               <div className="text-xs font-semibold text-slate-400">EVENTS PER SESSION</div>
-              <div className={`text-2xl font-black mt-2 text-amber-500`}>6.8</div>
+              <div className={`text-2xl font-black mt-2 text-amber-500`}>
+                {hasLiveAttribution ? '6.8' : '0.0'}
+              </div>
               <div className="text-[11px] text-slate-400 mt-1">
                 High interaction depth
               </div>
@@ -2070,37 +2105,45 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
                   </tr>
                 </thead>
                 <tbody className={`divide-y ${tableBorder}`}>
-                  {[
-                    { name: 'Ultra Smartwatch Series 9 Pro', sku: 'WATCH-S9-PRO', cat: 'Electronics', views: 4820, cart: 1240, purchases: 168, revUsd: 6300, cvr: '13.5%', stock: 'In Stock (42 left)' },
-                    { name: 'Premium Heavyweight Cotton Hoodie (Black)', sku: 'HOODIE-BLK-M', cat: 'Apparel', views: 3450, cart: 890, purchases: 112, revUsd: 2800, cvr: '12.6%', stock: 'In Stock (88 left)' },
-                    { name: 'Active Noise Cancelling Wireless Earbuds', sku: 'EAR-ANC-V2', cat: 'Audio', views: 2910, cart: 710, purchases: 65, revUsd: 2167, cvr: '9.2%', stock: 'Low Stock (14 left)' },
-                    { name: 'Genuine Leather Minimalist Card Wallet', sku: 'WL-LTHR-01', cat: 'Accessories', views: 1840, cart: 340, purchases: 42, revUsd: 875, cvr: '12.4%', stock: 'In Stock (120 left)' },
-                  ]
-                  .filter(item => item.name.toLowerCase().includes(ecommerceSearch.toLowerCase()) || item.sku.toLowerCase().includes(ecommerceSearch.toLowerCase()))
-                  .map((item, idx) => (
-                    <tr key={idx} className={`transition-colors ${rowHover}`}>
-                      <td className="px-4 py-3">
-                        <div className={`font-bold ${textTitle}`}>{item.name}</div>
-                        <div className="text-[10px] font-mono text-slate-400">
-                          SKU: {item.sku} • {item.cat}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-slate-500 dark:text-slate-300">{item.views.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-slate-500 dark:text-slate-300">{item.cart.toLocaleString()}</td>
-                      <td className={`px-4 py-3 font-bold ${textTitle}`}>{item.purchases} orders</td>
-                      <td className="px-4 py-3 font-bold text-emerald-600 dark:text-emerald-400">{formatMoney(item.revUsd)}</td>
-                      <td className="px-4 py-3 font-bold text-indigo-600 dark:text-indigo-400">{item.cvr}</td>
-                      <td className="px-4 py-3 text-right">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                          item.stock.includes('Low') 
-                            ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' 
-                            : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                        }`}>
-                          {item.stock}
-                        </span>
+                  {!hasLiveAttribution ? (
+                    <tr>
+                      <td colSpan={7} className="py-8 text-center text-slate-400">
+                        কোনো পণ্য বা অর্ডার ডেটা পাওয়া যায়নি (No eCommerce product data)
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    [
+                      { name: 'Ultra Smartwatch Series 9 Pro', sku: 'WATCH-S9-PRO', cat: 'Electronics', views: 4820, cart: 1240, purchases: 168, revUsd: 6300, cvr: '13.5%', stock: 'In Stock (42 left)' },
+                      { name: 'Premium Heavyweight Cotton Hoodie (Black)', sku: 'HOODIE-BLK-M', cat: 'Apparel', views: 3450, cart: 890, purchases: 112, revUsd: 2800, cvr: '12.6%', stock: 'In Stock (88 left)' },
+                      { name: 'Active Noise Cancelling Wireless Earbuds', sku: 'EAR-ANC-V2', cat: 'Audio', views: 2910, cart: 710, purchases: 65, revUsd: 2167, cvr: '9.2%', stock: 'Low Stock (14 left)' },
+                      { name: 'Genuine Leather Minimalist Card Wallet', sku: 'WL-LTHR-01', cat: 'Accessories', views: 1840, cart: 340, purchases: 42, revUsd: 875, cvr: '12.4%', stock: 'In Stock (120 left)' },
+                    ]
+                    .filter(item => item.name.toLowerCase().includes(ecommerceSearch.toLowerCase()) || item.sku.toLowerCase().includes(ecommerceSearch.toLowerCase()))
+                    .map((item, idx) => (
+                      <tr key={idx} className={`transition-colors ${rowHover}`}>
+                        <td className="px-4 py-3">
+                          <div className={`font-bold ${textTitle}`}>{item.name}</div>
+                          <div className="text-[10px] font-mono text-slate-400">
+                            SKU: {item.sku} • {item.cat}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-slate-500 dark:text-slate-300">{item.views.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-slate-500 dark:text-slate-300">{item.cart.toLocaleString()}</td>
+                        <td className={`px-4 py-3 font-bold ${textTitle}`}>{item.purchases} orders</td>
+                        <td className="px-4 py-3 font-bold text-emerald-600 dark:text-emerald-400">{formatMoney(item.revUsd)}</td>
+                        <td className="px-4 py-3 font-bold text-indigo-600 dark:text-indigo-400">{item.cvr}</td>
+                        <td className="px-4 py-3 text-right">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                            item.stock.includes('Low') 
+                              ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' 
+                              : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                          }`}>
+                            {item.stock}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -2125,8 +2168,12 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
                   <h3 className={`text-base font-black ${textTitle}`}>
                     Realtime GA4 Server-Side Measurement Stream
                   </h3>
-                  <span className="rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 text-[10px] font-bold">
-                    Connected (14ms Latency)
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                    hasLiveAttribution
+                      ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                      : isLight ? 'bg-slate-100 text-slate-500 border border-slate-200' : 'bg-slate-800 text-slate-400 border border-slate-700'
+                  }`}>
+                    {hasLiveAttribution ? 'Connected (14ms Latency)' : 'Waiting for Telemetry Stream (অপেক্ষমান)'}
                   </span>
                 </div>
                 <p className="text-xs text-slate-400">
@@ -2138,11 +2185,15 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
             <div className="flex items-center gap-3">
               <div className={`rounded-xl border p-2.5 px-4 text-center ${innerCard}`}>
                 <div className="text-[10px] uppercase font-bold text-slate-400">ACTIVE USERS NOW</div>
-                <div className="text-2xl font-black text-emerald-500">18</div>
+                <div className={`text-2xl font-black ${hasLiveAttribution ? 'text-emerald-500' : 'text-slate-400'}`}>
+                  {hasLiveAttribution ? 18 : 0}
+                </div>
               </div>
               <div className={`rounded-xl border p-2.5 px-4 text-center ${innerCard}`}>
                 <div className="text-[10px] uppercase font-bold text-slate-400">LAST 30 MIN USERS</div>
-                <div className={`text-2xl font-black ${textTitle}`}>142</div>
+                <div className={`text-2xl font-black ${hasLiveAttribution ? textTitle : 'text-slate-400'}`}>
+                  {hasLiveAttribution ? 142 : 0}
+                </div>
               </div>
             </div>
           </div>
@@ -2156,23 +2207,23 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
                   <h4 className={`text-sm font-bold ${textTitle}`}>Users Active per Minute (Last 30 Min)</h4>
                   <p className="text-[11px] text-slate-400">Continuous 60-second telemetry sampling</p>
                 </div>
-                <span className="text-xs font-mono font-bold text-emerald-500 animate-pulse">
-                  ● Streaming Live
+                <span className={`text-xs font-mono font-bold ${hasLiveAttribution ? 'text-emerald-500 animate-pulse' : 'text-slate-400'}`}>
+                  {hasLiveAttribution ? '● Streaming Live' : '○ Standby'}
                 </span>
               </div>
 
               {/* Minute Bars */}
               <div className="space-y-1">
                 <div className={`h-36 w-full rounded-xl border p-3 flex items-end gap-1.5 ${innerCard}`}>
-                  {[2, 3, 5, 4, 6, 8, 5, 7, 9, 12, 14, 11, 8, 10, 12, 15, 13, 9, 8, 11, 14, 16, 15, 12, 14, 15, 17, 14, 16, 18].map((val, i) => (
+                  {(hasLiveAttribution ? [2, 3, 5, 4, 6, 8, 5, 7, 9, 12, 14, 11, 8, 10, 12, 15, 13, 9, 8, 11, 14, 16, 15, 12, 14, 15, 17, 14, 16, 18] : Array(30).fill(0)).map((val, i) => (
                     <div
                       key={i}
                       className={`flex-1 rounded-t transition-all ${
-                        i === 29 
-                          ? 'bg-emerald-400 animate-pulse shadow-lg shadow-emerald-500/50' 
-                          : 'bg-emerald-500/75 hover:bg-emerald-400'
+                        hasLiveAttribution
+                          ? (i === 29 ? 'bg-emerald-400 animate-pulse shadow-lg shadow-emerald-500/50' : 'bg-emerald-500/75 hover:bg-emerald-400')
+                          : 'bg-slate-200 dark:bg-slate-800'
                       }`}
-                      style={{ height: `${(val / 20) * 100}%` }}
+                      style={{ height: val > 0 ? `${(val / 20) * 100}%` : '4px' }}
                       title={`Minute ${30 - i} ago: ${val} users`}
                     />
                   ))}
@@ -2180,7 +2231,9 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
                 <div className="flex justify-between text-[10px] text-slate-400 font-mono px-1">
                   <span>30 minutes ago</span>
                   <span>15 minutes ago</span>
-                  <span className="text-emerald-500 font-bold">Just Now (18 Users)</span>
+                  <span className={hasLiveAttribution ? "text-emerald-500 font-bold" : "text-slate-400 font-medium"}>
+                    Just Now ({hasLiveAttribution ? '18' : '0'} Users)
+                  </span>
                 </div>
               </div>
 
@@ -2189,27 +2242,33 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
                 <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   TOP PAGES ACTIVE RIGHT NOW
                 </div>
-                <div className="space-y-1.5 text-xs">
-                  {[
-                    { page: '/checkout (Payment Step)', active: 5, action: 'Entering bKash OTP' },
-                    { page: '/products/premium-smartwatch', active: 6, action: 'Viewing Product & Reviews' },
-                    { page: '/cart', active: 4, action: 'Applying Coupon' },
-                    { page: '/', active: 3, action: 'Browsing Homepage' },
-                  ].map((p, idx) => (
-                    <div key={idx} className={`p-2.5 rounded-lg border flex items-center justify-between ${innerCard}`}>
-                      <div className="flex items-center gap-2">
-                        <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                        <div>
-                          <div className={`font-mono font-bold ${textTitle}`}>{p.page}</div>
-                          <div className="text-[10px] text-slate-400">{p.action}</div>
+                {hasLiveAttribution ? (
+                  <div className="space-y-1.5 text-xs">
+                    {[
+                      { page: '/checkout (Payment Step)', active: 5, action: 'Entering bKash OTP' },
+                      { page: '/products/premium-smartwatch', active: 6, action: 'Viewing Product & Reviews' },
+                      { page: '/cart', active: 4, action: 'Applying Coupon' },
+                      { page: '/', active: 3, action: 'Browsing Homepage' },
+                    ].map((p, idx) => (
+                      <div key={idx} className={`p-2.5 rounded-lg border flex items-center justify-between ${innerCard}`}>
+                        <div className="flex items-center gap-2">
+                          <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                          <div>
+                            <div className={`font-mono font-bold ${textTitle}`}>{p.page}</div>
+                            <div className="text-[10px] text-slate-400">{p.action}</div>
+                          </div>
                         </div>
+                        <span className="rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 text-xs font-black border border-emerald-500/30">
+                          {p.active} Users
+                        </span>
                       </div>
-                      <span className="rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 text-xs font-black border border-emerald-500/30">
-                        {p.active} Users
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className={`p-4 text-center text-xs text-slate-400 border border-dashed rounded-lg ${innerCard}`}>
+                    কোনো সক্রিয় পেজ সেশন নেই (No active page views)
+                  </div>
+                )}
               </div>
             </div>
 
@@ -2223,31 +2282,37 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
                 <span className="text-[10px] font-mono text-slate-400">Auto-Refreshed</span>
               </div>
 
-              <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
-                {[
-                  { event: 'purchase', time: '4s ago', detail: `৳4,850 • bKash • Dhaka`, icon: CheckCircle2, color: 'text-emerald-500 bg-emerald-500/10' },
-                  { event: 'begin_checkout', time: '12s ago', detail: 'Smartwatch Series 9 • Chittagong', icon: ShoppingCart, color: 'text-cyan-500 bg-cyan-500/10' },
-                  { event: 'add_to_cart', time: '25s ago', detail: 'Cotton Hoodie (M) • Facebook Ad', icon: ShoppingBag, color: 'text-indigo-500 bg-indigo-500/10' },
-                  { event: 'view_item', time: '38s ago', detail: 'Wireless Earbuds • Google Ads', icon: Eye, color: 'text-amber-500 bg-amber-500/10' },
-                  { event: 'page_view', time: '52s ago', detail: 'Landing Page • Android Mobile', icon: Globe, color: 'text-slate-400 bg-slate-500/10' },
-                  { event: 'purchase', time: '1m ago', detail: `৳3,200 • COD • Sylhet`, icon: CheckCircle2, color: 'text-emerald-500 bg-emerald-500/10' },
-                ].map((ev, i) => (
-                  <div key={i} className={`p-2.5 rounded-lg border flex items-center justify-between text-xs ${innerCard}`}>
-                    <div className="flex items-center gap-2.5">
-                      <div className={`h-7 w-7 rounded-lg flex items-center justify-center ${ev.color}`}>
-                        <ev.icon className="h-3.5 w-3.5" />
+              {hasLiveAttribution ? (
+                <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+                  {[
+                    { event: 'purchase', time: '4s ago', detail: `৳4,850 • bKash • Dhaka`, icon: CheckCircle2, color: 'text-emerald-500 bg-emerald-500/10' },
+                    { event: 'begin_checkout', time: '12s ago', detail: 'Smartwatch Series 9 • Chittagong', icon: ShoppingCart, color: 'text-cyan-500 bg-cyan-500/10' },
+                    { event: 'add_to_cart', time: '25s ago', detail: 'Cotton Hoodie (M) • Facebook Ad', icon: ShoppingBag, color: 'text-indigo-500 bg-indigo-500/10' },
+                    { event: 'view_item', time: '38s ago', detail: 'Wireless Earbuds • Google Ads', icon: Eye, color: 'text-amber-500 bg-amber-500/10' },
+                    { event: 'page_view', time: '52s ago', detail: 'Landing Page • Android Mobile', icon: Globe, color: 'text-slate-400 bg-slate-500/10' },
+                    { event: 'purchase', time: '1m ago', detail: `৳3,200 • COD • Sylhet`, icon: CheckCircle2, color: 'text-emerald-500 bg-emerald-500/10' },
+                  ].map((ev, i) => (
+                    <div key={i} className={`p-2.5 rounded-lg border flex items-center justify-between text-xs ${innerCard}`}>
+                      <div className="flex items-center gap-2.5">
+                        <div className={`h-7 w-7 rounded-lg flex items-center justify-center ${ev.color}`}>
+                          <ev.icon className="h-3.5 w-3.5" />
+                        </div>
+                        <div>
+                          <div className={`font-mono font-bold ${textTitle}`}>{ev.event}</div>
+                          <div className="text-[10px] text-slate-400">{ev.detail}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className={`font-mono font-bold ${textTitle}`}>{ev.event}</div>
-                        <div className="text-[10px] text-slate-400">{ev.detail}</div>
-                      </div>
+                      <span className="font-mono text-[10px] text-slate-400">
+                        {ev.time}
+                      </span>
                     </div>
-                    <span className="font-mono text-[10px] text-slate-400">
-                      {ev.time}
-                    </span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className={`p-6 text-center text-xs text-slate-400 border border-dashed rounded-lg ${innerCard}`}>
+                  কোনো লাইভ ইভেন্ট স্ট্রিম পাওয়া যায়নি (Waiting for incoming telemetry)
+                </div>
+              )}
 
               {/* Server Tagging Status Badge */}
               <div className={`p-3 rounded-lg border text-xs space-y-1 ${innerCard}`}>
