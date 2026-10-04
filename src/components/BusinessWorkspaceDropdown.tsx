@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   Building, 
   ChevronDown, 
@@ -37,7 +38,12 @@ export const BusinessWorkspaceDropdown: React.FC<BusinessWorkspaceDropdownProps>
   const isLight = theme === 'light';
   const [isOpen, setIsOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Form states for new workspace modal
   const [newClientName, setNewClientName] = useState('');
@@ -47,7 +53,7 @@ export const BusinessWorkspaceDropdown: React.FC<BusinessWorkspaceDropdownProps>
   const [newGoogleId, setNewGoogleId] = useState('');
   const [newTikTokId, setNewTikTokId] = useState('');
   const [newGa4Id, setNewGa4Id] = useState('');
-  const [includeSampleData, setIncludeSampleData] = useState(true);
+  const [includeSampleData, setIncludeSampleData] = useState(false);
 
   const activeWs = workspaces.find((w) => w.id === activeWorkspaceId) || workspaces[0];
 
@@ -238,25 +244,31 @@ export const BusinessWorkspaceDropdown: React.FC<BusinessWorkspaceDropdownProps>
       </div>
 
       {/* Modal: Add New Business / Client Workspace */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-150">
-          <div className={`relative w-full max-w-lg rounded-2xl border p-6 shadow-2xl transition-all ${
+      {isAddModalOpen && mounted && typeof document !== 'undefined' && createPortal(
+        <div 
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto animate-in fade-in duration-150"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsAddModalOpen(false);
+          }}
+        >
+          <div className={`relative w-full max-w-lg my-auto rounded-2xl border p-5 sm:p-6 shadow-2xl transition-all max-h-[90vh] overflow-y-auto ${
             isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-[#121620] border-[#1b2230] text-white'
           }`}>
             {/* Header */}
-            <div className="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-[#1b2230]">
+            <div className="flex items-center justify-between border-b pb-3.5 border-slate-200 dark:border-[#1b2230]">
               <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold">
+                <div className="h-8 w-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold shadow-sm">
                   <Building className="h-4 w-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold">Add New Business / Client Workspace</h3>
+                  <h3 className="text-sm font-bold tracking-tight">Add New Business / Client Workspace</h3>
                   <p className="text-[10px] text-slate-400">Connect a dedicated ad workspace for your brand or agency client</p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-[#1a2233]"
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-[#1a2233] transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -379,16 +391,21 @@ export const BusinessWorkspaceDropdown: React.FC<BusinessWorkspaceDropdownProps>
               </div>
 
               {/* Sample data toggle */}
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label className="flex items-start gap-2.5 cursor-pointer rounded-lg border p-2.5 transition-colors border-slate-200 dark:border-[#1e2638] bg-slate-50/50 dark:bg-[#0a0d14]/40">
                 <input
                   type="checkbox"
                   checked={includeSampleData}
                   onChange={(e) => setIncludeSampleData(e.target.checked)}
-                  className="rounded text-blue-600 focus:ring-0"
+                  className="rounded text-blue-600 focus:ring-0 mt-0.5"
                 />
-                <span className="text-[11px] text-slate-400">
-                  Pre-populate realistic e-commerce campaign templates & metrics for this client
-                </span>
+                <div>
+                  <div className={`text-xs font-semibold ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                    ডেমো ক্যাম্পেইন ও মেট্রিক্স অন্তর্ভুক্ত করুন (Include demo template data)
+                  </div>
+                  <div className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
+                    টিক না দিলে সম্পূর্ণ ফাঁকা/ক্লিন ওয়ার্কস্পেস তৈরি হবে, যা লাইভ API কানেকশনের জন্য উপযুক্ত।
+                  </div>
+                </div>
               </label>
 
               {/* Buttons */}
@@ -396,20 +413,21 @@ export const BusinessWorkspaceDropdown: React.FC<BusinessWorkspaceDropdownProps>
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="rounded-lg px-3 py-1.5 text-xs text-slate-400 hover:text-white"
+                  className="rounded-lg px-3 py-1.5 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-bold text-white shadow hover:bg-blue-500 transition-all"
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow hover:bg-blue-500 transition-all cursor-pointer"
                 >
                   Create Client Workspace
                 </button>
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
