@@ -1679,59 +1679,27 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0 self-start md:self-auto flex-wrap">
-                    <button
-                      type="button"
-                      onClick={handleSaveMetaDirect}
-                      disabled={isSaving}
-                      className="h-9 px-3.5 rounded-xl text-xs font-bold border border-blue-500/40 text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-                      title="ডাটাবেসে স্থায়ীভাবে সেভ করুন"
-                    >
-                      <Database className="h-3.5 w-3.5" />
-                      <span>{serverMetaConfig?.hasToken ? '✓ সেভ আছে' : 'ডাটাবেসে সেভ করুন'}</span>
-                    </button>
+                  <div className="flex items-center gap-2 shrink-0 self-start md:self-auto">
                     <button
                       onClick={handleVerifyMeta}
                       disabled={isVerifyingMeta}
                       className="h-9 px-4 rounded-xl text-xs font-bold whitespace-nowrap bg-blue-600 hover:bg-blue-500 text-white shadow-sm shadow-blue-500/25 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-60"
+                      title="ক্রেডেনশিয়াল সেভ ও লাইভ সিঙ্ক করুন"
                     >
                       {isVerifyingMeta ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5 fill-current" />}
-                      <span>Verify &amp; Connect</span>
+                      <span>{serverMetaConfig?.hasToken ? 'Sync Live Data' : 'Save & Connect'}</span>
                     </button>
                     {(serverMetaConfig?.hasToken || metaSettings.token) && (
                       <button
                         onClick={handleDeleteMeta}
-                        className="h-9 px-3 rounded-xl text-xs font-bold whitespace-nowrap border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-1.5 transition-all cursor-pointer"
-                        title="ডাটাবেস ও স্টোরেজ থেকে Meta ক্রেডেনশিয়াল মুছে ফেলুন"
+                        className="h-9 w-9 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-rose-500 hover:border-rose-500/30 hover:bg-rose-500/10 flex items-center justify-center transition-all cursor-pointer"
+                        title="মুছে ফেলুন / Disconnect"
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        <span>মুছে ফেলুন</span>
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     )}
                   </div>
                 </div>
-
-                {/* Save Status Alert Banner */}
-                {serverMetaConfig?.hasToken ? (
-                  <div className="flex items-center justify-between p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-xs font-medium">
-                    <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span><strong>ডাটাবেস স্ট্যাটাস:</strong> Meta System User Token ডাটাবেসে AES-256 এনক্রিপ্ট হয়ে সুরক্ষিতভাবে সংরক্ষিত আছে।</span>
-                    </div>
-                    {serverMetaConfig.savedAt && (
-                      <span className="text-[10px] text-slate-400 font-mono">
-                        {new Date(serverMetaConfig.savedAt).toLocaleDateString()}
-                      </span>
-                    )}
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-700 dark:text-amber-300 text-xs font-medium">
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
-                      <span><strong>স্ট্যাটাস:</strong> এখনও ডাটাবেসে সেভ করা হয়নি। নিচের তথ্য লেখার পর <strong>"ডাটাবেসে সেভ করুন"</strong> বাটনে ক্লিক করুন।</span>
-                    </div>
-                  </div>
-                )}
 
                 {/* Form Fields */}
                 <div className="space-y-5">
@@ -1996,74 +1964,27 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0 self-start md:self-auto flex-wrap">
-                    <button
-                      type="button"
-                      onClick={handleSaveGoogleDirect}
-                      disabled={isSaving}
-                      className="h-9 px-3.5 rounded-xl text-xs font-bold border border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-                      title="ডাটাবেসে স্থায়ীভাবে সেভ করুন"
-                    >
-                      <Database className="h-3.5 w-3.5" />
-                      <span>{serverGoogleConfig?.hasDevToken || serverGoogleConfig?.hasServiceAccount ? '✓ সেভ আছে' : 'ডাটাবেসে সেভ করুন'}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const fileInput = document.getElementById('ga4-sa-file-input');
-                        if (fileInput) {
-                          fileInput.click();
-                        } else {
-                          setShowServiceAccountPaste(true);
-                        }
-                      }}
-                      className="h-9 px-3 rounded-xl text-xs font-bold whitespace-nowrap border border-amber-300 dark:border-amber-700/60 bg-amber-50/70 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 flex items-center gap-1.5 transition-all cursor-pointer"
-                    >
-                      <KeyRound className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
-                      <span>{googleSettings.serviceAccountEmail || serverGoogleConfig?.serviceAccountEmail ? '✓ GA4 Key সক্রিয়' : 'GA4 Key আপলোড'}</span>
-                    </button>
+                  <div className="flex items-center gap-2 shrink-0 self-start md:self-auto">
                     <button
                       onClick={handleVerifyGoogle}
                       disabled={isVerifyingGoogle}
                       className="h-9 px-4 rounded-xl text-xs font-bold whitespace-nowrap bg-gradient-to-r from-amber-500 via-rose-500 to-pink-500 hover:from-amber-400 hover:to-pink-400 text-white shadow-sm shadow-amber-500/25 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-60"
+                      title="ক্রেডেনশিয়াল সেভ ও লাইভ সিঙ্ক করুন"
                     >
                       {isVerifyingGoogle ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5 fill-current" />}
-                      <span>Verify &amp; Connect</span>
+                      <span>{serverGoogleConfig?.hasDevToken || serverGoogleConfig?.hasServiceAccount ? 'Sync Live Data' : 'Save & Connect'}</span>
                     </button>
                     {(serverGoogleConfig?.hasDevToken || serverGoogleConfig?.hasServiceAccount || googleSettings.customerId || googleSettings.developerToken || googleSettings.serviceAccountEmail) && (
                       <button
                         onClick={handleDeleteGoogle}
-                        className="h-9 px-3 rounded-xl text-xs font-bold whitespace-nowrap border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-1.5 transition-all cursor-pointer"
-                        title="ডাটাবেস ও স্টোরেজ থেকে Google Ads ও GA4 ক্রেডেনশিয়াল মুছে ফেলুন"
+                        className="h-9 w-9 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-rose-500 hover:border-rose-500/30 hover:bg-rose-500/10 flex items-center justify-center transition-all cursor-pointer"
+                        title="মুছে ফেলুন / Disconnect"
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        <span>মুছে ফেলুন</span>
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     )}
                   </div>
                 </div>
-
-                {/* Save Status Alert Banner */}
-                {serverGoogleConfig?.hasDevToken || serverGoogleConfig?.hasServiceAccount ? (
-                  <div className="flex items-center justify-between p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-xs font-medium">
-                    <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span><strong>ডাটাবেস স্ট্যাটাস:</strong> Google Ads ও GA4 ক্রেডেনশিয়াল ডাটাবেসে AES-256 এনক্রিপ্ট হয়ে সুরক্ষিতভাবে সংরক্ষিত আছে।</span>
-                    </div>
-                    {serverGoogleConfig.savedAt && (
-                      <span className="text-[10px] text-slate-400 font-mono">
-                        {new Date(serverGoogleConfig.savedAt).toLocaleDateString()}
-                      </span>
-                    )}
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-700 dark:text-amber-300 text-xs font-medium">
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
-                      <span><strong>স্ট্যাটাস:</strong> এখনও ডাটাবেসে সেভ করা হয়নি। তথ্য লেখার পর <strong>"ডাটাবেসে সেভ করুন"</strong> বাটনে ক্লিক করুন।</span>
-                    </div>
-                  </div>
-                )}
 
                 {/* Form Fields: 2-column grid */}
                 <div className="space-y-5">
@@ -2442,17 +2363,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0 self-start md:self-auto flex-wrap">
-                    <button
-                      type="button"
-                      onClick={handleSaveTiktokDirect}
-                      disabled={isSaving}
-                      className="h-9 px-3.5 rounded-xl text-xs font-bold border border-rose-500/40 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-                      title="ডাটাবেসে স্থায়ীভাবে সেভ করুন"
-                    >
-                      <Database className="h-3.5 w-3.5" />
-                      <span>{serverTiktokConfig?.hasToken ? '✓ সেভ আছে' : 'ডাটাবেসে সেভ করুন'}</span>
-                    </button>
+                  <div className="flex items-center gap-2 shrink-0 self-start md:self-auto">
                     <button
                       onClick={handleVerifyTiktok}
                       disabled={isVerifyingTiktok}
@@ -2461,44 +2372,22 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                           ? 'bg-slate-900 hover:bg-slate-800 text-white shadow-sm'
                           : 'bg-white hover:bg-slate-100 text-slate-900 shadow-sm shadow-white/10'
                       }`}
+                      title="ক্রেডেনশিয়াল সেভ ও লাইভ সিঙ্ক করুন"
                     >
                       {isVerifyingTiktok ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5 fill-current text-rose-500" />}
-                      <span>Verify &amp; Connect</span>
+                      <span>{serverTiktokConfig?.hasToken ? 'Sync Live Data' : 'Save & Connect'}</span>
                     </button>
                     {(serverTiktokConfig?.hasToken || tiktokSettings.advertiserId || tiktokSettings.accessToken) && (
                       <button
                         onClick={handleDeleteTiktok}
-                        className="h-9 px-3 rounded-xl text-xs font-bold whitespace-nowrap border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-1.5 transition-all cursor-pointer"
-                        title="ডাটাবেস ও স্টোরেজ থেকে TikTok ক্রেডেনশিয়াল মুছে ফেলুন"
+                        className="h-9 w-9 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-rose-500 hover:border-rose-500/30 hover:bg-rose-500/10 flex items-center justify-center transition-all cursor-pointer"
+                        title="মুছে ফেলুন / Disconnect"
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        <span>মুছে ফেলুন</span>
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     )}
                   </div>
                 </div>
-
-                {/* Save Status Alert Banner */}
-                {serverTiktokConfig?.hasToken ? (
-                  <div className="flex items-center justify-between p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-xs font-medium">
-                    <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span><strong>ডাটাবেস স্ট্যাটাস:</strong> TikTok Marketing API ক্রেডেনশিয়াল ডাটাবেসে AES-256 এনক্রিপ্ট হয়ে সুরক্ষিতভাবে সংরক্ষিত আছে।</span>
-                    </div>
-                    {serverTiktokConfig.savedAt && (
-                      <span className="text-[10px] text-slate-400 font-mono">
-                        {new Date(serverTiktokConfig.savedAt).toLocaleDateString()}
-                      </span>
-                    )}
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-700 dark:text-amber-300 text-xs font-medium">
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
-                      <span><strong>স্ট্যাটাস:</strong> এখনও ডাটাবেসে সেভ করা হয়নি। তথ্য লেখার পর <strong>"ডাটাবেসে সেভ করুন"</strong> বাটনে ক্লিক করুন।</span>
-                    </div>
-                  </div>
-                )}
 
                 {/* Form Fields: 2-column grid */}
                 <div className="space-y-5">
