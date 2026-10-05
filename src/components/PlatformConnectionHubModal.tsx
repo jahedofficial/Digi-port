@@ -39,7 +39,8 @@ import {
   Sparkles,
   BookOpen,
   Hash,
-  Cpu
+  Cpu,
+  Database
 } from 'lucide-react';
 import { PlatformConnectionDetails } from '@/types';
 
@@ -135,9 +136,37 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
   });
   const [showAiKey, setShowAiKey] = useState(false);
   const [isVerifyingAi, setIsVerifyingAi] = useState(false);
+  const [serverAiConfig, setServerAiConfig] = useState<{
+    hasKey: boolean;
+    source?: 'database' | 'env' | 'none';
+    maskedKey?: string;
+  } | null>(null);
 
-  // Load saved credentials from localStorage on mount & purge legacy dummy values
+  // Load saved credentials from localStorage & Database on mount
   useEffect(() => {
+    try {
+      fetch('/api/settings?key=AI_GATEWAY')
+        .then((r) => r.json())
+        .then((res) => {
+          if (res.success && res.data && res.data.hasKey) {
+            const d = res.data;
+            setServerAiConfig({
+              hasKey: true,
+              source: d.source,
+              maskedKey: d.maskedKey,
+            });
+            setAiGatewaySettings((prev) => ({
+              ...prev,
+              baseUrl: d.baseUrl || prev.baseUrl,
+              modelEngine: d.modelEngine || prev.modelEngine,
+              persona: d.persona || prev.persona,
+              isConfigured: d.isConfigured,
+              secretKey: prev.secretKey || d.maskedKey || '',
+            }));
+          }
+        })
+        .catch(() => {});
+    } catch {}
     try {
       const savedMeta = localStorage.getItem('dm_meta_direct_settings');
       if (savedMeta) {
@@ -214,6 +243,27 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
   useEffect(() => {
     if (isOpen) {
       fetchConnections();
+      fetch('/api/settings?key=AI_GATEWAY')
+        .then((r) => r.json())
+        .then((res) => {
+          if (res.success && res.data && res.data.hasKey) {
+            const d = res.data;
+            setServerAiConfig({
+              hasKey: true,
+              source: d.source,
+              maskedKey: d.maskedKey,
+            });
+            setAiGatewaySettings((prev) => ({
+              ...prev,
+              baseUrl: d.baseUrl || prev.baseUrl,
+              modelEngine: d.modelEngine || prev.modelEngine,
+              persona: d.persona || prev.persona,
+              isConfigured: d.isConfigured,
+              secretKey: d.secretKey || d.maskedKey || prev.secretKey || '',
+            }));
+          }
+        })
+        .catch(() => {});
     }
   }, [isOpen]);
 
@@ -526,13 +576,63 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
         try {
           localStorage.setItem('dm_ai_gateway_settings', JSON.stringify(updated));
         } catch {}
-        showNotification(`✓ ${data.message}`);
+
+        // Persist safely in database vault
+        try {
+          await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              key: 'AI_GATEWAY',
+              data: {
+                baseUrl,
+                secretKey,
+                modelEngine: aiGatewaySettings.modelEngine,
+                persona: aiGatewaySettings.persona,
+              },
+            }),
+          });
+          setServerAiConfig({
+            hasKey: true,
+            source: 'database',
+            maskedKey: `${secretKey.slice(0, 10)}•••••••••••••`,
+          });
+        } catch {}
+
+        showNotification(`✓ ${data.message} (ডাটাবেসে সুরক্ষিতভাবে সেভ হয়েছে)`);
       } else {
         showNotification(`⚠️ AI Gateway ভেরিফিকেশন ব্যর্থ হয়েছে: ${data.error}`);
       }
     } catch (err: any) {
       setIsVerifyingAi(false);
       showNotification(`⚠️ সার্ভার এরর: ${err.message || 'কানেক্ট করা সম্ভব হয়নি'}`);
+    }
+  };
+
+  const handleDeleteAiGateway = async () => {
+    if (!confirm('আপনি কি নিশ্চিত যে AI Gateway (OpenRouter) সেটিংস ডাটাবেস থেকে মুছে ফেলতে চান?')) {
+      return;
+    }
+    try {
+      await fetch('/api/settings?key=AI_GATEWAY', {
+        method: 'DELETE',
+      });
+      localStorage.removeItem('dm_ai_gateway_settings');
+      setAiGatewaySettings({
+        baseUrl: 'https://openrouter.ai/api/v1',
+        secretKey: '',
+        modelEngine: 'deepseek-v4-flash',
+        persona: 'Senior Performance Marketing Strategist & Copywriter for Luxury Streetwear Brand (FAKEIT)',
+        isConfigured: false,
+      });
+      setServerAiConfig({
+        hasKey: false,
+        source: 'none',
+        maskedKey: '',
+      });
+      showNotification('✓ AI Gateway সেটিংস ডাটাবেস থেকে মুছে ফেলা হয়েছে');
+    } catch {
+      showNotification('⚠️ মুছে ফেলতে সমস্যা হয়েছে');
     }
   };
 
@@ -1698,9 +1798,14 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                     {/* API Secret Key */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-1.5 flex-wrap">
                           <KeyRound className="h-3.5 w-3.5 text-indigo-500" />
                           <span>OPENROUTER / OPENCLAW API SECRET KEY</span>
+                          {serverAiConfig?.hasKey && (
+                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                              {serverAiConfig.source === 'database' ? '✓ ডাটাবেসে সেভ আছে' : '✓ .env.local এ সেভ আছে'}
+                            </span>
+                          )}
                         </label>
                         <button
                           type="button"
@@ -1735,9 +1840,19 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                           <span>কী-টি অসম্পূর্ণ মনে হচ্ছে ({aiGatewaySettings.secretKey.length}/৭৩ অক্ষর)। কপি করার সময় শেষের অংশ বাদ পড়ে থাকতে পারে।</span>
                         </p>
                       )}
-                      <p className="text-[11px] text-slate-400 mt-1.5 font-medium">
-                        Stored safely server-side with AES-256 least-privilege vault.
-                      </p>
+                      <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1.5 font-medium">
+                        <span>অটো-ফিল্ড সক্রিয়। সার্ভার-সাইড AES-256 এনক্রিপশনে সুরক্ষিত।</span>
+                        {aiGatewaySettings.secretKey && (
+                          <button
+                            type="button"
+                            onClick={() => setAiGatewaySettings({ ...aiGatewaySettings, secretKey: '' })}
+                            className="text-indigo-500 hover:underline font-semibold cursor-pointer flex items-center gap-0.5"
+                          >
+                            <Edit3 className="h-3 w-3" />
+                            <span>নতুন কী লিখুন</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -1807,13 +1922,28 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                   </div>
 
                   {/* Save Settings Button */}
-                  <div className="flex justify-end pt-2">
+                  <div className="flex items-center justify-between pt-2">
+                    {serverAiConfig?.hasKey ? (
+                      <button
+                        type="button"
+                        onClick={handleDeleteAiGateway}
+                        className="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-500/10 border border-rose-500/30 flex items-center gap-1.5 transition-all cursor-pointer"
+                        title="ডাটাবেস ও স্টোরেজ থেকে AI Gateway সেটিংস মুছে ফেলুন"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span>মুছে ফেলুন (Delete)</span>
+                      </button>
+                    ) : (
+                      <div />
+                    )}
+
                     <button
                       onClick={handleSaveAiGateway}
-                      className="px-6 py-2.5 rounded-xl text-xs font-bold bg-white hover:bg-slate-50 text-slate-900 border border-slate-300 dark:border-slate-700 shadow-md flex items-center gap-2 transition-all cursor-pointer"
+                      disabled={isVerifyingAi}
+                      className="px-6 py-2.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white shadow-md flex items-center gap-2 transition-all cursor-pointer"
                     >
-                      <Save className="h-4 w-4" />
-                      <span>Save AI Gateway Settings</span>
+                      <Database className="h-4 w-4" />
+                      <span>{isVerifyingAi ? 'যাচাই ও ডাটাবেসে সেভ হচ্ছে...' : 'ডাটাবেসে সেভ ও ভেরিফাই করুন (Save to Database)'}</span>
                     </button>
                   </div>
                 </div>

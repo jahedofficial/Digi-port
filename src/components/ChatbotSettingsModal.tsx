@@ -8,7 +8,10 @@ import {
   Smartphone, 
   CheckCircle2, 
   AlertCircle,
-  HelpCircle
+  HelpCircle,
+  Database,
+  Trash2,
+  Edit3
 } from 'lucide-react';
 
 export interface ChatbotTrackingConfig {
@@ -60,6 +63,16 @@ export const ChatbotSettingsModal: React.FC<ChatbotSettingsModalProps> = ({
   const [isTestingTelegram, setIsTestingTelegram] = useState(false);
   const [telegramStatus, setTelegramStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [showTelegramHelp, setShowTelegramHelp] = useState(false);
+  const [saveToDb, setSaveToDb] = useState(true);
+  const [isSavingDb, setIsSavingDb] = useState(false);
+  const [serverTelegramConfig, setServerTelegramConfig] = useState<{
+    configured: boolean;
+    hasToken: boolean;
+    hasChatId: boolean;
+    chatId: string;
+    botTokenMasked: string;
+    source?: 'database' | 'env' | 'none';
+  } | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -73,7 +86,78 @@ export const ChatbotSettingsModal: React.FC<ChatbotSettingsModalProps> = ({
         console.error('Failed to load alert config from localStorage', e);
       }
     }
+
+    if (isOpen) {
+      fetch('/api/settings?key=TELEGRAM_ALERTS')
+        .then((res) => res.json())
+        .then((res) => {
+          if (res.success && res.data) {
+            const d = res.data;
+            setServerTelegramConfig({
+              configured: d.isConfigured,
+              hasToken: d.hasToken,
+              hasChatId: Boolean(d.chatId),
+              chatId: d.chatId || '',
+              botTokenMasked: d.maskedToken || '',
+              source: d.source,
+            });
+            const loadedToken = d.botToken || d.maskedToken || '';
+            const loadedChatId = d.chatId || '';
+            setForm((prev) => ({
+              ...prev,
+              telegramBotToken: prev.telegramBotToken || loadedToken,
+              telegramChatId: prev.telegramChatId || loadedChatId,
+              whatsappNumber: prev.whatsappNumber || d.whatsappNumber || '',
+              alertOnRoasDrop: d.alertOnRoasDrop !== false,
+              alertDailySummary: d.alertDailySummary !== false,
+            }));
+          }
+        })
+        .catch(() => {});
+    }
   }, [isOpen]);
+
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteTelegram = async () => {
+    if (!confirm('আপনি কি নিশ্চিত যে টেলিগ্রাম ও মোবাইল অ্যালার্ট সেটিংস ডাটাবেস থেকে মুছে ফেলতে চান?')) {
+      return;
+    }
+    setIsDeleting(true);
+    try {
+      await fetch('/api/settings?key=TELEGRAM_ALERTS', {
+        method: 'DELETE',
+      });
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+      setForm((prev) => ({
+        ...prev,
+        telegramBotToken: '',
+        telegramChatId: '',
+        whatsappNumber: '',
+      }));
+      setServerTelegramConfig({
+        configured: false,
+        hasToken: false,
+        hasChatId: false,
+        chatId: '',
+        botTokenMasked: '',
+        source: 'none',
+      });
+      setTelegramStatus({
+        type: 'success',
+        message: '✓ ডাটাবেস থেকে সেটিংস সফলভাবে মুছে ফেলা হয়েছে',
+      });
+    } catch {
+      setTelegramStatus({
+        type: 'error',
+        message: 'মুছে ফেলতে সমস্যা হয়েছে',
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -81,27 +165,52 @@ export const ChatbotSettingsModal: React.FC<ChatbotSettingsModalProps> = ({
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = () => {
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
-      } catch (e) {
-        console.error('Failed to save alert config to localStorage', e);
+  const handleSave = async () => {
+    setIsSavingDb(true);
+    try {
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
+        } catch (e) {
+          console.error('Failed to save alert config to localStorage', e);
+        }
       }
+
+      if (saveToDb) {
+        await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            key: 'TELEGRAM_ALERTS',
+            data: {
+              botToken: form.telegramBotToken,
+              chatId: form.telegramChatId,
+              whatsappNumber: form.whatsappNumber,
+              alertOnRoasDrop: form.alertOnRoasDrop,
+              alertDailySummary: form.alertDailySummary,
+            },
+          }),
+        });
+      }
+
+      onSave(form);
+      setSaveSuccess(true);
+      setTimeout(() => {
+        setSaveSuccess(false);
+        onClose();
+      }, 800);
+    } catch (e) {
+      console.error('Failed to save settings:', e);
+    } finally {
+      setIsSavingDb(false);
     }
-    onSave(form);
-    setSaveSuccess(true);
-    setTimeout(() => {
-      setSaveSuccess(false);
-      onClose();
-    }, 800);
   };
 
   const handleTestTelegram = async () => {
     const token = form.telegramBotToken?.trim();
-    const chat = form.telegramChatId?.trim();
+    const chat = form.telegramChatId?.trim() || serverTelegramConfig?.chatId;
 
-    if (!token && !process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN) {
+    if (!token && !serverTelegramConfig?.hasToken && !process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN) {
       setTelegramStatus({
         type: 'error',
         message: 'Bot Token প্রদান করুন',
@@ -109,7 +218,7 @@ export const ChatbotSettingsModal: React.FC<ChatbotSettingsModalProps> = ({
       return;
     }
 
-    if (!chat && !process.env.NEXT_PUBLIC_TELEGRAM_CHAT_ID) {
+    if (!chat && !serverTelegramConfig?.hasChatId && !process.env.NEXT_PUBLIC_TELEGRAM_CHAT_ID) {
       setTelegramStatus({
         type: 'error',
         message: 'Chat ID প্রদান করুন',
@@ -121,20 +230,27 @@ export const ChatbotSettingsModal: React.FC<ChatbotSettingsModalProps> = ({
     setTelegramStatus(null);
 
     try {
+      const payload: any = {
+        title: 'Digital Marketr AI Alert',
+        message: 'Hello Jahed! Mobile alerts are working properly.',
+        metrics: {
+          'Spend Today': '৳14,200',
+          'Orders': '42 orders',
+          'Blended ROAS': '4.85x',
+        },
+      };
+
+      if (token && !token.includes('•')) {
+        payload.botToken = token;
+      }
+      if (chat) {
+        payload.chatId = chat;
+      }
+
       const res = await fetch('/api/telegram/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: 'Digital Marketr AI Alert',
-          message: 'Hello Jahed! Mobile alerts are working properly.',
-          metrics: {
-            'Spend Today': '৳14,200',
-            'Orders': '42 orders',
-            'Blended ROAS': '4.85x',
-          },
-          botToken: token,
-          chatId: chat,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -201,14 +317,29 @@ export const ChatbotSettingsModal: React.FC<ChatbotSettingsModalProps> = ({
                 <span>Telegram</span>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setShowTelegramHelp(!showTelegramHelp)}
-                className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
-              >
-                <HelpCircle className="h-3 w-3" />
-                <span>কীভাবে পাবেন?</span>
-              </button>
+              <div className="flex items-center gap-2.5">
+                {(serverTelegramConfig?.hasToken || form.telegramBotToken) && (
+                  <button
+                    type="button"
+                    onClick={handleDeleteTelegram}
+                    disabled={isDeleting}
+                    className="text-[11px] text-rose-500 hover:text-rose-600 dark:text-rose-400 flex items-center gap-1 cursor-pointer transition-colors"
+                    title="ডাটাবেস ও স্টোরেজ থেকে মুছে ফেলুন"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                    <span>মুছে ফেলুন</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setShowTelegramHelp(!showTelegramHelp)}
+                  className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <HelpCircle className="h-3 w-3" />
+                  <span>কীভাবে পাবেন?</span>
+                </button>
+              </div>
             </div>
 
             {showTelegramHelp && (
@@ -222,27 +353,54 @@ export const ChatbotSettingsModal: React.FC<ChatbotSettingsModalProps> = ({
 
             <div className="space-y-2.5">
               <div>
-                <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 block mb-1">
-                  Bot Token
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400">
+                    Bot Token
+                  </label>
+                  {serverTelegramConfig?.hasToken && (
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                      {serverTelegramConfig.source === 'database' ? '✓ ডাটাবেসে সেভ আছে' : '✓ .env.local এ সেভ আছে'}
+                    </span>
+                  )}
+                </div>
                 <input
                   type="text"
-                  placeholder="7123456789:AAHq_xyz..."
+                  placeholder={serverTelegramConfig?.botTokenMasked || "7123456789:AAHq_xyz..."}
                   value={form.telegramBotToken || ''}
                   onChange={(e) => handleChange('telegramBotToken', e.target.value)}
                   className={`w-full px-3 py-1.5 rounded-lg border font-mono text-xs focus:outline-none focus:border-blue-500 transition-all ${
                     isLight ? 'border-slate-200 bg-white text-slate-900' : 'border-slate-700 bg-[#0c1017] text-white'
                   }`}
                 />
+                <div className="flex items-center justify-between mt-1">
+                  <span className="text-[10px] text-slate-400">অটো-ফিল্ড সক্রিয় (সরাসরি টাইপ করে এডিট করতে পারেন)</span>
+                  {form.telegramBotToken && (
+                    <button
+                      type="button"
+                      onClick={() => setForm((prev) => ({ ...prev, telegramBotToken: '' }))}
+                      className="text-[10px] text-indigo-500 hover:underline cursor-pointer flex items-center gap-0.5 font-medium"
+                    >
+                      <Edit3 className="h-2.5 w-2.5" />
+                      <span>নতুন কী লিখুন</span>
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div>
-                <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 block mb-1">
-                  Chat ID
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400">
+                    Chat ID
+                  </label>
+                  {serverTelegramConfig?.hasChatId && (
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                      {serverTelegramConfig.source === 'database' ? `✓ ডাটাবেস: ${serverTelegramConfig.chatId}` : `✓ .env: ${serverTelegramConfig.chatId}`}
+                    </span>
+                  )}
+                </div>
                 <input
                   type="text"
-                  placeholder="123456789"
+                  placeholder={serverTelegramConfig?.chatId || "123456789"}
                   value={form.telegramChatId || ''}
                   onChange={(e) => handleChange('telegramChatId', e.target.value)}
                   className={`w-full px-3 py-1.5 rounded-lg border font-mono text-xs focus:outline-none focus:border-blue-500 transition-all ${
@@ -326,6 +484,31 @@ export const ChatbotSettingsModal: React.FC<ChatbotSettingsModalProps> = ({
               <span>প্রতিদিন রাত ১০টায় বিক্রয় ও খরচের সামারি</span>
             </label>
           </div>
+
+          {/* Database Vault Option */}
+          <div className={`p-3 rounded-xl border flex items-center justify-between transition-all ${
+            isLight ? 'bg-indigo-50/70 border-indigo-200/80 text-slate-800' : 'bg-indigo-950/25 border-indigo-900/60 text-slate-200'
+          }`}>
+            <div className="flex items-center gap-2.5">
+              <div className="h-7 w-7 rounded-lg bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                <Database className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="font-bold text-xs">
+                  ডাটাবেসে স্থায়ীভাবে সেভ করুন (Database Vault)
+                </p>
+                <p className="text-[10.5px] text-slate-500 dark:text-slate-400 leading-tight">
+                  টোকেন ও চ্যাট আইডি ডাটাবেসে AES-256 এনক্রিপশনে সেভ হবে। ক্যাশ ক্লিয়ার হলেও হারাবে না।
+                </p>
+              </div>
+            </div>
+            <input
+              type="checkbox"
+              checked={saveToDb}
+              onChange={(e) => setSaveToDb(e.target.checked)}
+              className="rounded accent-indigo-600 h-4 w-4 cursor-pointer shrink-0 ml-3"
+            />
+          </div>
         </div>
 
         {/* Footer */}
@@ -340,9 +523,12 @@ export const ChatbotSettingsModal: React.FC<ChatbotSettingsModalProps> = ({
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+            disabled={isSavingDb}
+            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
           >
-            {saveSuccess ? (
+            {isSavingDb ? (
+              <span>ডাটাবেসে সেভ হচ্ছে...</span>
+            ) : saveSuccess ? (
               <>
                 <Check className="h-3.5 w-3.5" />
                 <span>সংরক্ষিত!</span>

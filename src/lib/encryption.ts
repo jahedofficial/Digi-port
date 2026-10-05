@@ -6,7 +6,7 @@ const IV_LENGTH = 16;
 const AUTH_TAG_LENGTH = 16;
 
 // Encryption key fallback for development / testing
-const ENCRYPTION_SECRET = process.env.ENCRYPTION_KEY || 'default-secret-key-32-chars-length!!';
+const ENCRYPTION_SECRET = process.env.ENCRYPTION_SECRET || process.env.ENCRYPTION_KEY || 'super-secret-key-min-32-chars-long-here!';
 const KEY = crypto.createHash('sha256').update(String(ENCRYPTION_SECRET)).digest();
 
 /**

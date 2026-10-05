@@ -320,3 +320,13 @@ model AgentMessage {
   contextJson    Json?             // current route, active platform, date range, account
   createdAt      DateTime          @default(now())
 }
+
+model SystemSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  valueJson   Json
+  isEncrypted Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+}
+

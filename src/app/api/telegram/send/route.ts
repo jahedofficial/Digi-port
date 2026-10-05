@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendTelegramNotification } from '@/lib/telegram-service';
 
+export async function GET() {
+  const hasToken = Boolean(process.env.TELEGRAM_BOT_TOKEN);
+  const hasChatId = Boolean(process.env.TELEGRAM_CHAT_ID);
+  const token = process.env.TELEGRAM_BOT_TOKEN || '';
+  const chatId = process.env.TELEGRAM_CHAT_ID || '';
+  
+  return NextResponse.json({
+    configured: hasToken && hasChatId,
+    hasToken,
+    hasChatId,
+    chatId: chatId,
+    botTokenMasked: hasToken && token.length > 10 ? `${token.slice(0, 10)}•••••••••••••` : '',
+  });
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();

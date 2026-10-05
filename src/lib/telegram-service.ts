@@ -1,3 +1,5 @@
+import { getTelegramAlertsConfig } from './settings-db';
+
 export interface TelegramAlertPayload {
   title: string;
   message: string;
@@ -17,14 +19,15 @@ export async function sendTelegramNotification(payload: TelegramAlertPayload | s
     customChatId = payload.chatId;
   }
 
-  const botToken = customToken || process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = customChatId || process.env.TELEGRAM_CHAT_ID;
+  const dbConfig = await getTelegramAlertsConfig();
+  const botToken = customToken || dbConfig.botToken || process.env.TELEGRAM_BOT_TOKEN;
+  const chatId = customChatId || dbConfig.chatId || process.env.TELEGRAM_CHAT_ID;
 
   if (!botToken || !chatId) {
-    console.log('[TELEGRAM] Token or Chat ID missing in .env.local');
+    console.log('[TELEGRAM] Token or Chat ID missing in database or .env.local');
     return {
       success: false,
-      error: 'TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not configured in .env.local',
+      error: 'TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not configured in database or .env.local',
     };
   }
 

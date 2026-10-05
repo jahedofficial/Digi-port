@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAiGatewayConfig } from '@/lib/settings-db';
 
 function isValidApiKey(key: string | undefined): boolean {
   if (!key) return false;
@@ -12,11 +13,12 @@ function isValidApiKey(key: string | undefined): boolean {
 }
 
 export async function GET() {
-  const envKey = process.env.OPENROUTER_API_KEY;
-  const configured = isValidApiKey(envKey);
+  const dbConfig = await getAiGatewayConfig();
+  const configured = dbConfig.isConfigured && isValidApiKey(dbConfig.secretKey);
   return NextResponse.json({
     configured,
     model: configured ? 'DeepSeek v4 Flash (5 Fallbacks Active)' : 'Rule-Based (Key Required)',
+    source: dbConfig.source,
   });
 }
 
@@ -30,11 +32,12 @@ export async function POST(req: NextRequest) {
       gatewaySettings = {} 
     } = body;
 
-    const apiKey = (gatewaySettings?.secretKey?.trim() || process.env.OPENROUTER_API_KEY?.trim() || '');
-    const rawBaseUrl = gatewaySettings?.baseUrl?.trim() || 'https://openrouter.ai/api/v1';
+    const dbConfig = await getAiGatewayConfig();
+    const apiKey = (gatewaySettings?.secretKey?.trim() || dbConfig.secretKey || process.env.OPENROUTER_API_KEY?.trim() || '');
+    const rawBaseUrl = gatewaySettings?.baseUrl?.trim() || dbConfig.baseUrl || 'https://openrouter.ai/api/v1';
     const baseUrl = rawBaseUrl.replace(/\/+$/, '');
-    const modelEngine = gatewaySettings?.modelEngine || 'deepseek/deepseek-chat';
-    const persona = gatewaySettings?.persona || 'Senior Performance Marketing Strategist & Copywriter';
+    const modelEngine = gatewaySettings?.modelEngine || dbConfig.modelEngine || 'deepseek/deepseek-chat';
+    const persona = gatewaySettings?.persona || dbConfig.persona || 'Senior Performance Marketing Strategist & Copywriter';
 
     // If no valid API key is available, report clearly that OpenClaw is not configured
     if (!isValidApiKey(apiKey)) {
