@@ -302,3 +302,394 @@ export async function deleteTelegramAlertsConfig(): Promise<{ success: boolean }
   return await deleteSystemSetting('TELEGRAM_ALERTS');
 }
 
+// ==========================================
+// 1. META DIRECT SYSTEM USER TOKEN & APP CREDENTIALS
+// ==========================================
+export interface StoredMetaDirectSettings {
+  token: string;
+  adAccountId: string;
+  appId?: string;
+  appSecret?: string;
+  scope?: 'READ_ONLY' | 'READ_WRITE';
+  isConnected: boolean;
+  savedAt?: string;
+  source?: 'database' | 'env' | 'none';
+}
+
+export async function getMetaDirectConfig(): Promise<StoredMetaDirectSettings> {
+  const dbData = await getSystemSetting<{
+    encryptedToken?: string;
+    adAccountId?: string;
+    appId?: string;
+    encryptedAppSecret?: string;
+    scope?: 'READ_ONLY' | 'READ_WRITE';
+    isConnected?: boolean;
+    savedAt?: string;
+  }>('META_DIRECT');
+
+  if (dbData && (dbData.encryptedToken || dbData.adAccountId)) {
+    const plainToken = dbData.encryptedToken ? decryptToken(dbData.encryptedToken) : '';
+    const plainSecret = dbData.encryptedAppSecret ? decryptToken(dbData.encryptedAppSecret) : '';
+    return {
+      token: plainToken,
+      adAccountId: dbData.adAccountId || '',
+      appId: dbData.appId || process.env.META_APP_ID || '',
+      appSecret: plainSecret || process.env.META_APP_SECRET || '',
+      scope: dbData.scope || 'READ_WRITE',
+      isConnected: Boolean(dbData.isConnected && plainToken),
+      savedAt: dbData.savedAt,
+      source: 'database',
+    };
+  }
+
+  const envAppId = process.env.META_APP_ID || '';
+  const envAppSecret = process.env.META_APP_SECRET || '';
+  if (envAppId || envAppSecret) {
+    return {
+      token: '',
+      adAccountId: '',
+      appId: envAppId,
+      appSecret: envAppSecret,
+      scope: 'READ_WRITE',
+      isConnected: false,
+      source: 'env',
+    };
+  }
+
+  return {
+    token: '',
+    adAccountId: '',
+    appId: '',
+    appSecret: '',
+    scope: 'READ_WRITE',
+    isConnected: false,
+    source: 'none',
+  };
+}
+
+export async function saveMetaDirectConfig(settings: {
+  token?: string;
+  adAccountId?: string;
+  appId?: string;
+  appSecret?: string;
+  scope?: 'READ_ONLY' | 'READ_WRITE';
+  isConnected?: boolean;
+}) {
+  let tokenToEncrypt = settings.token?.trim() || '';
+  if (!tokenToEncrypt || tokenToEncrypt.includes('•')) {
+    const existing = await getMetaDirectConfig();
+    tokenToEncrypt = existing.token;
+  }
+  let secretToEncrypt = settings.appSecret?.trim() || '';
+  if (!secretToEncrypt || secretToEncrypt.includes('•')) {
+    const existing = await getMetaDirectConfig();
+    secretToEncrypt = existing.appSecret || '';
+  }
+
+  const payload = {
+    encryptedToken: tokenToEncrypt ? encryptToken(tokenToEncrypt) : '',
+    adAccountId: (settings.adAccountId || '').replace(/^act_?/i, ''),
+    appId: settings.appId?.trim() || '',
+    encryptedAppSecret: secretToEncrypt ? encryptToken(secretToEncrypt) : '',
+    scope: settings.scope || 'READ_WRITE',
+    isConnected: settings.isConnected !== false && Boolean(tokenToEncrypt),
+    savedAt: new Date().toISOString(),
+  };
+
+  return await saveSystemSetting('META_DIRECT', payload, true);
+}
+
+export async function deleteMetaDirectConfig(): Promise<{ success: boolean }> {
+  return await deleteSystemSetting('META_DIRECT');
+}
+
+// ==========================================
+// 2. GOOGLE ADS & GA4 DIRECT CREDENTIALS
+// ==========================================
+export interface StoredGoogleDirectSettings {
+  customerId: string;
+  developerToken: string;
+  clientId: string;
+  clientSecret: string;
+  ga4PropertyId: string;
+  scope?: 'READ_ONLY' | 'READ_WRITE';
+  isConnected: boolean;
+  isGa4Connected: boolean;
+  savedAt?: string;
+  source?: 'database' | 'env' | 'none';
+}
+
+export async function getGoogleDirectConfig(): Promise<StoredGoogleDirectSettings> {
+  const dbData = await getSystemSetting<{
+    customerId?: string;
+    encryptedDevToken?: string;
+    clientId?: string;
+    encryptedSecret?: string;
+    ga4PropertyId?: string;
+    scope?: 'READ_ONLY' | 'READ_WRITE';
+    isConnected?: boolean;
+    isGa4Connected?: boolean;
+    savedAt?: string;
+  }>('GOOGLE_DIRECT');
+
+  if (dbData && (dbData.customerId || dbData.encryptedDevToken || dbData.ga4PropertyId)) {
+    const plainDevToken = dbData.encryptedDevToken ? decryptToken(dbData.encryptedDevToken) : '';
+    const plainSecret = dbData.encryptedSecret ? decryptToken(dbData.encryptedSecret) : '';
+    return {
+      customerId: dbData.customerId || '',
+      developerToken: plainDevToken || process.env.GOOGLE_DEVELOPER_TOKEN || '',
+      clientId: dbData.clientId || process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: plainSecret || process.env.GOOGLE_CLIENT_SECRET || '',
+      ga4PropertyId: dbData.ga4PropertyId || '',
+      scope: dbData.scope || 'READ_WRITE',
+      isConnected: Boolean(dbData.isConnected),
+      isGa4Connected: Boolean(dbData.isGa4Connected),
+      savedAt: dbData.savedAt,
+      source: 'database',
+    };
+  }
+
+  const envDev = process.env.GOOGLE_DEVELOPER_TOKEN || '';
+  const envClientId = process.env.GOOGLE_CLIENT_ID || '';
+  const envClientSecret = process.env.GOOGLE_CLIENT_SECRET || '';
+  if (envDev || envClientId || envClientSecret) {
+    return {
+      customerId: '',
+      developerToken: envDev,
+      clientId: envClientId,
+      clientSecret: envClientSecret,
+      ga4PropertyId: '',
+      scope: 'READ_WRITE',
+      isConnected: false,
+      isGa4Connected: false,
+      source: 'env',
+    };
+  }
+
+  return {
+    customerId: '',
+    developerToken: '',
+    clientId: '',
+    clientSecret: '',
+    ga4PropertyId: '',
+    scope: 'READ_WRITE',
+    isConnected: false,
+    isGa4Connected: false,
+    source: 'none',
+  };
+}
+
+export async function saveGoogleDirectConfig(settings: {
+  customerId?: string;
+  developerToken?: string;
+  clientId?: string;
+  clientSecret?: string;
+  ga4PropertyId?: string;
+  scope?: 'READ_ONLY' | 'READ_WRITE';
+  isConnected?: boolean;
+  isGa4Connected?: boolean;
+}) {
+  let devTokenToEncrypt = settings.developerToken?.trim() || '';
+  if (!devTokenToEncrypt || devTokenToEncrypt.includes('•')) {
+    const existing = await getGoogleDirectConfig();
+    devTokenToEncrypt = existing.developerToken;
+  }
+  let secretToEncrypt = settings.clientSecret?.trim() || '';
+  if (!secretToEncrypt || secretToEncrypt.includes('•')) {
+    const existing = await getGoogleDirectConfig();
+    secretToEncrypt = existing.clientSecret;
+  }
+
+  const payload = {
+    customerId: settings.customerId?.trim() || '',
+    encryptedDevToken: devTokenToEncrypt ? encryptToken(devTokenToEncrypt) : '',
+    clientId: settings.clientId?.trim() || '',
+    encryptedSecret: secretToEncrypt ? encryptToken(secretToEncrypt) : '',
+    ga4PropertyId: settings.ga4PropertyId?.trim() || '',
+    scope: settings.scope || 'READ_WRITE',
+    isConnected: Boolean(settings.isConnected),
+    isGa4Connected: Boolean(settings.isGa4Connected),
+    savedAt: new Date().toISOString(),
+  };
+
+  return await saveSystemSetting('GOOGLE_DIRECT', payload, true);
+}
+
+export async function deleteGoogleDirectConfig(): Promise<{ success: boolean }> {
+  return await deleteSystemSetting('GOOGLE_DIRECT');
+}
+
+// ==========================================
+// 3. TIKTOK DIRECT MARKETING API CREDENTIALS
+// ==========================================
+export interface StoredTiktokDirectSettings {
+  advertiserId: string;
+  appId: string;
+  appSecret: string;
+  accessToken: string;
+  scope?: 'READ_ONLY' | 'READ_WRITE';
+  isConnected: boolean;
+  savedAt?: string;
+  source?: 'database' | 'env' | 'none';
+}
+
+export async function getTiktokDirectConfig(): Promise<StoredTiktokDirectSettings> {
+  const dbData = await getSystemSetting<{
+    advertiserId?: string;
+    appId?: string;
+    encryptedAppSecret?: string;
+    encryptedAccessToken?: string;
+    scope?: 'READ_ONLY' | 'READ_WRITE';
+    isConnected?: boolean;
+    savedAt?: string;
+  }>('TIKTOK_DIRECT');
+
+  if (dbData && (dbData.advertiserId || dbData.encryptedAccessToken)) {
+    const plainSecret = dbData.encryptedAppSecret ? decryptToken(dbData.encryptedAppSecret) : '';
+    const plainToken = dbData.encryptedAccessToken ? decryptToken(dbData.encryptedAccessToken) : '';
+    return {
+      advertiserId: dbData.advertiserId || '',
+      appId: dbData.appId || process.env.TIKTOK_APP_ID || '',
+      appSecret: plainSecret || process.env.TIKTOK_SECRET || '',
+      accessToken: plainToken,
+      scope: dbData.scope || 'READ_WRITE',
+      isConnected: Boolean(dbData.isConnected && plainToken),
+      savedAt: dbData.savedAt,
+      source: 'database',
+    };
+  }
+
+  const envAppId = process.env.TIKTOK_APP_ID || '';
+  const envSecret = process.env.TIKTOK_SECRET || '';
+  if (envAppId || envSecret) {
+    return {
+      advertiserId: '',
+      appId: envAppId,
+      appSecret: envSecret,
+      accessToken: '',
+      scope: 'READ_WRITE',
+      isConnected: false,
+      source: 'env',
+    };
+  }
+
+  return {
+    advertiserId: '',
+    appId: '',
+    appSecret: '',
+    accessToken: '',
+    scope: 'READ_WRITE',
+    isConnected: false,
+    source: 'none',
+  };
+}
+
+export async function saveTiktokDirectConfig(settings: {
+  advertiserId?: string;
+  appId?: string;
+  appSecret?: string;
+  accessToken?: string;
+  scope?: 'READ_ONLY' | 'READ_WRITE';
+  isConnected?: boolean;
+}) {
+  let tokenToEncrypt = settings.accessToken?.trim() || '';
+  if (!tokenToEncrypt || tokenToEncrypt.includes('•')) {
+    const existing = await getTiktokDirectConfig();
+    tokenToEncrypt = existing.accessToken;
+  }
+  let secretToEncrypt = settings.appSecret?.trim() || '';
+  if (!secretToEncrypt || secretToEncrypt.includes('•')) {
+    const existing = await getTiktokDirectConfig();
+    secretToEncrypt = existing.appSecret;
+  }
+
+  const payload = {
+    advertiserId: settings.advertiserId?.trim() || '',
+    appId: settings.appId?.trim() || '',
+    encryptedAppSecret: secretToEncrypt ? encryptToken(secretToEncrypt) : '',
+    encryptedAccessToken: tokenToEncrypt ? encryptToken(tokenToEncrypt) : '',
+    scope: settings.scope || 'READ_WRITE',
+    isConnected: settings.isConnected !== false && Boolean(tokenToEncrypt),
+    savedAt: new Date().toISOString(),
+  };
+
+  return await saveSystemSetting('TIKTOK_DIRECT', payload, true);
+}
+
+export async function deleteTiktokDirectConfig(): Promise<{ success: boolean }> {
+  return await deleteSystemSetting('TIKTOK_DIRECT');
+}
+
+// ==========================================
+// 4. GMAIL SMTP 2FA OTP SERVICE CONFIG
+// ==========================================
+export interface StoredSmtpSettings {
+  smtpUser: string;
+  smtpPass: string;
+  isConfigured: boolean;
+  savedAt?: string;
+  source?: 'database' | 'env' | 'none';
+}
+
+export async function getSmtpConfig(): Promise<StoredSmtpSettings> {
+  const dbData = await getSystemSetting<{
+    smtpUser?: string;
+    encryptedPass?: string;
+    savedAt?: string;
+  }>('SMTP_CONFIG');
+
+  if (dbData && (dbData.smtpUser || dbData.encryptedPass)) {
+    const plainPass = dbData.encryptedPass ? decryptToken(dbData.encryptedPass) : '';
+    return {
+      smtpUser: dbData.smtpUser || process.env.SMTP_USER || process.env.GMAIL_USER || '',
+      smtpPass: plainPass || process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || '',
+      isConfigured: Boolean(dbData.smtpUser && plainPass),
+      savedAt: dbData.savedAt,
+      source: 'database',
+    };
+  }
+
+  const envUser = process.env.SMTP_USER || process.env.GMAIL_USER || '';
+  const envPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || '';
+  if (envUser || envPass) {
+    return {
+      smtpUser: envUser,
+      smtpPass: envPass,
+      isConfigured: Boolean(envUser && envPass),
+      source: 'env',
+    };
+  }
+
+  return {
+    smtpUser: '',
+    smtpPass: '',
+    isConfigured: false,
+    source: 'none',
+  };
+}
+
+export async function saveSmtpConfig(settings: {
+  smtpUser?: string;
+  smtpPass?: string;
+}) {
+  let passToEncrypt = settings.smtpPass?.trim() || '';
+  if (!passToEncrypt || passToEncrypt.includes('•')) {
+    const existing = await getSmtpConfig();
+    passToEncrypt = existing.smtpPass;
+  }
+
+  const payload = {
+    smtpUser: settings.smtpUser?.trim() || '',
+    encryptedPass: passToEncrypt ? encryptToken(passToEncrypt) : '',
+    isConfigured: Boolean(settings.smtpUser?.trim() && passToEncrypt),
+    savedAt: new Date().toISOString(),
+  };
+
+  return await saveSystemSetting('SMTP_CONFIG', payload, true);
+}
+
+export async function deleteSmtpConfig(): Promise<{ success: boolean }> {
+  return await deleteSystemSetting('SMTP_CONFIG');
+}
+
+

@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { getSmtpConfig } from '@/lib/settings-db';
 
 interface OtpEntry {
   code: string;
@@ -9,8 +10,9 @@ interface OtpEntry {
 const otpStore = new Map<string, OtpEntry>();
 
 export async function sendOtpEmail(email: string, otp: string): Promise<{ success: boolean; message: string; isRealEmailSent: boolean }> {
-  const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER || 'jahedshomadan@gmail.com';
-  const smtpPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
+  const dbSmtp = await getSmtpConfig();
+  const smtpUser = dbSmtp.smtpUser || process.env.SMTP_USER || process.env.GMAIL_USER || 'jahedshomadan@gmail.com';
+  const smtpPass = dbSmtp.smtpPass || process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
 
   // Store in memory with 5-minute expiry
   otpStore.set(email.toLowerCase(), {

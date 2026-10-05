@@ -40,7 +40,8 @@ import {
   BookOpen,
   Hash,
   Cpu,
-  Database
+  Database,
+  Mail
 } from 'lucide-react';
 import { PlatformConnectionDetails } from '@/types';
 
@@ -50,7 +51,8 @@ export type ConnectionHubTab =
   | 'GOOGLE_DIRECT'   // Tab 3: Google Ads API v17 & Google Analytics 4 (GA4) (Image 4)
   | 'TIKTOK_DIRECT'   // Tab 4: TikTok for Business Marketing API Authentication (Image 2)
   | 'AI_GATEWAY'      // Tab 5: OpenClaw & OpenRouter AI Agent Gateway (Image 3)
-  | 'GUIDE';          // Tab 6: Phase 0 Developer Setup & Approvals Guide
+  | 'SMTP_CONFIG'     // Tab 6: Gmail SMTP 2FA OTP Service
+  | 'GUIDE';          // Tab 7: Phase 0 Developer Setup & Approvals Guide
 
 interface PlatformConnectionHubModalProps {
   isOpen: boolean;
@@ -90,12 +92,21 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
   const [metaSettings, setMetaSettings] = useState({
     token: '',
     adAccountId: '',
+    appId: '',
+    appSecret: '',
     scope: 'READ_WRITE' as 'READ_ONLY' | 'READ_WRITE',
     isConnected: false,
   });
   const [showMetaToken, setShowMetaToken] = useState(false);
+  const [showMetaSecret, setShowMetaSecret] = useState(false);
   const [isMetaGuideOpen, setIsMetaGuideOpen] = useState(false);
   const [isVerifyingMeta, setIsVerifyingMeta] = useState(false);
+  const [serverMetaConfig, setServerMetaConfig] = useState<{
+    hasToken: boolean;
+    hasAppSecret: boolean;
+    source?: 'database' | 'env' | 'none';
+    savedAt?: string;
+  } | null>(null);
 
   // --- 2. GOOGLE ADS & GA4 DIRECT STATE ---
   const [googleSettings, setGoogleSettings] = useState({
@@ -111,6 +122,12 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
   const [showGoogleDevToken, setShowGoogleDevToken] = useState(false);
   const [showGoogleSecret, setShowGoogleSecret] = useState(false);
   const [isVerifyingGoogle, setIsVerifyingGoogle] = useState(false);
+  const [serverGoogleConfig, setServerGoogleConfig] = useState<{
+    hasDevToken: boolean;
+    hasSecret: boolean;
+    source?: 'database' | 'env' | 'none';
+    savedAt?: string;
+  } | null>(null);
 
   // --- 3. TIKTOK DIRECT MARKETING API STATE ---
   const [tiktokSettings, setTiktokSettings] = useState({
@@ -125,6 +142,12 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
   const [showTiktokToken, setShowTiktokToken] = useState(false);
   const [isTiktokGuideOpen, setIsTiktokGuideOpen] = useState(false);
   const [isVerifyingTiktok, setIsVerifyingTiktok] = useState(false);
+  const [serverTiktokConfig, setServerTiktokConfig] = useState<{
+    hasToken: boolean;
+    hasSecret: boolean;
+    source?: 'database' | 'env' | 'none';
+    savedAt?: string;
+  } | null>(null);
 
   // --- 4. OPENCLAW & OPENROUTER AI GATEWAY STATE (Image 3) ---
   const [aiGatewaySettings, setAiGatewaySettings] = useState({
@@ -142,41 +165,134 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
     maskedKey?: string;
   } | null>(null);
 
-  // Load saved credentials from localStorage & Database on mount
-  useEffect(() => {
+  // --- 5. GMAIL SMTP 2FA OTP SERVICE STATE ---
+  const [smtpSettings, setSmtpSettings] = useState({
+    smtpUser: '',
+    smtpPass: '',
+    isConfigured: false,
+  });
+  const [showSmtpPass, setShowSmtpPass] = useState(false);
+  const [isVerifyingSmtp, setIsVerifyingSmtp] = useState(false);
+  const [isSmtpGuideOpen, setIsSmtpGuideOpen] = useState(false);
+  const [serverSmtpConfig, setServerSmtpConfig] = useState<{
+    hasPass: boolean;
+    isConfigured: boolean;
+    source?: 'database' | 'env' | 'none';
+    savedAt?: string;
+  } | null>(null);
+
+  // Load saved credentials from Database Vault on mount & when open
+  const fetchAllSettingsFromDatabase = async () => {
     try {
-      fetch('/api/settings?key=AI_GATEWAY')
-        .then((r) => r.json())
-        .then((res) => {
-          if (res.success && res.data && res.data.hasKey) {
-            const d = res.data;
+      const res = await fetch('/api/settings');
+      const json = await res.json();
+      if (json.success && json.data) {
+        const { aiGateway, metaDirect, googleDirect, tiktokDirect, smtpConfig } = json.data;
+
+        if (aiGateway) {
+          if (aiGateway.hasKey) {
             setServerAiConfig({
               hasKey: true,
-              source: d.source,
-              maskedKey: d.maskedKey,
+              source: aiGateway.source,
+              maskedKey: aiGateway.maskedKey,
             });
-            setAiGatewaySettings((prev) => ({
-              ...prev,
-              baseUrl: d.baseUrl || prev.baseUrl,
-              modelEngine: d.modelEngine || prev.modelEngine,
-              persona: d.persona || prev.persona,
-              isConfigured: d.isConfigured,
-              secretKey: prev.secretKey || d.maskedKey || '',
-            }));
           }
-        })
-        .catch(() => {});
-    } catch {}
+          setAiGatewaySettings((prev) => ({
+            ...prev,
+            baseUrl: aiGateway.baseUrl || prev.baseUrl,
+            modelEngine: aiGateway.modelEngine || prev.modelEngine,
+            persona: aiGateway.persona || prev.persona,
+            isConfigured: Boolean(aiGateway.isConfigured),
+            secretKey: aiGateway.secretKey || aiGateway.maskedKey || prev.secretKey || '',
+          }));
+        }
+
+        if (metaDirect) {
+          setServerMetaConfig({
+            hasToken: Boolean(metaDirect.hasToken),
+            hasAppSecret: Boolean(metaDirect.appSecret),
+            source: metaDirect.source,
+            savedAt: metaDirect.savedAt,
+          });
+          setMetaSettings((prev) => ({
+            ...prev,
+            token: metaDirect.token || prev.token,
+            adAccountId: metaDirect.adAccountId || prev.adAccountId,
+            appId: metaDirect.appId || prev.appId,
+            appSecret: metaDirect.appSecret || prev.appSecret,
+            isConnected: Boolean(metaDirect.isConnected),
+          }));
+        }
+
+        if (googleDirect) {
+          setServerGoogleConfig({
+            hasDevToken: Boolean(googleDirect.hasDevToken),
+            hasSecret: Boolean(googleDirect.clientSecret),
+            source: googleDirect.source,
+            savedAt: googleDirect.savedAt,
+          });
+          setGoogleSettings((prev) => ({
+            ...prev,
+            customerId: googleDirect.customerId || prev.customerId,
+            developerToken: googleDirect.developerToken || prev.developerToken,
+            clientId: googleDirect.clientId || prev.clientId,
+            clientSecret: googleDirect.clientSecret || prev.clientSecret,
+            ga4PropertyId: googleDirect.ga4PropertyId || prev.ga4PropertyId,
+            isConnected: Boolean(googleDirect.isConnected),
+            isGa4Connected: Boolean(googleDirect.isGa4Connected),
+          }));
+        }
+
+        if (tiktokDirect) {
+          setServerTiktokConfig({
+            hasToken: Boolean(tiktokDirect.hasToken),
+            hasSecret: Boolean(tiktokDirect.appSecret),
+            source: tiktokDirect.source,
+            savedAt: tiktokDirect.savedAt,
+          });
+          setTiktokSettings((prev) => ({
+            ...prev,
+            advertiserId: tiktokDirect.advertiserId || prev.advertiserId,
+            appId: tiktokDirect.appId || prev.appId,
+            appSecret: tiktokDirect.appSecret || prev.appSecret,
+            accessToken: tiktokDirect.accessToken || prev.accessToken,
+            isConnected: Boolean(tiktokDirect.isConnected),
+          }));
+        }
+
+        if (smtpConfig) {
+          setServerSmtpConfig({
+            hasPass: Boolean(smtpConfig.hasPass),
+            isConfigured: Boolean(smtpConfig.isConfigured),
+            source: smtpConfig.source,
+            savedAt: smtpConfig.savedAt,
+          });
+          setSmtpSettings((prev) => ({
+            ...prev,
+            smtpUser: smtpConfig.smtpUser || prev.smtpUser,
+            smtpPass: smtpConfig.smtpPass || prev.smtpPass,
+            isConfigured: Boolean(smtpConfig.isConfigured),
+          }));
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load settings from DB:', e);
+    }
+  };
+
+  useEffect(() => {
+    fetchAllSettingsFromDatabase();
     try {
       const savedMeta = localStorage.getItem('dm_meta_direct_settings');
       if (savedMeta) {
         const parsed = JSON.parse(savedMeta);
         if (parsed.token && !parsed.token.includes('sample')) {
-          setMetaSettings({ 
+          setMetaSettings((prev) => ({ 
+            ...prev, 
             ...parsed, 
             adAccountId: (parsed.adAccountId || '').replace(/^act_?/i, ''),
             scope: 'READ_WRITE' 
-          });
+          }));
         } else {
           localStorage.removeItem('dm_meta_direct_settings');
         }
@@ -192,7 +308,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
         ) {
           localStorage.removeItem('dm_google_direct_settings');
         } else if (parsed.developerToken && !parsed.developerToken.includes('sample')) {
-          setGoogleSettings({ ...parsed, scope: 'READ_WRITE' });
+          setGoogleSettings((prev) => ({ ...prev, ...parsed, scope: 'READ_WRITE' }));
         } else {
           localStorage.removeItem('dm_google_direct_settings');
         }
@@ -204,7 +320,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
         if (parsed.advertiserId === '71948102938471' || parsed.accessToken?.includes('sample')) {
           localStorage.removeItem('dm_tiktok_direct_settings');
         } else if (parsed.accessToken && !parsed.accessToken.includes('sample')) {
-          setTiktokSettings({ ...parsed, scope: 'READ_WRITE' });
+          setTiktokSettings((prev) => ({ ...prev, ...parsed, scope: 'READ_WRITE' }));
         } else {
           localStorage.removeItem('dm_tiktok_direct_settings');
         }
@@ -216,7 +332,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
         if (parsed.secretKey && (parsed.secretKey.includes('998410294857') || parsed.secretKey.includes('sample'))) {
           localStorage.removeItem('dm_ai_gateway_settings');
         } else {
-          setAiGatewaySettings(parsed);
+          setAiGatewaySettings((prev) => ({ ...prev, ...parsed }));
         }
       }
     } catch {
@@ -243,27 +359,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
   useEffect(() => {
     if (isOpen) {
       fetchConnections();
-      fetch('/api/settings?key=AI_GATEWAY')
-        .then((r) => r.json())
-        .then((res) => {
-          if (res.success && res.data && res.data.hasKey) {
-            const d = res.data;
-            setServerAiConfig({
-              hasKey: true,
-              source: d.source,
-              maskedKey: d.maskedKey,
-            });
-            setAiGatewaySettings((prev) => ({
-              ...prev,
-              baseUrl: d.baseUrl || prev.baseUrl,
-              modelEngine: d.modelEngine || prev.modelEngine,
-              persona: d.persona || prev.persona,
-              isConfigured: d.isConfigured,
-              secretKey: d.secretKey || d.maskedKey || prev.secretKey || '',
-            }));
-          }
-        })
-        .catch(() => {});
+      fetchAllSettingsFromDatabase();
     }
   }, [isOpen]);
 
@@ -391,6 +487,30 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
           }));
         } catch {}
 
+        // Persist to Database Vault
+        try {
+          await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              key: 'META_DIRECT',
+              data: {
+                token: rawToken,
+                adAccountId: rawAccountId,
+                appId: metaSettings.appId?.trim() || '',
+                appSecret: metaSettings.appSecret?.trim() || '',
+                scope: metaSettings.scope,
+                isConnected: true,
+              },
+            }),
+          });
+          setServerMetaConfig({
+            hasToken: true,
+            hasAppSecret: Boolean(metaSettings.appSecret),
+            source: 'database',
+          });
+        } catch {}
+
         if (onSyncPlatformData) {
           onSyncPlatformData({
             campaigns: data.campaigns || [],
@@ -403,7 +523,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
           });
         }
 
-        showNotification(`✓ ${data.message || 'Meta Ads সফলভাবে সিঙ্ক হয়েছে!'}`);
+        showNotification(`✓ ${data.message || 'Meta Ads সফলভাবে সিঙ্ক ও ডাটাবেসে সেভ হয়েছে!'}`);
       } else {
         showNotification(`⚠️ Meta ভেরিফিকেশন ব্যর্থ হয়েছে: ${data.error || 'টোকেন বা অ্যাকাউন্ট আইডি সঠিক নয়'}`);
       }
@@ -413,13 +533,76 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
     }
   };
 
-  const handleRevokeMeta = () => {
-    const updated = { ...metaSettings, token: '', isConnected: false };
-    setMetaSettings(updated);
+  const handleSaveMetaDirect = async () => {
+    const rawToken = metaSettings.token.trim();
+    const rawAccountId = metaSettings.adAccountId.trim().replace(/^act_?/i, '');
+
+    if (!rawToken && !rawAccountId && !metaSettings.appId && !metaSettings.appSecret) {
+      showNotification('⚠️ অনুগ্রহ করে অন্তত একটি Meta ফিল্ড পূরণ করুন।');
+      return;
+    }
+
+    setIsSaving(true);
     try {
-      localStorage.setItem('dm_meta_direct_settings', JSON.stringify(updated));
-    } catch {}
-    showNotification('Meta System User Token revoked.');
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: 'META_DIRECT',
+          data: {
+            token: rawToken,
+            adAccountId: rawAccountId,
+            appId: metaSettings.appId?.trim() || '',
+            appSecret: metaSettings.appSecret?.trim() || '',
+            scope: metaSettings.scope,
+            isConnected: metaSettings.isConnected,
+          },
+        }),
+      });
+      const data = await res.json();
+      setIsSaving(false);
+      if (data.success) {
+        setServerMetaConfig({
+          hasToken: Boolean(rawToken),
+          hasAppSecret: Boolean(metaSettings.appSecret),
+          source: 'database',
+        });
+        showNotification('✓ Meta ক্রেডেনশিয়াল ডাটাবেসে সফলভাবে সেভ করা হয়েছে!');
+      } else {
+        showNotification(`⚠️ সেভ ব্যর্থ হয়েছে: ${data.error}`);
+      }
+    } catch (err: any) {
+      setIsSaving(false);
+      showNotification(`⚠️ সার্ভার এরর: ${err.message || 'সেভ করা সম্ভব হয়নি'}`);
+    }
+  };
+
+  const handleDeleteMeta = async () => {
+    if (!confirm('আপনি কি নিশ্চিত যে Meta API ক্রেডেনশিয়াল ডাটাবেস থেকে মুছে ফেলতে চান?')) return;
+    try {
+      await fetch('/api/settings?key=META_DIRECT', { method: 'DELETE' });
+      localStorage.removeItem('dm_meta_direct_settings');
+      setMetaSettings({
+        token: '',
+        adAccountId: '',
+        appId: '',
+        appSecret: '',
+        scope: 'READ_WRITE',
+        isConnected: false,
+      });
+      setServerMetaConfig({
+        hasToken: false,
+        hasAppSecret: false,
+        source: 'none',
+      });
+      showNotification('✓ Meta ক্রেডেনশিয়াল ডাটাবেস থেকে মুছে ফেলা হয়েছে');
+    } catch {
+      showNotification('⚠️ মুছে ফেলতে সমস্যা হয়েছে');
+    }
+  };
+
+  const handleRevokeMeta = () => {
+    handleDeleteMeta();
   };
 
   const handleVerifyGoogle = async () => {
@@ -460,6 +643,32 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
           localStorage.setItem('dm_google_direct_settings', JSON.stringify(updated));
         } catch {}
 
+        // Persist to Database Vault
+        try {
+          await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              key: 'GOOGLE_DIRECT',
+              data: {
+                customerId,
+                developerToken,
+                clientId: googleSettings.clientId.trim(),
+                clientSecret: googleSettings.clientSecret.trim(),
+                ga4PropertyId,
+                scope: googleSettings.scope,
+                isConnected: Boolean(data.isGoogleConnected),
+                isGa4Connected: Boolean(data.isGa4Connected),
+              },
+            }),
+          });
+          setServerGoogleConfig({
+            hasDevToken: Boolean(developerToken),
+            hasSecret: Boolean(googleSettings.clientSecret),
+            source: 'database',
+          });
+        } catch {}
+
         if (onSyncPlatformData) {
           onSyncPlatformData({
             campaigns: data.campaigns || [],
@@ -471,13 +680,85 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
             currency: data.currency || 'USD',
           });
         }
-        showNotification(`✓ ${data.message}`);
+        showNotification(`✓ ${data.message} (ডাটাবেসে সেভ হয়েছে)`);
       } else {
         showNotification(`⚠️ Google Ads / GA4 ভেরিফিকেশন ব্যর্থ হয়েছে: ${data.error}`);
       }
     } catch (err: any) {
       setIsVerifyingGoogle(false);
       showNotification(`⚠️ সার্ভার এরর: ${err.message || 'কানেক্ট করা সম্ভব হয়নি'}`);
+    }
+  };
+
+  const handleSaveGoogleDirect = async () => {
+    const customerId = googleSettings.customerId.trim();
+    const developerToken = googleSettings.developerToken.trim();
+
+    if (!customerId && !developerToken && !googleSettings.clientId && !googleSettings.ga4PropertyId) {
+      showNotification('⚠️ অনুগ্রহ করে অন্তত একটি Google ফিল্ড পূরণ করুন।');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: 'GOOGLE_DIRECT',
+          data: {
+            customerId,
+            developerToken,
+            clientId: googleSettings.clientId.trim(),
+            clientSecret: googleSettings.clientSecret.trim(),
+            ga4PropertyId: googleSettings.ga4PropertyId.trim(),
+            scope: googleSettings.scope,
+            isConnected: googleSettings.isConnected,
+            isGa4Connected: googleSettings.isGa4Connected,
+          },
+        }),
+      });
+      const data = await res.json();
+      setIsSaving(false);
+      if (data.success) {
+        setServerGoogleConfig({
+          hasDevToken: Boolean(developerToken),
+          hasSecret: Boolean(googleSettings.clientSecret),
+          source: 'database',
+        });
+        showNotification('✓ Google Ads ও GA4 ক্রেডেনশিয়াল ডাটাবেসে সফলভাবে সেভ করা হয়েছে!');
+      } else {
+        showNotification(`⚠️ সেভ ব্যর্থ হয়েছে: ${data.error}`);
+      }
+    } catch (err: any) {
+      setIsSaving(false);
+      showNotification(`⚠️ সার্ভার এরর: ${err.message || 'সেভ করা সম্ভব হয়নি'}`);
+    }
+  };
+
+  const handleDeleteGoogle = async () => {
+    if (!confirm('আপনি কি নিশ্চিত যে Google Ads ও GA4 ক্রেডেনশিয়াল ডাটাবেস থেকে মুছে ফেলতে চান?')) return;
+    try {
+      await fetch('/api/settings?key=GOOGLE_DIRECT', { method: 'DELETE' });
+      localStorage.removeItem('dm_google_direct_settings');
+      setGoogleSettings({
+        customerId: '',
+        developerToken: '',
+        clientId: '',
+        clientSecret: '',
+        scope: 'READ_WRITE',
+        ga4PropertyId: '',
+        isGa4Connected: false,
+        isConnected: false,
+      });
+      setServerGoogleConfig({
+        hasDevToken: false,
+        hasSecret: false,
+        source: 'none',
+      });
+      showNotification('✓ Google Ads ক্রেডেনশিয়াল ডাটাবেস থেকে মুছে ফেলা হয়েছে');
+    } catch {
+      showNotification('⚠️ মুছে ফেলতে সমস্যা হয়েছে');
     }
   };
 
@@ -516,6 +797,30 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
           localStorage.setItem('dm_tiktok_direct_settings', JSON.stringify(updated));
         } catch {}
 
+        // Persist to Database Vault
+        try {
+          await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              key: 'TIKTOK_DIRECT',
+              data: {
+                advertiserId: advId,
+                appId: tiktokSettings.appId.trim(),
+                appSecret: tiktokSettings.appSecret.trim(),
+                accessToken: token,
+                scope: tiktokSettings.scope,
+                isConnected: true,
+              },
+            }),
+          });
+          setServerTiktokConfig({
+            hasToken: true,
+            hasSecret: Boolean(tiktokSettings.appSecret),
+            source: 'database',
+          });
+        } catch {}
+
         if (onSyncPlatformData) {
           onSyncPlatformData({
             campaigns: data.campaigns || [],
@@ -527,13 +832,146 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
             currency: data.currency || 'USD',
           });
         }
-        showNotification(`✓ ${data.message}`);
+        showNotification(`✓ ${data.message} (ডাটাবেসে সেভ হয়েছে)`);
       } else {
         showNotification(`⚠️ TikTok ভেরিফিকেশন ব্যর্থ হয়েছে: ${data.error}`);
       }
     } catch (err: any) {
       setIsVerifyingTiktok(false);
       showNotification(`⚠️ সার্ভার এরর: ${err.message || 'কানেক্ট করা সম্ভব হয়নি'}`);
+    }
+  };
+
+  const handleSaveTiktokDirect = async () => {
+    const advId = tiktokSettings.advertiserId.trim();
+    const token = tiktokSettings.accessToken.trim();
+
+    if (!advId && !token && !tiktokSettings.appId && !tiktokSettings.appSecret) {
+      showNotification('⚠️ অনুগ্রহ করে অন্তত একটি TikTok ফিল্ড পূরণ করুন।');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: 'TIKTOK_DIRECT',
+          data: {
+            advertiserId: advId,
+            appId: tiktokSettings.appId.trim(),
+            appSecret: tiktokSettings.appSecret.trim(),
+            accessToken: token,
+            scope: tiktokSettings.scope,
+            isConnected: tiktokSettings.isConnected,
+          },
+        }),
+      });
+      const data = await res.json();
+      setIsSaving(false);
+      if (data.success) {
+        setServerTiktokConfig({
+          hasToken: Boolean(token),
+          hasSecret: Boolean(tiktokSettings.appSecret),
+          source: 'database',
+        });
+        showNotification('✓ TikTok Marketing API ক্রেডেনশিয়াল ডাটাবেসে সফলভাবে সেভ করা হয়েছে!');
+      } else {
+        showNotification(`⚠️ সেভ ব্যর্থ হয়েছে: ${data.error}`);
+      }
+    } catch (err: any) {
+      setIsSaving(false);
+      showNotification(`⚠️ সার্ভার এরর: ${err.message || 'সেভ করা সম্ভব হয়নি'}`);
+    }
+  };
+
+  const handleDeleteTiktok = async () => {
+    if (!confirm('আপনি কি নিশ্চিত যে TikTok Marketing API ক্রেডেনশিয়াল ডাটাবেস থেকে মুছে ফেলতে চান?')) return;
+    try {
+      await fetch('/api/settings?key=TIKTOK_DIRECT', { method: 'DELETE' });
+      localStorage.removeItem('dm_tiktok_direct_settings');
+      setTiktokSettings({
+        advertiserId: '',
+        appId: '',
+        appSecret: '',
+        accessToken: '',
+        scope: 'READ_WRITE',
+        isConnected: false,
+      });
+      setServerTiktokConfig({
+        hasToken: false,
+        hasSecret: false,
+        source: 'none',
+      });
+      showNotification('✓ TikTok ক্রেডেনশিয়াল ডাটাবেস থেকে মুছে ফেলা হয়েছে');
+    } catch {
+      showNotification('⚠️ মুছে ফেলতে সমস্যা হয়েছে');
+    }
+  };
+
+  const handleSaveSmtp = async () => {
+    const user = smtpSettings.smtpUser.trim();
+    const pass = smtpSettings.smtpPass.trim();
+
+    if (!user || !pass) {
+      showNotification('⚠️ অনুগ্রহ করে Gmail ইমেইল এবং 16-সংখ্যার Google App Password উভয়ই পূরণ করুন।');
+      return;
+    }
+
+    setIsVerifyingSmtp(true);
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: 'SMTP_CONFIG',
+          data: {
+            smtpUser: user,
+            smtpPass: pass,
+          },
+        }),
+      });
+      const data = await res.json();
+      setIsVerifyingSmtp(false);
+      if (data.success) {
+        setSmtpSettings({
+          smtpUser: user,
+          smtpPass: pass,
+          isConfigured: true,
+        });
+        setServerSmtpConfig({
+          hasPass: true,
+          isConfigured: true,
+          source: 'database',
+        });
+        showNotification('✓ Gmail SMTP সার্ভিস ক্রেডেনশিয়াল ডাটাবেসে সফলভাবে সেভ করা হয়েছে!');
+      } else {
+        showNotification(`⚠️ সেভ ব্যর্থ হয়েছে: ${data.error}`);
+      }
+    } catch (err: any) {
+      setIsVerifyingSmtp(false);
+      showNotification(`⚠️ সার্ভার এরর: ${err.message || 'সেভ করা সম্ভব হয়নি'}`);
+    }
+  };
+
+  const handleDeleteSmtp = async () => {
+    if (!confirm('আপনি কি নিশ্চিত যে Gmail SMTP ক্রেডেনশিয়াল ডাটাবেস থেকে মুছে ফেলতে চান?')) return;
+    try {
+      await fetch('/api/settings?key=SMTP_CONFIG', { method: 'DELETE' });
+      setSmtpSettings({
+        smtpUser: '',
+        smtpPass: '',
+        isConfigured: false,
+      });
+      setServerSmtpConfig({
+        hasPass: false,
+        isConfigured: false,
+        source: 'none',
+      });
+      showNotification('✓ Gmail SMTP ক্রেডেনশিয়াল ডাটাবেস থেকে মুছে ফেলা হয়েছে');
+    } catch {
+      showNotification('⚠️ মুছে ফেলতে সমস্যা হয়েছে');
     }
   };
 
@@ -800,7 +1238,25 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
               <span>OpenClaw Gateway</span>
             </button>
 
-            {/* Tab 6: Developer Setup Guide */}
+            {/* Tab 6: Gmail SMTP 2FA OTP Service */}
+            <button
+              onClick={() => setActiveTab('SMTP_CONFIG')}
+              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                activeTab === 'SMTP_CONFIG'
+                  ? isLight
+                    ? 'bg-white text-emerald-600 shadow-xs border border-slate-200/80 font-black'
+                    : 'bg-[#151d30] text-emerald-400 shadow-xs border border-emerald-500/30 font-black'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+            >
+              <Mail className="h-3.5 w-3.5 text-emerald-500" />
+              <span>Gmail SMTP</span>
+              {serverSmtpConfig?.isConfigured && (
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              )}
+            </button>
+
+            {/* Tab 7: Developer Setup Guide */}
             <button
               onClick={() => setActiveTab('GUIDE')}
               className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
@@ -1134,6 +1590,12 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                           <Check className="h-3 w-3" />
                           Read + Write
                         </span>
+                        {serverMetaConfig?.hasToken && (
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 whitespace-nowrap">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            {serverMetaConfig.source === 'database' ? '✓ ডাটাবেসে সেভ আছে' : '✓ .env.local এ সেভ আছে'}
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-slate-400 mt-1 font-medium line-clamp-1">
                         Meta Business Suite Graph API token with Full Read &amp; Write autopilot permissions.
@@ -1150,13 +1612,16 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                       {isVerifyingMeta ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5 fill-current" />}
                       <span>Verify &amp; Connect</span>
                     </button>
-                    <button
-                      onClick={handleRevokeMeta}
-                      className="h-9 px-3 rounded-xl text-xs font-bold whitespace-nowrap border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-1.5 transition-all cursor-pointer"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      <span>Revoke</span>
-                    </button>
+                    {(serverMetaConfig?.hasToken || metaSettings.token) && (
+                      <button
+                        onClick={handleDeleteMeta}
+                        className="h-9 px-3 rounded-xl text-xs font-bold whitespace-nowrap border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-1.5 transition-all cursor-pointer"
+                        title="ডাটাবেস ও স্টোরেজ থেকে Meta ক্রেডেনশিয়াল মুছে ফেলুন"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        <span>মুছে ফেলুন</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -1247,6 +1712,67 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                     </p>
                   </div>
 
+                  {/* App ID & Secret Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Meta App ID */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
+                          <Hash className="h-3.5 w-3.5 text-blue-500" />
+                          <span>META APP ID (META_APP_ID)</span>
+                        </label>
+                        {metaSettings.appId && (
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(metaSettings.appId, 'metaAppId')}
+                            className="text-[11px] text-slate-400 hover:text-blue-500 flex items-center gap-1 cursor-pointer transition-colors"
+                          >
+                            {copiedKey === 'metaAppId' ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                            <span>{copiedKey === 'metaAppId' ? 'Copied' : 'Copy'}</span>
+                          </button>
+                        )}
+                      </div>
+                      <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2.5 ${inputContainerBg}`}>
+                        <Hash className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                        <input
+                          type="text"
+                          value={metaSettings.appId}
+                          onChange={(e) => setMetaSettings({ ...metaSettings, appId: e.target.value })}
+                          placeholder="e.g. 109283746592019"
+                          className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Meta App Secret */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
+                          <Lock className="h-3.5 w-3.5 text-blue-500" />
+                          <span>META APP SECRET (META_APP_SECRET)</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowMetaSecret(!showMetaSecret)}
+                          className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 cursor-pointer transition-colors"
+                        >
+                          {showMetaSecret ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                          <span>{showMetaSecret ? 'Hide' : 'Show'}</span>
+                        </button>
+                      </div>
+                      <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2.5 ${inputContainerBg}`}>
+                        <Lock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                        <input
+                          type={showMetaSecret ? 'text' : 'password'}
+                          value={metaSettings.appSecret}
+                          onChange={(e) => setMetaSettings({ ...metaSettings, appSecret: e.target.value })}
+                          placeholder="••••••••••••••••••••••••••••••••"
+                          className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Setup Guide Accordion */}
                   <div className={`rounded-xl border overflow-hidden ${
                     isLight ? 'bg-slate-50/80 border-slate-200/90' : 'bg-[#060911] border-slate-800/80'
@@ -1274,6 +1800,43 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                         </ol>
                       </div>
                     )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center justify-between pt-2">
+                    {serverMetaConfig?.hasToken || metaSettings.token || metaSettings.adAccountId ? (
+                      <button
+                        type="button"
+                        onClick={handleDeleteMeta}
+                        className="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-500/10 border border-rose-500/30 flex items-center gap-1.5 transition-all cursor-pointer"
+                        title="ডাটাবেস ও স্টোরেজ থেকে Meta ক্রেডেনশিয়াল মুছে ফেলুন"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span>মুছে ফেলুন (Delete)</span>
+                      </button>
+                    ) : (
+                      <div />
+                    )}
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleSaveMetaDirect}
+                        disabled={isSaving}
+                        className="px-5 py-2.5 rounded-xl text-xs font-bold border border-blue-500/30 text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                      >
+                        <Database className="h-4 w-4" />
+                        <span>ডাটাবেসে সেভ করুন</span>
+                      </button>
+                      <button
+                        onClick={handleVerifyMeta}
+                        disabled={isVerifyingMeta}
+                        className="px-6 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white shadow-md flex items-center gap-2 transition-all cursor-pointer"
+                      >
+                        {isVerifyingMeta ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4 fill-current" />}
+                        <span>{isVerifyingMeta ? 'যাচাই হচ্ছে...' : 'সেভ ও ভেরিফাই করুন (Verify & Connect)'}</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1312,6 +1875,12 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                           <Check className="h-3 w-3" />
                           Read + Write
                         </span>
+                        {serverGoogleConfig?.hasDevToken && (
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 whitespace-nowrap">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            {serverGoogleConfig.source === 'database' ? '✓ ডাটাবেসে সেভ আছে' : '✓ .env.local এ সেভ আছে'}
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-slate-400 mt-1 font-medium line-clamp-1">
                         Direct Developer Token with GA4 SSOT data sync and keyword bid automation.
@@ -1335,6 +1904,16 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                       {isVerifyingGoogle ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5 fill-current" />}
                       <span>Verify &amp; Connect</span>
                     </button>
+                    {(serverGoogleConfig?.hasDevToken || googleSettings.customerId || googleSettings.developerToken) && (
+                      <button
+                        onClick={handleDeleteGoogle}
+                        className="h-9 px-3 rounded-xl text-xs font-bold whitespace-nowrap border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-1.5 transition-all cursor-pointer"
+                        title="ডাটাবেস ও স্টোরেজ থেকে Google Ads ক্রেডেনশিয়াল মুছে ফেলুন"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        <span>মুছে ফেলুন</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -1515,6 +2094,43 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                       </button>
                     </div>
                   </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center justify-between pt-2">
+                    {serverGoogleConfig?.hasDevToken || googleSettings.customerId || googleSettings.developerToken ? (
+                      <button
+                        type="button"
+                        onClick={handleDeleteGoogle}
+                        className="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-500/10 border border-rose-500/30 flex items-center gap-1.5 transition-all cursor-pointer"
+                        title="ডাটাবেস ও স্টোরেজ থেকে Google Ads ক্রেডেনশিয়াল মুছে ফেলুন"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span>মুছে ফেলুন (Delete)</span>
+                      </button>
+                    ) : (
+                      <div />
+                    )}
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleSaveGoogleDirect}
+                        disabled={isSaving}
+                        className="px-5 py-2.5 rounded-xl text-xs font-bold border border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                      >
+                        <Database className="h-4 w-4" />
+                        <span>ডাটাবেসে সেভ করুন</span>
+                      </button>
+                      <button
+                        onClick={handleVerifyGoogle}
+                        disabled={isVerifyingGoogle}
+                        className="px-6 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 via-rose-500 to-pink-500 hover:from-amber-400 hover:to-pink-400 disabled:opacity-50 text-white shadow-md flex items-center gap-2 transition-all cursor-pointer"
+                      >
+                        {isVerifyingGoogle ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4 fill-current" />}
+                        <span>{isVerifyingGoogle ? 'যাচাই হচ্ছে...' : 'সেভ ও ভেরিফাই করুন (Verify & Connect)'}</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1549,6 +2165,12 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                           <Check className="h-3 w-3" />
                           Read + Write
                         </span>
+                        {serverTiktokConfig?.hasToken && (
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 whitespace-nowrap">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            {serverTiktokConfig.source === 'database' ? '✓ ডাটাবেসে সেভ আছে' : '✓ .env.local এ সেভ আছে'}
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-slate-400 mt-1 font-medium line-clamp-1">
                         Direct Marketing API credentials for automated bid optimization and ad scheduling.
@@ -1569,6 +2191,16 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                       {isVerifyingTiktok ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5 fill-current text-rose-500" />}
                       <span>Verify &amp; Connect</span>
                     </button>
+                    {(serverTiktokConfig?.hasToken || tiktokSettings.advertiserId || tiktokSettings.accessToken) && (
+                      <button
+                        onClick={handleDeleteTiktok}
+                        className="h-9 px-3 rounded-xl text-xs font-bold whitespace-nowrap border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-1.5 transition-all cursor-pointer"
+                        title="ডাটাবেস ও স্টোরেজ থেকে TikTok ক্রেডেনশিয়াল মুছে ফেলুন"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        <span>মুছে ফেলুন</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -1705,6 +2337,43 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                         </ol>
                       </div>
                     )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center justify-between pt-2">
+                    {serverTiktokConfig?.hasToken || tiktokSettings.advertiserId || tiktokSettings.accessToken ? (
+                      <button
+                        type="button"
+                        onClick={handleDeleteTiktok}
+                        className="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-500/10 border border-rose-500/30 flex items-center gap-1.5 transition-all cursor-pointer"
+                        title="ডাটাবেস ও স্টোরেজ থেকে TikTok ক্রেডেনশিয়াল মুছে ফেলুন"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span>মুছে ফেলুন (Delete)</span>
+                      </button>
+                    ) : (
+                      <div />
+                    )}
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleSaveTiktokDirect}
+                        disabled={isSaving}
+                        className="px-5 py-2.5 rounded-xl text-xs font-bold border border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                      >
+                        <Database className="h-4 w-4" />
+                        <span>ডাটাবেসে সেভ করুন</span>
+                      </button>
+                      <button
+                        onClick={handleVerifyTiktok}
+                        disabled={isVerifyingTiktok}
+                        className="px-6 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 disabled:opacity-50 shadow-md flex items-center gap-2 transition-all cursor-pointer"
+                      >
+                        {isVerifyingTiktok ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4 fill-current text-rose-500" />}
+                        <span>{isVerifyingTiktok ? 'যাচাই হচ্ছে...' : 'সেভ ও ভেরিফাই করুন (Verify & Connect)'}</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1952,7 +2621,207 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
           )}
 
           {/* ======================================================== */}
-          {/* TAB 6: DEVELOPER SETUP & APPROVALS (PHASE 0 GUIDE)        */}
+          {/* TAB 6: GMAIL SMTP 2FA OTP SERVICE CONFIG                */}
+          {/* ======================================================== */}
+          {activeTab === 'SMTP_CONFIG' && (
+            <div className="space-y-6">
+              <div className={`rounded-2xl border p-6 ${cardBg} space-y-6 relative overflow-hidden`}>
+                {/* Brand Header Line */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500" />
+
+                {/* Header */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800/80">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="h-11 w-11 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/25 border border-white/10">
+                      <Mail className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className={`text-base font-black tracking-tight ${textTitle} whitespace-nowrap`}>
+                          Gmail SMTP 2FA OTP Service
+                        </h3>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap">
+                          Google App Password
+                        </span>
+                        {serverSmtpConfig?.isConfigured ? (
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 whitespace-nowrap">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            {serverSmtpConfig.source === 'database' ? '✓ ডাটাবেসে সেভ আছে' : '✓ .env.local এ সেভ আছে'}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-medium tracking-wide bg-slate-500/10 text-slate-400 border border-slate-500/20 whitespace-nowrap">
+                            <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                            Not Configured
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-400 mt-1 font-medium line-clamp-1">
+                        Secure automated transactional OTP dispatch for 2FA Super Admin sign-in verification.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0 self-start md:self-auto">
+                    <button
+                      onClick={handleSaveSmtp}
+                      disabled={isVerifyingSmtp}
+                      className="h-9 px-4 rounded-xl text-xs font-bold whitespace-nowrap bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm shadow-emerald-500/25 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-60"
+                    >
+                      {isVerifyingSmtp ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                      <span>Save to Database</span>
+                    </button>
+                    {(serverSmtpConfig?.isConfigured || smtpSettings.smtpPass) && (
+                      <button
+                        onClick={handleDeleteSmtp}
+                        className="h-9 px-3 rounded-xl text-xs font-bold whitespace-nowrap border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-1.5 transition-all cursor-pointer"
+                        title="ডাটাবেস ও স্টোরেজ থেকে Gmail SMTP ক্রেডেনশিয়াল মুছে ফেলুন"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        <span>মুছে ফেলুন</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Form Fields: 2-column grid */}
+                <div className="space-y-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* SMTP User */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
+                          <Mail className="h-3.5 w-3.5 text-emerald-500" />
+                          <span>GMAIL SENDER ADDRESS (SMTP_USER) *</span>
+                        </label>
+                        {smtpSettings.smtpUser && (
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(smtpSettings.smtpUser, 'smtpUser')}
+                            className="text-[11px] text-slate-400 hover:text-emerald-500 flex items-center gap-1 cursor-pointer transition-colors"
+                          >
+                            {copiedKey === 'smtpUser' ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                            <span>{copiedKey === 'smtpUser' ? 'Copied' : 'Copy'}</span>
+                          </button>
+                        )}
+                      </div>
+                      <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2.5 ${inputContainerBg}`}>
+                        <Mail className="h-4 w-4 text-slate-400 shrink-0" />
+                        <input
+                          type="email"
+                          value={smtpSettings.smtpUser}
+                          onChange={(e) => setSmtpSettings({ ...smtpSettings, smtpUser: e.target.value })}
+                          placeholder="jahedshomadan@gmail.com"
+                          className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
+                        />
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-1.5 font-medium">
+                        আপনার যে Gmail অ্যাকাউন্ট থেকে ইউজারদের 2FA OTP কোড পাঠানো হবে।
+                      </p>
+                    </div>
+
+                    {/* SMTP App Password */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
+                          <Lock className="h-3.5 w-3.5 text-emerald-500" />
+                          <span>16-DIGIT GOOGLE APP PASSWORD (SMTP_PASS) *</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowSmtpPass(!showSmtpPass)}
+                          className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 cursor-pointer transition-colors"
+                        >
+                          {showSmtpPass ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                          <span>{showSmtpPass ? 'Hide' : 'Show'}</span>
+                        </button>
+                      </div>
+                      <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2.5 ${inputContainerBg}`}>
+                        <Lock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                        <input
+                          type={showSmtpPass ? 'text' : 'password'}
+                          value={smtpSettings.smtpPass}
+                          onChange={(e) => setSmtpSettings({ ...smtpSettings, smtpPass: e.target.value })}
+                          placeholder="btsg mnmy qgjs uust"
+                          className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1.5 font-medium">
+                        <span>সার্ভার-সাইড AES-256 এনক্রিপশনে ডাটাবেসে সুরক্ষিত।</span>
+                        {smtpSettings.smtpPass && (
+                          <button
+                            type="button"
+                            onClick={() => setSmtpSettings({ ...smtpSettings, smtpPass: '' })}
+                            className="text-emerald-500 hover:underline font-semibold cursor-pointer flex items-center gap-0.5"
+                          >
+                            <Edit3 className="h-3 w-3" />
+                            <span>নতুন পাসওয়ার্ড লিখুন</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Setup Guide Accordion */}
+                  <div className={`rounded-xl border overflow-hidden ${
+                    isLight ? 'bg-slate-50/80 border-slate-200/90' : 'bg-[#060911] border-slate-800/80'
+                  }`}>
+                    <button
+                      type="button"
+                      onClick={() => setIsSmtpGuideOpen(!isSmtpGuideOpen)}
+                      className="w-full px-4.5 py-3.5 text-left flex items-center justify-between text-xs font-bold cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                        <BookOpen className="h-4 w-4" />
+                        <span>Google App Password তৈরির নিয়মাবলী (Gmail 2FA Setup Guide)</span>
+                      </div>
+                      {isSmtpGuideOpen ? <ChevronUp className="h-4 w-4 text-slate-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />}
+                    </button>
+
+                    {isSmtpGuideOpen && (
+                      <div className="px-5 pb-4 pt-1 border-t border-slate-200 dark:border-slate-800 text-xs space-y-2 text-slate-600 dark:text-slate-300 leading-relaxed">
+                        <ol className="list-decimal pl-5 space-y-1.5">
+                          <li>আপনার Google Account-এ গিয়ে <strong>Security</strong> ট্যাবে যান।</li>
+                          <li>নিশ্চিত করুন যে <strong>2-Step Verification</strong> চালু (ON) আছে।</li>
+                          <li>নিচে স্ক্রোল করে <strong>App passwords</strong> অপশনে ক্লিক করুন (অথবা সার্চ বারে App passwords লিখুন)।</li>
+                          <li>App name লিখুন <code className="text-emerald-500 font-bold">Digital Marketr OTP</code> এবং <strong>Create</strong> চাপুন।</li>
+                          <li>১৬ অক্ষরের যে পাসওয়ার্ডটি (যেমন: <code className="text-emerald-500 font-mono">btsg mnmy qgjs uust</code>) দেখতে পাবেন, সেটি কপি করে উপরের বক্সে পেস্ট করে <strong>Save to Database</strong> চাপুন।</li>
+                        </ol>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center justify-between pt-2">
+                    {serverSmtpConfig?.isConfigured || smtpSettings.smtpPass || smtpSettings.smtpUser ? (
+                      <button
+                        type="button"
+                        onClick={handleDeleteSmtp}
+                        className="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-500/10 border border-rose-500/30 flex items-center gap-1.5 transition-all cursor-pointer"
+                        title="ডাটাবেস ও স্টোরেজ থেকে Gmail SMTP ক্রেডেনশিয়াল মুছে ফেলুন"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span>মুছে ফেলুন (Delete)</span>
+                      </button>
+                    ) : (
+                      <div />
+                    )}
+
+                    <button
+                      onClick={handleSaveSmtp}
+                      disabled={isVerifyingSmtp}
+                      className="px-6 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white shadow-md flex items-center gap-2 transition-all cursor-pointer"
+                    >
+                      <Database className="h-4 w-4" />
+                      <span>{isVerifyingSmtp ? 'সেভ হচ্ছে...' : 'ডাটাবেসে সেভ করুন (Save to Database)'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ======================================================== */}
+          {/* TAB 7: DEVELOPER SETUP & APPROVALS (PHASE 0 GUIDE)        */}
           {/* ======================================================== */}
           {activeTab === 'GUIDE' && (
             <div className="space-y-6 text-xs">

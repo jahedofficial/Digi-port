@@ -6,6 +6,18 @@ import {
   saveTelegramAlertsConfig,
   deleteAiGatewayConfig,
   deleteTelegramAlertsConfig,
+  getMetaDirectConfig,
+  saveMetaDirectConfig,
+  deleteMetaDirectConfig,
+  getGoogleDirectConfig,
+  saveGoogleDirectConfig,
+  deleteGoogleDirectConfig,
+  getTiktokDirectConfig,
+  saveTiktokDirectConfig,
+  deleteTiktokDirectConfig,
+  getSmtpConfig,
+  saveSmtpConfig,
+  deleteSmtpConfig,
   deleteSystemSetting
 } from '@/lib/settings-db';
 
@@ -57,10 +69,116 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Default: Return both
-    const [ai, tg] = await Promise.all([
+    if (key === 'META_DIRECT') {
+      const meta = await getMetaDirectConfig();
+      const maskedToken = meta.token && meta.token.length > 10
+        ? `${meta.token.slice(0, 10)}•••••••••••••`
+        : '';
+      const maskedSecret = meta.appSecret && meta.appSecret.length > 6
+        ? `${meta.appSecret.slice(0, 6)}•••••••••••••`
+        : '';
+      return NextResponse.json({
+        success: true,
+        data: {
+          token: meta.token || '',
+          adAccountId: meta.adAccountId || '',
+          appId: meta.appId || '',
+          appSecret: meta.appSecret || '',
+          scope: meta.scope || 'READ_WRITE',
+          isConnected: meta.isConnected,
+          hasToken: Boolean(meta.token),
+          hasAppSecret: Boolean(meta.appSecret),
+          maskedToken,
+          maskedSecret,
+          source: meta.source,
+          savedAt: meta.savedAt,
+        },
+      });
+    }
+
+    if (key === 'GOOGLE_DIRECT') {
+      const google = await getGoogleDirectConfig();
+      const maskedDevToken = google.developerToken && google.developerToken.length > 6
+        ? `${google.developerToken.slice(0, 6)}•••••••••••••`
+        : '';
+      const maskedSecret = google.clientSecret && google.clientSecret.length > 6
+        ? `${google.clientSecret.slice(0, 6)}•••••••••••••`
+        : '';
+      return NextResponse.json({
+        success: true,
+        data: {
+          customerId: google.customerId || '',
+          developerToken: google.developerToken || '',
+          clientId: google.clientId || '',
+          clientSecret: google.clientSecret || '',
+          ga4PropertyId: google.ga4PropertyId || '',
+          scope: google.scope || 'READ_WRITE',
+          isConnected: google.isConnected,
+          isGa4Connected: google.isGa4Connected,
+          hasDevToken: Boolean(google.developerToken),
+          hasSecret: Boolean(google.clientSecret),
+          maskedDevToken,
+          maskedSecret,
+          source: google.source,
+          savedAt: google.savedAt,
+        },
+      });
+    }
+
+    if (key === 'TIKTOK_DIRECT') {
+      const tiktok = await getTiktokDirectConfig();
+      const maskedToken = tiktok.accessToken && tiktok.accessToken.length > 10
+        ? `${tiktok.accessToken.slice(0, 10)}•••••••••••••`
+        : '';
+      const maskedSecret = tiktok.appSecret && tiktok.appSecret.length > 6
+        ? `${tiktok.appSecret.slice(0, 6)}•••••••••••••`
+        : '';
+      return NextResponse.json({
+        success: true,
+        data: {
+          advertiserId: tiktok.advertiserId || '',
+          appId: tiktok.appId || '',
+          appSecret: tiktok.appSecret || '',
+          accessToken: tiktok.accessToken || '',
+          scope: tiktok.scope || 'READ_WRITE',
+          isConnected: tiktok.isConnected,
+          hasToken: Boolean(tiktok.accessToken),
+          hasSecret: Boolean(tiktok.appSecret),
+          maskedToken,
+          maskedSecret,
+          source: tiktok.source,
+          savedAt: tiktok.savedAt,
+        },
+      });
+    }
+
+    if (key === 'SMTP_CONFIG') {
+      const smtp = await getSmtpConfig();
+      const maskedPass = smtp.smtpPass && smtp.smtpPass.length > 4
+        ? `${smtp.smtpPass.slice(0, 4)}••••••••••••`
+        : '';
+      return NextResponse.json({
+        success: true,
+        data: {
+          smtpUser: smtp.smtpUser || '',
+          smtpPass: smtp.smtpPass || '',
+          isConfigured: smtp.isConfigured,
+          hasPass: Boolean(smtp.smtpPass),
+          maskedPass,
+          source: smtp.source,
+          savedAt: smtp.savedAt,
+        },
+      });
+    }
+
+    // Default: Return all
+    const [ai, tg, meta, google, tiktok, smtp] = await Promise.all([
       getAiGatewayConfig(),
       getTelegramAlertsConfig(),
+      getMetaDirectConfig(),
+      getGoogleDirectConfig(),
+      getTiktokDirectConfig(),
+      getSmtpConfig(),
     ]);
 
     return NextResponse.json({
@@ -75,6 +193,7 @@ export async function GET(req: NextRequest) {
           maskedKey: ai.secretKey && ai.secretKey.length > 10 ? `${ai.secretKey.slice(0, 10)}•••••••••••••` : '',
           hasKey: Boolean(ai.secretKey),
           source: ai.source,
+          savedAt: ai.savedAt,
         },
         telegramAlerts: {
           botToken: tg.botToken || '',
@@ -86,6 +205,54 @@ export async function GET(req: NextRequest) {
           maskedToken: tg.botToken && tg.botToken.length > 10 ? `${tg.botToken.slice(0, 10)}•••••••••••••` : '',
           hasToken: Boolean(tg.botToken),
           source: tg.source,
+          savedAt: tg.savedAt,
+        },
+        metaDirect: {
+          token: meta.token || '',
+          adAccountId: meta.adAccountId || '',
+          appId: meta.appId || '',
+          appSecret: meta.appSecret || '',
+          scope: meta.scope || 'READ_WRITE',
+          isConnected: meta.isConnected,
+          hasToken: Boolean(meta.token),
+          maskedToken: meta.token && meta.token.length > 10 ? `${meta.token.slice(0, 10)}•••••••••••••` : '',
+          source: meta.source,
+          savedAt: meta.savedAt,
+        },
+        googleDirect: {
+          customerId: google.customerId || '',
+          developerToken: google.developerToken || '',
+          clientId: google.clientId || '',
+          clientSecret: google.clientSecret || '',
+          ga4PropertyId: google.ga4PropertyId || '',
+          scope: google.scope || 'READ_WRITE',
+          isConnected: google.isConnected,
+          isGa4Connected: google.isGa4Connected,
+          hasDevToken: Boolean(google.developerToken),
+          maskedDevToken: google.developerToken && google.developerToken.length > 6 ? `${google.developerToken.slice(0, 6)}•••••••••••••` : '',
+          source: google.source,
+          savedAt: google.savedAt,
+        },
+        tiktokDirect: {
+          advertiserId: tiktok.advertiserId || '',
+          appId: tiktok.appId || '',
+          appSecret: tiktok.appSecret || '',
+          accessToken: tiktok.accessToken || '',
+          scope: tiktok.scope || 'READ_WRITE',
+          isConnected: tiktok.isConnected,
+          hasToken: Boolean(tiktok.accessToken),
+          maskedToken: tiktok.accessToken && tiktok.accessToken.length > 10 ? `${tiktok.accessToken.slice(0, 10)}•••••••••••••` : '',
+          source: tiktok.source,
+          savedAt: tiktok.savedAt,
+        },
+        smtpConfig: {
+          smtpUser: smtp.smtpUser || '',
+          smtpPass: smtp.smtpPass || '',
+          isConfigured: smtp.isConfigured,
+          hasPass: Boolean(smtp.smtpPass),
+          maskedPass: smtp.smtpPass && smtp.smtpPass.length > 4 ? `${smtp.smtpPass.slice(0, 4)}••••••••••••` : '',
+          source: smtp.source,
+          savedAt: smtp.savedAt,
         },
       },
     });
@@ -150,11 +317,86 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    if (key === 'META_DIRECT') {
+      const { token, adAccountId, appId, appSecret, scope, isConnected } = data;
+
+      const res = await saveMetaDirectConfig({
+        token,
+        adAccountId,
+        appId,
+        appSecret,
+        scope,
+        isConnected,
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: `Meta API ক্রেডেনশিয়াল ডাটাবেসে (${res.source}) সফলভাবে সেভ করা হয়েছে!`,
+        source: res.source,
+      });
+    }
+
+    if (key === 'GOOGLE_DIRECT') {
+      const { customerId, developerToken, clientId, clientSecret, ga4PropertyId, scope, isConnected, isGa4Connected } = data;
+
+      const res = await saveGoogleDirectConfig({
+        customerId,
+        developerToken,
+        clientId,
+        clientSecret,
+        ga4PropertyId,
+        scope,
+        isConnected,
+        isGa4Connected,
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: `Google Ads ও GA4 ক্রেডেনশিয়াল ডাটাবেসে (${res.source}) সফলভাবে সেভ করা হয়েছে!`,
+        source: res.source,
+      });
+    }
+
+    if (key === 'TIKTOK_DIRECT') {
+      const { advertiserId, appId, appSecret, accessToken, scope, isConnected } = data;
+
+      const res = await saveTiktokDirectConfig({
+        advertiserId,
+        appId,
+        appSecret,
+        accessToken,
+        scope,
+        isConnected,
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: `TikTok Marketing API ক্রেডেনশিয়াল ডাটাবেসে (${res.source}) সফলভাবে সেভ করা হয়েছে!`,
+        source: res.source,
+      });
+    }
+
+    if (key === 'SMTP_CONFIG') {
+      const { smtpUser, smtpPass } = data;
+
+      const res = await saveSmtpConfig({
+        smtpUser,
+        smtpPass,
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: `Gmail SMTP সার্ভিস ক্রেডেনশিয়াল ডাটাবেসে (${res.source}) সফলভাবে সেভ করা হয়েছে!`,
+        source: res.source,
+      });
+    }
+
     return NextResponse.json({
       success: false,
       error: `অজানা ক্যাটাগরি: ${key}`,
     }, { status: 400 });
   } catch (error: any) {
+    console.error('[SETTINGS_POST_ERROR]:', error);
     return NextResponse.json({
       success: false,
       error: error.message || 'ডাটাবেসে সেভ করতে সমস্যা হয়েছে',
@@ -190,6 +432,38 @@ export async function DELETE(req: NextRequest) {
       });
     }
 
+    if (key === 'META_DIRECT') {
+      await deleteMetaDirectConfig();
+      return NextResponse.json({
+        success: true,
+        message: 'Meta ক্রেডেনশিয়াল সফলভাবে মুছে ফেলা হয়েছে',
+      });
+    }
+
+    if (key === 'GOOGLE_DIRECT') {
+      await deleteGoogleDirectConfig();
+      return NextResponse.json({
+        success: true,
+        message: 'Google Ads ক্রেডেনশিয়াল সফলভাবে মুছে ফেলা হয়েছে',
+      });
+    }
+
+    if (key === 'TIKTOK_DIRECT') {
+      await deleteTiktokDirectConfig();
+      return NextResponse.json({
+        success: true,
+        message: 'TikTok ক্রেডেনশিয়াল সফলভাবে মুছে ফেলা হয়েছে',
+      });
+    }
+
+    if (key === 'SMTP_CONFIG') {
+      await deleteSmtpConfig();
+      return NextResponse.json({
+        success: true,
+        message: 'Gmail SMTP ক্রেডেনশিয়াল সফলভাবে মুছে ফেলা হয়েছে',
+      });
+    }
+
     await deleteSystemSetting(key);
     return NextResponse.json({
       success: true,
@@ -202,4 +476,3 @@ export async function DELETE(req: NextRequest) {
     }, { status: 500 });
   }
 }
-
