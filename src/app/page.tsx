@@ -52,6 +52,14 @@ export default function Home() {
   // Multi-Client / Multi-Business Workspace Tabs State
   const [workspaces, setWorkspaces] = useState<ClientWorkspace[]>(INITIAL_CLIENT_WORKSPACES);
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<string>(INITIAL_CLIENT_WORKSPACES[0].id);
+  const [ga4LiveMetrics, setGa4LiveMetrics] = useState<{
+    activeUsers?: number;
+    newUsers?: number;
+    sessions?: number;
+    conversions?: number;
+    totalRevenue?: number;
+    screenPageViews?: number;
+  } | null>(null);
 
   // Load persisted authentication state from localStorage
   React.useEffect(() => {
@@ -69,6 +77,16 @@ export default function Home() {
         setActiveNav('AI_COPILOT');
       }
     } catch {}
+
+    // Fetch live GA4 metrics if Service Account / Property is configured
+    fetch('/api/platforms/google/sync')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.ga4Metrics) {
+          setGa4LiveMetrics(data.ga4Metrics);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   // Hydrate workspaces & active direct credentials from localStorage on mount
@@ -325,7 +343,11 @@ export default function Home() {
     accountName?: string;
     accountId?: string;
     currency?: string;
+    ga4Metrics?: any;
   }) => {
+    if (data.ga4Metrics) {
+      setGa4LiveMetrics(data.ga4Metrics);
+    }
     if (data.campaigns && data.campaigns.length > 0) {
       setCampaigns((prev) => {
         const filtered = prev.filter((c) => c.platform !== data.platform);
@@ -626,6 +648,7 @@ export default function Home() {
               campaigns={activeWorkspace.campaigns}
               creatives={activeWorkspace.creatives}
               theme={theme}
+              ga4Metrics={ga4LiveMetrics}
               onToggleStatus={handleToggleCampaignStatus}
               onScaleBudget={handleScaleBudget}
               onPauseCreative={handlePauseCreative}
@@ -659,7 +682,7 @@ export default function Home() {
           {activeNav === 'GOOGLE_ADS' && (
             <GoogleAdsIntelligenceDashboard 
               theme={theme} 
-              hasActiveData={Boolean(activeWorkspace.connectedAccounts.google?.id)}
+              hasActiveData={activeWorkspace.campaigns.filter((c) => c.platform === 'GOOGLE').length > 0}
               accountName={activeWorkspace.connectedAccounts.google?.name || `${activeWorkspace.clientName} Google Ads (Not connected)`}
               accountId={activeWorkspace.connectedAccounts.google?.id || ''}
               currency={activeWorkspace.currency}

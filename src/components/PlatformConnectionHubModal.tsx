@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   X, 
   CheckCircle2, 
@@ -68,6 +68,7 @@ interface PlatformConnectionHubModalProps {
     accountName?: string;
     accountId?: string;
     currency?: string;
+    ga4Metrics?: any;
   }) => void;
 }
 
@@ -86,8 +87,32 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
   const [connections, setConnections] = useState<PlatformConnectionDetails[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const isInitialLoad = useRef(true);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  // Background Auto-Save Helper Function
+  const triggerAutoSave = useCallback(async (key: string, data: any) => {
+    setAutoSaveStatus('saving');
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, data }),
+      });
+      const resData = await res.json();
+      if (resData.success) {
+        setAutoSaveStatus('saved');
+        setTimeout(() => setAutoSaveStatus('idle'), 3000);
+      } else {
+        setAutoSaveStatus('idle');
+      }
+    } catch {
+      setAutoSaveStatus('idle');
+    }
+  }, []);
 
   // --- 1. META DIRECT SYSTEM TOKEN STATE ---
   const [metaSettings, setMetaSettings] = useState({
@@ -349,10 +374,82 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
           setAiGatewaySettings((prev) => ({ ...prev, ...parsed }));
         }
       }
+      setTimeout(() => {
+        isInitialLoad.current = false;
+      }, 1000);
     } catch {
       // ignore
     }
   }, []);
+
+  // Debounced Auto-Save on Settings Change (Eliminates redundant "ডাটাবেসে সেভ করুন" buttons)
+  useEffect(() => {
+    if (isInitialLoad.current) return;
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+
+    debounceTimerRef.current = setTimeout(() => {
+      if (activeTab === 'META_DIRECT') {
+        const rawToken = metaSettings.token.trim();
+        const rawAccountId = metaSettings.adAccountId.trim().replace(/^act_?/i, '');
+        if (rawToken || rawAccountId || metaSettings.appId || metaSettings.appSecret) {
+          triggerAutoSave('META_DIRECT', {
+            token: rawToken,
+            adAccountId: rawAccountId,
+            appId: metaSettings.appId?.trim() || '',
+            appSecret: metaSettings.appSecret?.trim() || '',
+            scope: metaSettings.scope,
+            isConnected: metaSettings.isConnected,
+          });
+        }
+      } else if (activeTab === 'GOOGLE_DIRECT') {
+        const customerId = googleSettings.customerId.trim();
+        const developerToken = googleSettings.developerToken.trim();
+        const ga4PropertyId = googleSettings.ga4PropertyId.trim();
+        const serviceAccountJson = googleSettings.serviceAccountJson.trim();
+        const serviceAccountEmail = googleSettings.serviceAccountEmail.trim();
+        if (customerId || developerToken || ga4PropertyId || serviceAccountJson || serviceAccountEmail) {
+          triggerAutoSave('GOOGLE_DIRECT', {
+            customerId,
+            developerToken,
+            clientId: googleSettings.clientId.trim(),
+            clientSecret: googleSettings.clientSecret.trim(),
+            ga4PropertyId,
+            scope: googleSettings.scope,
+            isConnected: googleSettings.isConnected,
+            isGa4Connected: googleSettings.isGa4Connected || Boolean(serviceAccountEmail || serviceAccountJson),
+            serviceAccountJson,
+            serviceAccountEmail,
+            serviceAccountProjectId: googleSettings.serviceAccountProjectId,
+          });
+        }
+      } else if (activeTab === 'TIKTOK_DIRECT') {
+        const advId = tiktokSettings.advertiserId.trim();
+        const token = tiktokSettings.accessToken.trim();
+        if (advId || token || tiktokSettings.appId || tiktokSettings.appSecret) {
+          triggerAutoSave('TIKTOK_DIRECT', {
+            advertiserId: advId,
+            appId: tiktokSettings.appId.trim(),
+            appSecret: tiktokSettings.appSecret.trim(),
+            accessToken: token,
+            scope: tiktokSettings.scope,
+            isConnected: tiktokSettings.isConnected,
+          });
+        }
+      } else if (activeTab === 'SMTP_CONFIG') {
+        if (smtpSettings.smtpUser || smtpSettings.smtpPass) {
+          triggerAutoSave('SMTP_CONFIG', {
+            smtpUser: smtpSettings.smtpUser.trim(),
+            smtpPass: smtpSettings.smtpPass.trim(),
+            isConfigured: smtpSettings.isConfigured,
+          });
+        }
+      }
+    }, 1200);
+
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    };
+  }, [metaSettings, googleSettings, tiktokSettings, smtpSettings, activeTab, triggerAutoSave]);
 
   // Fetch current OAuth connections
   const fetchConnections = async () => {
@@ -637,7 +734,20 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
       }));
       setServiceAccountRawInput(jsonString);
       setShowServiceAccountPaste(false);
-      showNotification(`✓ Google Service Account JSON (${sourceName || email || projectId}) লোড হয়েছে! এবার Save এ ক্লিক করুন।`);
+      triggerAutoSave('GOOGLE_DIRECT', {
+        customerId: googleSettings.customerId.trim(),
+        developerToken: googleSettings.developerToken.trim(),
+        clientId: googleSettings.clientId.trim(),
+        clientSecret: googleSettings.clientSecret.trim(),
+        ga4PropertyId: googleSettings.ga4PropertyId.trim(),
+        scope: googleSettings.scope,
+        isConnected: googleSettings.isConnected,
+        isGa4Connected: true,
+        serviceAccountJson: jsonString,
+        serviceAccountEmail: email,
+        serviceAccountProjectId: projectId,
+      });
+      showNotification(`✓ Google Service Account JSON (${sourceName || email || projectId}) লোড ও ডাটাবেসে অটো-সেভ হয়েছে!`);
     } catch {
       showNotification('⚠️ অবৈধ JSON ফরম্যাট! দয়া করে সঠিক Google Cloud Service Account JSON ফাইল আপলোড বা পেস্ট করুন।');
     }
@@ -741,6 +851,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
             accountName: data.accountName,
             accountId: data.accountId || customerId,
             currency: data.currency || 'USD',
+            ga4Metrics: data.ga4Metrics,
           });
         }
         showNotification(`✓ ${data.message} (ডাটাবেসে সেভ হয়েছে)`);
@@ -1894,23 +2005,32 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                       <div />
                     )}
 
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={handleSaveMetaDirect}
-                        disabled={isSaving}
-                        className="px-5 py-2.5 rounded-xl text-xs font-bold border border-blue-500/30 text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-                      >
-                        <Database className="h-4 w-4" />
-                        <span>ডাটাবেসে সেভ করুন</span>
-                      </button>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5 text-xs font-medium">
+                        {autoSaveStatus === 'saving' && (
+                          <span className="text-amber-500 flex items-center gap-1">
+                            <RefreshCw className="h-3 w-3 animate-spin" /> ডাটাবেসে সেভ হচ্ছে...
+                          </span>
+                        )}
+                        {autoSaveStatus === 'saved' && (
+                          <span className="text-emerald-500 flex items-center gap-1">
+                            <CheckCircle2 className="h-3.5 w-3.5" /> ডাটাবেসে অটো-সেভ হয়েছে
+                          </span>
+                        )}
+                        {autoSaveStatus === 'idle' && (
+                          <span className="text-slate-400 flex items-center gap-1">
+                            <Database className="h-3.5 w-3.5" /> অটো-সেভ সক্রিয়
+                          </span>
+                        )}
+                      </div>
+
                       <button
                         onClick={handleVerifyMeta}
                         disabled={isVerifyingMeta}
                         className="px-6 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white shadow-md flex items-center gap-2 transition-all cursor-pointer"
                       >
                         {isVerifyingMeta ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4 fill-current" />}
-                        <span>{isVerifyingMeta ? 'যাচাই হচ্ছে...' : 'সেভ ও ভেরিফাই করুন (Verify & Connect)'}</span>
+                        <span>{isVerifyingMeta ? 'সিঙ্ক হচ্ছে...' : 'সেভ ও সিঙ্ক করুন (Save & Sync Live Data)'}</span>
                       </button>
                     </div>
                   </div>
@@ -2296,23 +2416,32 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                       <div />
                     )}
 
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={handleSaveGoogleDirect}
-                        disabled={isSaving}
-                        className="px-5 py-2.5 rounded-xl text-xs font-bold border border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-                      >
-                        <Database className="h-4 w-4" />
-                        <span>ডাটাবেসে সেভ করুন</span>
-                      </button>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5 text-xs font-medium">
+                        {autoSaveStatus === 'saving' && (
+                          <span className="text-amber-500 flex items-center gap-1">
+                            <RefreshCw className="h-3 w-3 animate-spin" /> ডাটাবেসে সেভ হচ্ছে...
+                          </span>
+                        )}
+                        {autoSaveStatus === 'saved' && (
+                          <span className="text-emerald-500 flex items-center gap-1">
+                            <CheckCircle2 className="h-3.5 w-3.5" /> ডাটাবেসে অটো-সেভ হয়েছে
+                          </span>
+                        )}
+                        {autoSaveStatus === 'idle' && (
+                          <span className="text-slate-400 flex items-center gap-1">
+                            <Database className="h-3.5 w-3.5" /> অটো-সেভ সক্রিয়
+                          </span>
+                        )}
+                      </div>
+
                       <button
                         onClick={handleVerifyGoogle}
                         disabled={isVerifyingGoogle}
                         className="px-6 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 via-rose-500 to-pink-500 hover:from-amber-400 hover:to-pink-400 disabled:opacity-50 text-white shadow-md flex items-center gap-2 transition-all cursor-pointer"
                       >
                         {isVerifyingGoogle ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4 fill-current" />}
-                        <span>{isVerifyingGoogle ? 'যাচাই হচ্ছে...' : 'সেভ ও ভেরিফাই করুন (Verify & Connect)'}</span>
+                        <span>{isVerifyingGoogle ? 'সিঙ্ক হচ্ছে...' : 'সেভ ও সিঙ্ক করুন (Save & Sync Live Data)'}</span>
                       </button>
                     </div>
                   </div>
@@ -2540,23 +2669,32 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                       <div />
                     )}
 
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={handleSaveTiktokDirect}
-                        disabled={isSaving}
-                        className="px-5 py-2.5 rounded-xl text-xs font-bold border border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-                      >
-                        <Database className="h-4 w-4" />
-                        <span>ডাটাবেসে সেভ করুন</span>
-                      </button>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5 text-xs font-medium">
+                        {autoSaveStatus === 'saving' && (
+                          <span className="text-amber-500 flex items-center gap-1">
+                            <RefreshCw className="h-3 w-3 animate-spin" /> ডাটাবেসে সেভ হচ্ছে...
+                          </span>
+                        )}
+                        {autoSaveStatus === 'saved' && (
+                          <span className="text-emerald-500 flex items-center gap-1">
+                            <CheckCircle2 className="h-3.5 w-3.5" /> ডাটাবেসে অটো-সেভ হয়েছে
+                          </span>
+                        )}
+                        {autoSaveStatus === 'idle' && (
+                          <span className="text-slate-400 flex items-center gap-1">
+                            <Database className="h-3.5 w-3.5" /> অটো-সেভ সক্রিয়
+                          </span>
+                        )}
+                      </div>
+
                       <button
                         onClick={handleVerifyTiktok}
                         disabled={isVerifyingTiktok}
                         className="px-6 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 disabled:opacity-50 shadow-md flex items-center gap-2 transition-all cursor-pointer"
                       >
                         {isVerifyingTiktok ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4 fill-current text-rose-500" />}
-                        <span>{isVerifyingTiktok ? 'যাচাই হচ্ছে...' : 'সেভ ও ভেরিফাই করুন (Verify & Connect)'}</span>
+                        <span>{isVerifyingTiktok ? 'সিঙ্ক হচ্ছে...' : 'সেভ ও সিঙ্ক করুন (Save & Sync Live Data)'}</span>
                       </button>
                     </div>
                   </div>
@@ -2991,14 +3129,34 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                       <div />
                     )}
 
-                    <button
-                      onClick={handleSaveSmtp}
-                      disabled={isVerifyingSmtp}
-                      className="px-6 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white shadow-md flex items-center gap-2 transition-all cursor-pointer"
-                    >
-                      <Database className="h-4 w-4" />
-                      <span>{isVerifyingSmtp ? 'সেভ হচ্ছে...' : 'ডাটাবেসে সেভ করুন (Save to Database)'}</span>
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5 text-xs font-medium">
+                        {autoSaveStatus === 'saving' && (
+                          <span className="text-amber-500 flex items-center gap-1">
+                            <RefreshCw className="h-3 w-3 animate-spin" /> ডাটাবেসে সেভ হচ্ছে...
+                          </span>
+                        )}
+                        {autoSaveStatus === 'saved' && (
+                          <span className="text-emerald-500 flex items-center gap-1">
+                            <CheckCircle2 className="h-3.5 w-3.5" /> ডাটাবেসে অটো-সেভ হয়েছে
+                          </span>
+                        )}
+                        {autoSaveStatus === 'idle' && (
+                          <span className="text-slate-400 flex items-center gap-1">
+                            <Database className="h-3.5 w-3.5" /> অটো-সেভ সক্রিয়
+                          </span>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={handleSaveSmtp}
+                        disabled={isVerifyingSmtp}
+                        className="px-6 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white shadow-md flex items-center gap-2 transition-all cursor-pointer"
+                      >
+                        {isVerifyingSmtp ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4 fill-current" />}
+                        <span>{isVerifyingSmtp ? 'যাচাই হচ্ছে...' : 'যাচাই ও সেভ করুন (Verify & Save)'}</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Search, 
   Clock, 
@@ -31,6 +31,102 @@ import {
 } from 'lucide-react';
 
 import { CampaignData } from '@/types';
+
+export interface CampaignMixItem {
+  name: string;
+  spend: number;
+  pct: number;
+  color: string;
+  roas: number;
+}
+
+export interface AuctionInsightItem {
+  competitor: string;
+  imprShare: string;
+  overlapRate: string;
+  outrankingShare: string;
+  isYou: boolean;
+}
+
+export interface SearchTermItem {
+  query: string;
+  clicks: number;
+  conv: number;
+  spend: number;
+  roas: number;
+  type: string;
+  action: string;
+}
+
+export interface DailyDynamicsItem {
+  date: string;
+  spend: number;
+  conv: number;
+  value: number;
+  roas: number;
+}
+
+export interface GroupMetricItem {
+  group: string;
+  spend: number;
+  conv: number;
+  cpa: number;
+  roas: number;
+}
+
+export interface GoogleDashboardData {
+  spend: number;
+  conversions: number;
+  cpa: number;
+  roas: number;
+  revenue: number;
+  impressions: number;
+  clicks: number;
+  cpc: number;
+  ctr: string;
+  winners: {
+    topCampaign: string;
+    topCampaignSub: string;
+    bestCpa: string;
+    bestCpaSub: string;
+    searchShare: string;
+    searchShareSub: string;
+    topKeyword: string;
+    topKeywordSub: string;
+  };
+  quality: {
+    avgQualityScore: string;
+    qualityTier: string;
+    expectedCtr: string;
+    adRelevance: string;
+    landingPageExp: string;
+    searchImprShare: string;
+    lostIsBudget: string;
+    lostIsRank: string;
+  };
+  campaignMix: CampaignMixItem[];
+  auctionInsights: AuctionInsightItem[];
+  searchTerms: SearchTermItem[];
+  dailyDynamics: DailyDynamicsItem[];
+  campaigns: Array<{
+    id: string;
+    name: string;
+    type: string;
+    status: string;
+    dailyBudget: number;
+    spend: number;
+    conv: number;
+    value: number;
+    roas: number;
+    cpa: number;
+  }>;
+  campaignType: GroupMetricItem[];
+  network: GroupMetricItem[];
+  location: GroupMetricItem[];
+  device: GroupMetricItem[];
+  keywordMatch: GroupMetricItem[];
+  audience: GroupMetricItem[];
+}
 
 interface GoogleAdsIntelligenceDashboardProps {
   theme: 'light' | 'dark';
@@ -78,108 +174,81 @@ export const GoogleAdsIntelligenceDashboard: React.FC<GoogleAdsIntelligenceDashb
     setTimeout(() => setIsSyncing(false), 700);
   };
 
-  // Google Ads Comprehensive Data Set
-  const data = activeDataMode ? {
-    spend: 1840.50,
-    conversions: 284,
-    cpa: 6.48,
-    roas: 4.82,
-    revenue: 8871.20,
-    impressions: 342000,
-    clicks: 14820,
-    cpc: 0.1242,
-    ctr: '4.33%',
-    winners: {
-      topCampaign: 'BD_Search_Brand_Core (Sapphire & Lawn)',
-      topCampaignSub: '6.10x ROAS • 124 Orders Attributed',
-      bestCpa: 'PMax_High_Margin_Women_Fashion',
-      bestCpaSub: '$5.20 CPA (Lowest Cost Per Order)',
-      searchShare: '86.4% Top of Page Share',
-      searchShareSub: 'Outranking Daraz & Yellow in Dhaka',
-      topKeyword: '"fakeit premium oversized tee"',
-      topKeywordSub: '58 Conversions • 5.40x ROAS',
-    },
-    quality: {
-      avgQualityScore: '8.8 / 10',
-      qualityTier: 'Excellent',
-      expectedCtr: 'Above Average',
-      adRelevance: 'Above Average',
-      landingPageExp: 'Above Average',
-      searchImprShare: '78.40%',
-      lostIsBudget: '6.20%',
-      lostIsRank: '7.40%',
-    },
-    campaignMix: [
-      { name: 'Google Search (High Intent)', spend: 828.20, pct: 45, color: '#3b82f6', roas: 5.40 },
-      { name: 'Performance Max (Omnichannel AI)', spend: 699.40, pct: 38, color: '#10b981', roas: 4.60 },
-      { name: 'Google Shopping (Merchant Center)', spend: 220.80, pct: 12, color: '#f59e0b', roas: 3.90 },
-      { name: 'YouTube & Demand Gen', spend: 92.10, pct: 5, color: '#ef4444', roas: 2.80 },
-    ],
-    auctionInsights: [
-      { competitor: 'FAKEIT BD (Your Store)', imprShare: '78.4%', overlapRate: '—', outrankingShare: '—', isYou: true },
-      { competitor: 'Daraz Fashion BD', imprShare: '54.2%', overlapRate: '68.5%', outrankingShare: '64.2%', isYou: false },
-      { competitor: 'Yellow Clothing BD', imprShare: '42.1%', overlapRate: '52.0%', outrankingShare: '71.8%', isYou: false },
-      { competitor: 'Aarong E-Shop', imprShare: '36.8%', overlapRate: '44.3%', outrankingShare: '76.4%', isYou: false },
-    ],
-    searchTerms: [
-      { query: 'buy silk saree online dhaka', clicks: 124, conv: 28, spend: 32.50, roas: 6.80, type: 'Exact Match', action: 'TOP_PERFORMER' },
-      { query: 'fakeit streetwear collection bd', clicks: 248, conv: 62, spend: 41.20, roas: 7.90, type: 'Brand Core', action: 'TOP_PERFORMER' },
-      { query: 'best oversized drop shoulder tshirt bd', clicks: 96, conv: 18, spend: 22.40, roas: 4.90, type: 'Phrase Match', action: 'SCALING' },
-      { query: 'free lawn dress delivery daraz promo', clicks: 42, conv: 1, spend: 18.20, roas: 0.90, type: 'Wasted Broad', action: 'ADD_NEGATIVE' },
-      { query: 'wholesale unstitched suit chittagong', clicks: 38, conv: 0, spend: 14.50, roas: 0.00, type: 'Low Intent', action: 'ADD_NEGATIVE' },
-    ],
-    dailyDynamics: [
-      { date: '2026-09-28', spend: 52.00, conv: 8, value: 275.60, roas: 5.30 },
-      { date: '2026-09-29', spend: 58.00, conv: 9, value: 295.80, roas: 5.10 },
-      { date: '2026-09-30', spend: 61.50, conv: 10, value: 301.35, roas: 4.90 },
-      { date: '2026-10-01', spend: 64.00, conv: 11, value: 313.60, roas: 4.90 },
-      { date: '2026-10-02', spend: 72.00, conv: 13, value: 367.20, roas: 5.10 },
-      { date: '2026-10-03', spend: 85.00, conv: 16, value: 433.50, roas: 5.10 },
-      { date: '2026-10-04', spend: 94.00, conv: 18, value: 479.40, roas: 5.10 },
-    ],
-    campaigns: [
-      { id: '1', name: 'BD_Search_Brand_Core (Sapphire & Lawn)', type: 'SEARCH', status: 'ACTIVE', dailyBudget: 35.00, spend: 640.00, conv: 124, value: 3904.00, roas: 6.10, cpa: 5.16 },
-      { id: '2', name: 'PMax_High_Margin_Women_Fashion', type: 'PMAX', status: 'ACTIVE', dailyBudget: 40.00, spend: 699.40, conv: 98, value: 3217.24, roas: 4.60, cpa: 7.13 },
-      { id: '3', name: 'Shopping_Smart_Feed_BestSellers', type: 'SHOPPING', status: 'ACTIVE', dailyBudget: 15.00, spend: 220.80, conv: 38, value: 861.12, roas: 3.90, cpa: 5.81 },
-      { id: '4', name: 'YouTube_InStream_Festive_Drop', type: 'YOUTUBE', status: 'ACTIVE', dailyBudget: 10.00, spend: 92.10, conv: 14, value: 257.88, roas: 2.80, cpa: 6.57 },
-      { id: '5', name: 'Search_Generic_Festive_Kurtis', type: 'SEARCH', status: 'PAUSED', dailyBudget: 20.00, spend: 188.20, conv: 10, value: 338.76, roas: 1.80, cpa: 18.82 },
-    ],
-    campaignType: [
-      { group: 'Search (Intent Driven)', spend: 828.20, conv: 134, cpa: 6.18, roas: 5.12 },
-      { group: 'Performance Max', spend: 699.40, conv: 98, cpa: 7.13, roas: 4.60 },
-      { group: 'Google Shopping', spend: 220.80, conv: 38, cpa: 5.81, roas: 3.90 },
-      { group: 'YouTube & Demand Gen', spend: 92.10, conv: 14, cpa: 6.57, roas: 2.80 },
-    ],
-    network: [
-      { group: 'Google Search Top', spend: 760.00, conv: 128, cpa: 5.93, roas: 5.30 },
-      { group: 'Search Partners', spend: 68.20, conv: 6, cpa: 11.36, roas: 3.10 },
-      { group: 'Google Display Network', spend: 45.00, conv: 4, cpa: 11.25, roas: 2.40 },
-      { group: 'YouTube Videos', spend: 92.10, conv: 14, cpa: 6.57, roas: 2.80 },
-    ],
-    location: [
-      { group: 'Dhaka Division (Urban Core)', spend: 1196.30, conv: 198, cpa: 6.04, roas: 5.10 },
-      { group: 'Chittagong Division', spend: 368.10, conv: 52, cpa: 7.07, roas: 4.35 },
-      { group: 'Sylhet Division', spend: 147.20, conv: 20, cpa: 7.36, roas: 4.10 },
-      { group: 'Rajshahi Division', spend: 73.60, conv: 9, cpa: 8.17, roas: 3.60 },
-      { group: 'Khulna & Others', spend: 55.30, conv: 5, cpa: 11.06, roas: 2.90 },
-    ],
-    device: [
-      { group: 'Mobile (Android & iOS)', spend: 1564.40, conv: 246, cpa: 6.35, roas: 4.95 },
-      { group: 'Desktop Computers', spend: 257.60, conv: 36, cpa: 7.15, roas: 4.20 },
-      { group: 'Tablets', spend: 18.50, conv: 2, cpa: 9.25, roas: 3.20 },
-    ],
-    keywordMatch: [
-      { group: 'Exact Match [ ]', spend: 580.00, conv: 104, cpa: 5.57, roas: 5.80 },
-      { group: 'Phrase Match " "', spend: 280.00, conv: 38, cpa: 7.36, roas: 4.20 },
-      { group: 'Broad Match (Target CPA)', spend: 148.20, conv: 14, cpa: 10.58, roas: 2.95 },
-    ],
-    audience: [
-      { group: 'In-Market Women Apparel', spend: 640.00, conv: 106, cpa: 6.03, roas: 5.20 },
-      { group: 'Custom Intent (Silk & Lawn)', spend: 420.00, conv: 68, cpa: 6.17, roas: 4.90 },
-      { group: 'Cart Abandoners (GA4 30D)', spend: 310.00, conv: 56, cpa: 5.53, roas: 5.60 },
-      { group: 'Customer Match (1st Party LTV)', spend: 180.50, conv: 32, cpa: 5.64, roas: 5.40 },
-    ],
-  } : {
+  // Google Ads Dynamic Data Engine: Only real campaign data or strict $0 zero-state
+  const aggregatedFromCampaigns = useMemo<GoogleDashboardData | null>(() => {
+    if (!campaigns || campaigns.length === 0) return null;
+    const spend = campaigns.reduce((s, c) => s + (c.spend || 0), 0);
+    const conversions = campaigns.reduce((s, c) => s + (c.conversions || 0), 0);
+    const impressions = campaigns.reduce((s, c) => s + (c.impressions || 0), 0);
+    const clicks = campaigns.reduce((s, c) => s + (c.clicks || 0), 0);
+    const revenue = campaigns.reduce((s, c) => s + ((c.spend || 0) * (c.roas || 0)), 0);
+    const roas = spend > 0 ? revenue / spend : 0;
+    const cpa = conversions > 0 ? spend / conversions : 0;
+    const cpc = clicks > 0 ? spend / clicks : 0;
+    const ctr = impressions > 0 ? `${((clicks / impressions) * 100).toFixed(2)}%` : '0.00%';
+
+    return {
+      spend,
+      conversions,
+      cpa,
+      roas,
+      revenue,
+      impressions,
+      clicks,
+      cpc,
+      ctr,
+      winners: {
+        topCampaign: campaigns[0]?.name || '—',
+        topCampaignSub: `${(campaigns[0]?.roas || 0).toFixed(2)}x ROAS • ${campaigns[0]?.conversions || 0} Orders`,
+        bestCpa: campaigns[0]?.name || '—',
+        bestCpaSub: `$${(campaigns[0]?.cpa || 0).toFixed(2)} CPA`,
+        searchShare: '—',
+        searchShareSub: 'Live impression share',
+        topKeyword: '—',
+        topKeywordSub: '—',
+      },
+      quality: {
+        avgQualityScore: '—',
+        qualityTier: 'Active',
+        expectedCtr: '—',
+        adRelevance: '—',
+        landingPageExp: '—',
+        searchImprShare: '—',
+        lostIsBudget: '0.00%',
+        lostIsRank: '0.00%',
+      },
+      campaignMix: campaigns.map((c, i) => ({
+        name: c.name,
+        spend: c.spend || 0,
+        pct: spend > 0 ? Math.round(((c.spend || 0) / spend) * 100) : 0,
+        color: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'][i % 4],
+        roas: c.roas || 0,
+      })),
+      auctionInsights: [] as AuctionInsightItem[],
+      searchTerms: [] as SearchTermItem[],
+      dailyDynamics: [] as DailyDynamicsItem[],
+      campaigns: campaigns.map((c) => ({
+        id: c.id,
+        name: c.name,
+        type: c.objective || 'SEARCH',
+        status: c.status,
+        dailyBudget: c.dailyBudget || 0,
+        spend: c.spend || 0,
+        conv: c.conversions || 0,
+        value: (c.spend || 0) * (c.roas || 0),
+        roas: c.roas || 0,
+        cpa: c.cpa || 0,
+      })),
+      campaignType: [] as GroupMetricItem[],
+      network: [] as GroupMetricItem[],
+      location: [] as GroupMetricItem[],
+      device: [] as GroupMetricItem[],
+      keywordMatch: [] as GroupMetricItem[],
+      audience: [] as GroupMetricItem[],
+    };
+  }, [campaigns]);
+
+  const data: GoogleDashboardData = aggregatedFromCampaigns || {
     spend: 0.00,
     conversions: 0,
     cpa: 0.00,
@@ -191,17 +260,17 @@ export const GoogleAdsIntelligenceDashboard: React.FC<GoogleAdsIntelligenceDashb
     ctr: '0.00%',
     winners: {
       topCampaign: '—',
-      topCampaignSub: 'No active campaigns synced',
+      topCampaignSub: 'কোনো Google Ads ক্যাম্পেইন রান করা হয়নি',
       bestCpa: '—',
-      bestCpaSub: 'No conversion data yet',
+      bestCpaSub: 'ক্যাম্পেইন চালু করলে ডাটা আসবে',
       searchShare: '—',
-      searchShareSub: 'Connect account to pull share',
+      searchShareSub: 'Google Ads এখনো চালু করা হয়নি',
       topKeyword: '—',
-      topKeywordSub: 'No search queries recorded',
+      topKeywordSub: 'কোনো সার্চ কিওয়ার্ড ডাটা নেই',
     },
     quality: {
       avgQualityScore: '—',
-      qualityTier: 'Pending Sync',
+      qualityTier: 'No Ads Active',
       expectedCtr: '—',
       adRelevance: '—',
       landingPageExp: '—',
@@ -209,17 +278,17 @@ export const GoogleAdsIntelligenceDashboard: React.FC<GoogleAdsIntelligenceDashb
       lostIsBudget: '0.00%',
       lostIsRank: '0.00%',
     },
-    campaignMix: [],
-    auctionInsights: [],
-    searchTerms: [],
-    dailyDynamics: [],
+    campaignMix: [] as CampaignMixItem[],
+    auctionInsights: [] as AuctionInsightItem[],
+    searchTerms: [] as SearchTermItem[],
+    dailyDynamics: [] as DailyDynamicsItem[],
     campaigns: [],
-    campaignType: [],
-    network: [],
-    location: [],
-    device: [],
-    keywordMatch: [],
-    audience: [],
+    campaignType: [] as GroupMetricItem[],
+    network: [] as GroupMetricItem[],
+    location: [] as GroupMetricItem[],
+    device: [] as GroupMetricItem[],
+    keywordMatch: [] as GroupMetricItem[],
+    audience: [] as GroupMetricItem[],
   };
 
   // Aesthetic Card Theme classes matching TikTok exactly:
@@ -324,18 +393,34 @@ export const GoogleAdsIntelligenceDashboard: React.FC<GoogleAdsIntelligenceDashb
                   <h2 className={`text-sm sm:text-base font-bold tracking-tight whitespace-nowrap ${textTitle}`}>
                     Google Ads
                   </h2>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/25 px-1.5 sm:px-2 py-0.5 text-[9px] font-semibold whitespace-nowrap shrink-0">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    Search &amp; PMax
-                  </span>
+                  {campaigns.length > 0 ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/25 px-1.5 sm:px-2 py-0.5 text-[9px] font-semibold whitespace-nowrap shrink-0">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      Search &amp; PMax
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/20 px-1.5 sm:px-2 py-0.5 text-[9px] font-semibold whitespace-nowrap shrink-0">
+                      <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                      No Active Ads
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
-                  <span className="font-mono text-slate-500 dark:text-slate-400 shrink-0">CID: {accountId}</span>
-                  <span className="text-slate-300 dark:text-slate-700 shrink-0">•</span>
-                  <span className="text-emerald-500 text-[10px] sm:text-[11px] font-semibold flex items-center gap-1 shrink-0">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    Live
+                  <span className="font-mono text-slate-500 dark:text-slate-400 shrink-0">
+                    {accountId ? (accountId.length === 10 || accountId.includes('-') ? `CID: ${accountId}` : `Property/ID: ${accountId}`) : 'No CID'}
                   </span>
+                  <span className="text-slate-300 dark:text-slate-700 shrink-0">•</span>
+                  {campaigns.length > 0 ? (
+                    <span className="text-emerald-500 text-[10px] sm:text-[11px] font-semibold flex items-center gap-1 shrink-0">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      Live
+                    </span>
+                  ) : (
+                    <span className="text-slate-400 text-[10px] sm:text-[11px] font-medium flex items-center gap-1 shrink-0">
+                      <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                      ক্যাম্পেইন চালু নেই (No Ads Running)
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -394,9 +479,14 @@ export const GoogleAdsIntelligenceDashboard: React.FC<GoogleAdsIntelligenceDashb
           <div className={`mt-0.5 text-2xl font-black ${textTitle}`}>
             {formatCurr(data.spend)}
           </div>
-          <div className="mt-1 flex items-center gap-1 text-[10px] text-emerald-500 font-semibold">
-            <ArrowUpRight className="h-3 w-3" />
-            <span>+14.2% vs last 30 days</span>
+          <div className="mt-1 flex items-center gap-1 text-[10px] text-slate-400">
+            {data.spend > 0 ? (
+              <span className="text-emerald-500 font-semibold flex items-center gap-1">
+                <ArrowUpRight className="h-3 w-3" /> +14.2% vs last 30 days
+              </span>
+            ) : (
+              <span>কোনো অ্যাড স্পেন্ড নেই</span>
+            )}
           </div>
         </div>
 
@@ -417,7 +507,11 @@ export const GoogleAdsIntelligenceDashboard: React.FC<GoogleAdsIntelligenceDashb
             {data.conversions} orders
           </div>
           <div className="mt-1 flex items-center gap-1 text-[10px] text-slate-400">
-            <span>CVR: 3.82% • High Intent</span>
+            {data.conversions > 0 ? (
+              <span>CVR: 3.82% • High Intent</span>
+            ) : (
+              <span>০ অর্ডার • ক্যাম্পেইন চালু নেই</span>
+            )}
           </div>
         </div>
 
@@ -437,9 +531,14 @@ export const GoogleAdsIntelligenceDashboard: React.FC<GoogleAdsIntelligenceDashb
           <div className={`mt-0.5 text-2xl font-black ${textTitle}`}>
             {formatCurr(data.cpa)}
           </div>
-          <div className="mt-1 flex items-center gap-1 text-[10px] text-emerald-500 font-semibold">
-            <ArrowDownRight className="h-3 w-3" />
-            <span>-18.4% cost efficiency</span>
+          <div className="mt-1 flex items-center gap-1 text-[10px] text-slate-400">
+            {data.cpa > 0 ? (
+              <span className="text-emerald-500 font-semibold flex items-center gap-1">
+                <ArrowDownRight className="h-3 w-3" /> -18.4% cost efficiency
+              </span>
+            ) : (
+              <span>কোনো কনভার্শন ডাটা নেই</span>
+            )}
           </div>
         </div>
 
@@ -461,7 +560,7 @@ export const GoogleAdsIntelligenceDashboard: React.FC<GoogleAdsIntelligenceDashb
             </span>
           </div>
           <div className="mt-1 text-[10px] text-cyan-100 font-medium">
-            Net Profit Multiplier Active
+            {data.roas > 0 ? 'Net Profit Multiplier Active' : 'ক্যাম্পেইন চালু করলে আরওআই দৃশ্যমান হবে'}
           </div>
         </div>
       </div>
@@ -658,7 +757,7 @@ export const GoogleAdsIntelligenceDashboard: React.FC<GoogleAdsIntelligenceDashb
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold text-slate-400">Total Impressions</span>
               <span className="text-[9px] font-bold text-blue-500 bg-blue-500/10 px-1.5 py-0.5 rounded">
-                82.4% Top of Page
+                {data.impressions > 0 ? '82.4% Top of Page' : '0.0% Share'}
               </span>
             </div>
             <div className="mt-1 flex items-center gap-2">
@@ -668,7 +767,7 @@ export const GoogleAdsIntelligenceDashboard: React.FC<GoogleAdsIntelligenceDashb
               </span>
             </div>
             <div className="mt-1 text-[10px] text-slate-400">
-              High intent search & shopping ad displays
+              {data.impressions > 0 ? 'High intent search & shopping ad displays' : 'কোনো বিজ্ঞাপন প্রদর্শিত হয়নি'}
             </div>
           </div>
 
@@ -687,7 +786,7 @@ export const GoogleAdsIntelligenceDashboard: React.FC<GoogleAdsIntelligenceDashb
               </span>
             </div>
             <div className="mt-1 text-[10px] text-slate-400">
-              Above Google fashion benchmark (2.8%)
+              {data.clicks > 0 ? 'Above Google fashion benchmark (2.8%)' : 'কোনো ক্লিক রেকর্ড হয়নি'}
             </div>
           </div>
 
@@ -696,7 +795,7 @@ export const GoogleAdsIntelligenceDashboard: React.FC<GoogleAdsIntelligenceDashb
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold text-slate-400">Avg Cost Per Click (CPC)</span>
               <span className="text-[9px] font-bold text-cyan-500 bg-cyan-500/10 px-1.5 py-0.5 rounded">
-                Optimized
+                {data.cpc > 0 ? 'Optimized' : 'Inactive'}
               </span>
             </div>
             <div className="mt-1 flex items-center gap-2">
@@ -706,7 +805,7 @@ export const GoogleAdsIntelligenceDashboard: React.FC<GoogleAdsIntelligenceDashb
               </span>
             </div>
             <div className="mt-1 text-[10px] text-slate-400">
-              Target ROAS Smart Bidding active
+              {data.cpc > 0 ? 'Target ROAS Smart Bidding active' : 'অ্যাড চালু নেই'}
             </div>
           </div>
         </div>
