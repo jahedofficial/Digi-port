@@ -1679,7 +1679,17 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0 self-start md:self-auto">
+                  <div className="flex items-center gap-2 shrink-0 self-start md:self-auto flex-wrap">
+                    <button
+                      type="button"
+                      onClick={handleSaveMetaDirect}
+                      disabled={isSaving}
+                      className="h-9 px-3.5 rounded-xl text-xs font-bold border border-blue-500/40 text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                      title="ডাটাবেসে স্থায়ীভাবে সেভ করুন"
+                    >
+                      <Database className="h-3.5 w-3.5" />
+                      <span>{serverMetaConfig?.hasToken ? '✓ সেভ আছে' : 'ডাটাবেসে সেভ করুন'}</span>
+                    </button>
                     <button
                       onClick={handleVerifyMeta}
                       disabled={isVerifyingMeta}
@@ -1700,6 +1710,28 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                     )}
                   </div>
                 </div>
+
+                {/* Save Status Alert Banner */}
+                {serverMetaConfig?.hasToken ? (
+                  <div className="flex items-center justify-between p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-xs font-medium">
+                    <div className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span><strong>ডাটাবেস স্ট্যাটাস:</strong> Meta System User Token ডাটাবেসে AES-256 এনক্রিপ্ট হয়ে সুরক্ষিতভাবে সংরক্ষিত আছে।</span>
+                    </div>
+                    {serverMetaConfig.savedAt && (
+                      <span className="text-[10px] text-slate-400 font-mono">
+                        {new Date(serverMetaConfig.savedAt).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-700 dark:text-amber-300 text-xs font-medium">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
+                      <span><strong>স্ট্যাটাস:</strong> এখনও ডাটাবেসে সেভ করা হয়নি। নিচের তথ্য লেখার পর <strong>"ডাটাবেসে সেভ করুন"</strong> বাটনে ক্লিক করুন।</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Form Fields */}
                 <div className="space-y-5">
@@ -1964,7 +1996,17 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0 self-start md:self-auto">
+                  <div className="flex items-center gap-2 shrink-0 self-start md:self-auto flex-wrap">
+                    <button
+                      type="button"
+                      onClick={handleSaveGoogleDirect}
+                      disabled={isSaving}
+                      className="h-9 px-3.5 rounded-xl text-xs font-bold border border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                      title="ডাটাবেসে স্থায়ীভাবে সেভ করুন"
+                    >
+                      <Database className="h-3.5 w-3.5" />
+                      <span>{serverGoogleConfig?.hasDevToken || serverGoogleConfig?.hasServiceAccount ? '✓ সেভ আছে' : 'ডাটাবেসে সেভ করুন'}</span>
+                    </button>
                     <button
                       type="button"
                       onClick={() => {
@@ -2000,6 +2042,28 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                     )}
                   </div>
                 </div>
+
+                {/* Save Status Alert Banner */}
+                {serverGoogleConfig?.hasDevToken || serverGoogleConfig?.hasServiceAccount ? (
+                  <div className="flex items-center justify-between p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-xs font-medium">
+                    <div className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span><strong>ডাটাবেস স্ট্যাটাস:</strong> Google Ads ও GA4 ক্রেডেনশিয়াল ডাটাবেসে AES-256 এনক্রিপ্ট হয়ে সুরক্ষিতভাবে সংরক্ষিত আছে।</span>
+                    </div>
+                    {serverGoogleConfig.savedAt && (
+                      <span className="text-[10px] text-slate-400 font-mono">
+                        {new Date(serverGoogleConfig.savedAt).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-700 dark:text-amber-300 text-xs font-medium">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
+                      <span><strong>স্ট্যাটাস:</strong> এখনও ডাটাবেসে সেভ করা হয়নি। তথ্য লেখার পর <strong>"ডাটাবেসে সেভ করুন"</strong> বাটনে ক্লিক করুন।</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Form Fields: 2-column grid */}
                 <div className="space-y-5">
@@ -2378,7 +2442,17 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0 self-start md:self-auto">
+                  <div className="flex items-center gap-2 shrink-0 self-start md:self-auto flex-wrap">
+                    <button
+                      type="button"
+                      onClick={handleSaveTiktokDirect}
+                      disabled={isSaving}
+                      className="h-9 px-3.5 rounded-xl text-xs font-bold border border-rose-500/40 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                      title="ডাটাবেসে স্থায়ীভাবে সেভ করুন"
+                    >
+                      <Database className="h-3.5 w-3.5" />
+                      <span>{serverTiktokConfig?.hasToken ? '✓ সেভ আছে' : 'ডাটাবেসে সেভ করুন'}</span>
+                    </button>
                     <button
                       onClick={handleVerifyTiktok}
                       disabled={isVerifyingTiktok}
@@ -2403,6 +2477,28 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                     )}
                   </div>
                 </div>
+
+                {/* Save Status Alert Banner */}
+                {serverTiktokConfig?.hasToken ? (
+                  <div className="flex items-center justify-between p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-xs font-medium">
+                    <div className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span><strong>ডাটাবেস স্ট্যাটাস:</strong> TikTok Marketing API ক্রেডেনশিয়াল ডাটাবেসে AES-256 এনক্রিপ্ট হয়ে সুরক্ষিতভাবে সংরক্ষিত আছে।</span>
+                    </div>
+                    {serverTiktokConfig.savedAt && (
+                      <span className="text-[10px] text-slate-400 font-mono">
+                        {new Date(serverTiktokConfig.savedAt).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-700 dark:text-amber-300 text-xs font-medium">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
+                      <span><strong>স্ট্যাটাস:</strong> এখনও ডাটাবেসে সেভ করা হয়নি। তথ্য লেখার পর <strong>"ডাটাবেসে সেভ করুন"</strong> বাটনে ক্লিক করুন।</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Form Fields: 2-column grid */}
                 <div className="space-y-5">
