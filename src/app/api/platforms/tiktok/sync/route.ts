@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CampaignData } from '@/types';
+import { saveTiktokDirectConfig } from '@/lib/settings-db';
 
 export async function POST(req: NextRequest) {
   try {
@@ -98,6 +99,19 @@ export async function POST(req: NextRequest) {
       }
     } catch {
       // Continue even if campaigns fetch fails
+    }
+
+    // Automatically persist verified TikTok credentials to Database Vault server-side
+    try {
+      await saveTiktokDirectConfig({
+        advertiserId,
+        accessToken,
+        appId,
+        appSecret,
+        isConnected: true,
+      });
+    } catch (saveErr) {
+      console.warn('Failed to auto-save TikTok direct config on sync:', saveErr);
     }
 
     return NextResponse.json({

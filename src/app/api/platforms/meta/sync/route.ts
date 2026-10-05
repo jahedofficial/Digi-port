@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CampaignData, CreativeData, MetricSummary } from '@/types';
+import { saveMetaDirectConfig } from '@/lib/settings-db';
 
 export async function POST(req: NextRequest) {
   try {
@@ -185,6 +186,17 @@ export async function POST(req: NextRequest) {
     const statusMsg = campaigns.length > 0
       ? `Meta Ads (${accountName}) থেকে সফলভাবে ${campaigns.length}টি লাইভ ক্যাম্পেইন সিঙ্ক হয়েছে!`
       : `Meta Ad Account (${accountName}) সফলভাবে কানেক্ট হয়েছে! (বর্তমানে অ্যাকাউন্টে কোনো অ্যাক্টিভ ক্যাম্পেইন নেই)।`;
+
+    // 5. Automatically persist verified credentials to Database Vault server-side
+    try {
+      await saveMetaDirectConfig({
+        token,
+        adAccountId: cleanId.replace(/^act_?/i, ''),
+        isConnected: true,
+      });
+    } catch (saveErr) {
+      console.warn('Failed to auto-save Meta direct config on sync:', saveErr);
+    }
 
     return NextResponse.json({
       success: true,

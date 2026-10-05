@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { saveGoogleDirectConfig } from '@/lib/settings-db';
 
 export async function POST(req: NextRequest) {
   try {
@@ -37,7 +38,20 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      return NextResponse.json({
+    // Automatically persist verified GA4 credentials to Database Vault server-side
+    try {
+      await saveGoogleDirectConfig({
+        ga4PropertyId,
+        serviceAccountJson,
+        serviceAccountEmail: saEmail,
+        serviceAccountProjectId: saProjectId,
+        isGa4Connected: true,
+      });
+    } catch (saveErr) {
+      console.warn('Failed to auto-save GA4 direct config on sync:', saveErr);
+    }
+
+    return NextResponse.json({
         success: true,
         message: saEmail
           ? `Google Cloud Service Account (${saEmail}) ${ga4PropertyId ? `ও GA4 (${ga4PropertyId})` : ''} সফলভাবে যাচাই ও সংযুক্ত হয়েছে!`
@@ -89,6 +103,24 @@ export async function POST(req: NextRequest) {
 
     const formattedCid = `${customerId.slice(0, 3)}-${customerId.slice(3, 6)}-${customerId.slice(6)}`;
     const accountName = `Google Ads (${formattedCid})`;
+
+    // Automatically persist verified Google Ads credentials to Database Vault server-side
+    try {
+      await saveGoogleDirectConfig({
+        customerId: formattedCid,
+        developerToken,
+        clientId,
+        clientSecret,
+        ga4PropertyId,
+        serviceAccountJson,
+        serviceAccountEmail: saEmail,
+        serviceAccountProjectId: saProjectId,
+        isConnected: true,
+        isGa4Connected: Boolean((ga4PropertyId && /^\d{6,12}$/.test(ga4PropertyId)) || saEmail),
+      });
+    } catch (saveErr) {
+      console.warn('Failed to auto-save Google direct config on sync:', saveErr);
+    }
 
     return NextResponse.json({
       success: true,
