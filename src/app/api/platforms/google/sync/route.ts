@@ -9,17 +9,28 @@ export async function POST(req: NextRequest) {
     const clientSecret = body?.clientSecret?.trim();
     const ga4PropertyId = body?.ga4PropertyId?.trim();
 
+    const serviceAccountJson = body?.serviceAccountJson;
+    let saEmail = '';
+    let saProjectId = '';
+    if (serviceAccountJson) {
+      try {
+        const parsed = typeof serviceAccountJson === 'string' ? JSON.parse(serviceAccountJson) : serviceAccountJson;
+        saEmail = parsed.client_email || '';
+        saProjectId = parsed.project_id || '';
+      } catch {}
+    }
+
     // Check if empty request
-    if (!customerId && !ga4PropertyId) {
+    if (!customerId && !ga4PropertyId && !saEmail) {
       return NextResponse.json(
-        { success: false, error: 'দয়া করে Google Ads Customer ID অথবা GA4 Property ID প্রদান করুন।' },
+        { success: false, error: 'দয়া করে Google Ads Customer ID, GA4 Property ID অথবা Google Cloud Service Account JSON কি প্রদান করুন।' },
         { status: 400 }
       );
     }
 
-    // GA4 standalone property validation
-    if (ga4PropertyId && !customerId) {
-      if (!/^\d{6,12}$/.test(ga4PropertyId)) {
+    // GA4 standalone property or Service Account validation
+    if ((ga4PropertyId || saEmail) && !customerId) {
+      if (ga4PropertyId && !/^\d{6,12}$/.test(ga4PropertyId)) {
         return NextResponse.json(
           { success: false, error: 'GA4 Property ID অবশ্যই ৬ থেকে ১২ সংখ্যার হতে হবে (যেমন: 123456789)।' },
           { status: 400 }
@@ -28,11 +39,15 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: `Google Analytics 4 (GA4 ID: ${ga4PropertyId}) সফলভাবে যাচাই ও সংযুক্ত হয়েছে!`,
+        message: saEmail
+          ? `Google Cloud Service Account (${saEmail}) ${ga4PropertyId ? `ও GA4 (${ga4PropertyId})` : ''} সফলভাবে যাচাই ও সংযুক্ত হয়েছে!`
+          : `Google Analytics 4 (GA4 ID: ${ga4PropertyId}) সফলভাবে যাচাই ও সংযুক্ত হয়েছে!`,
         isGa4Connected: true,
         isGoogleConnected: false,
-        accountName: `GA4 Property (${ga4PropertyId})`,
-        accountId: ga4PropertyId,
+        accountName: saEmail ? `GA4 (${saEmail.split('@')[0]})` : `GA4 Property (${ga4PropertyId})`,
+        accountId: ga4PropertyId || saProjectId || 'GA4-SA',
+        serviceAccountEmail: saEmail,
+        serviceAccountProjectId: saProjectId,
         currency: 'USD',
         campaigns: [],
         metrics: {
@@ -82,7 +97,9 @@ export async function POST(req: NextRequest) {
       accountId: formattedCid,
       currency: 'USD',
       isGoogleConnected: true,
-      isGa4Connected: Boolean(ga4PropertyId && /^\d{6,12}$/.test(ga4PropertyId)),
+      isGa4Connected: Boolean((ga4PropertyId && /^\d{6,12}$/.test(ga4PropertyId)) || saEmail),
+      serviceAccountEmail: saEmail,
+      serviceAccountProjectId: saProjectId,
       campaigns: [],
       metrics: {
         spend: 0,

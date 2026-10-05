@@ -404,6 +404,7 @@ export async function deleteMetaDirectConfig(): Promise<{ success: boolean }> {
 }
 
 // ==========================================
+// ==========================================
 // 2. GOOGLE ADS & GA4 DIRECT CREDENTIALS
 // ==========================================
 export interface StoredGoogleDirectSettings {
@@ -415,11 +416,48 @@ export interface StoredGoogleDirectSettings {
   scope?: 'READ_ONLY' | 'READ_WRITE';
   isConnected: boolean;
   isGa4Connected: boolean;
+  serviceAccountJson?: string;
+  serviceAccountEmail?: string;
+  serviceAccountProjectId?: string;
+  hasServiceAccount?: boolean;
   savedAt?: string;
-  source?: 'database' | 'env' | 'none';
+  source?: 'database' | 'env' | 'file' | 'none';
+}
+
+function getFilesystemServiceAccount(): { json: string; email: string; projectId: string } {
+  try {
+    const credPath = path.join(process.cwd(), 'credentials', 'google-service-account.json');
+    if (fs.existsSync(credPath)) {
+      const raw = fs.readFileSync(credPath, 'utf-8');
+      if (raw.trim()) {
+        const parsed = JSON.parse(raw);
+        return {
+          json: raw,
+          email: parsed.client_email || '',
+          projectId: parsed.project_id || '',
+        };
+      }
+    }
+  } catch {}
+
+  const envJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON || '';
+  if (envJson.trim()) {
+    try {
+      const parsed = JSON.parse(envJson);
+      return {
+        json: envJson,
+        email: parsed.client_email || '',
+        projectId: parsed.project_id || '',
+      };
+    } catch {}
+  }
+
+  return { json: '', email: '', projectId: '' };
 }
 
 export async function getGoogleDirectConfig(): Promise<StoredGoogleDirectSettings> {
+  const fsSa = getFilesystemServiceAccount();
+
   const dbData = await getSystemSetting<{
     customerId?: string;
     encryptedDevToken?: string;
@@ -429,12 +467,29 @@ export async function getGoogleDirectConfig(): Promise<StoredGoogleDirectSetting
     scope?: 'READ_ONLY' | 'READ_WRITE';
     isConnected?: boolean;
     isGa4Connected?: boolean;
+    encryptedServiceAccountJson?: string;
+    serviceAccountEmail?: string;
+    serviceAccountProjectId?: string;
     savedAt?: string;
   }>('GOOGLE_DIRECT');
 
-  if (dbData && (dbData.customerId || dbData.encryptedDevToken || dbData.ga4PropertyId)) {
+  if (dbData && (dbData.customerId || dbData.encryptedDevToken || dbData.ga4PropertyId || dbData.encryptedServiceAccountJson || dbData.serviceAccountEmail)) {
     const plainDevToken = dbData.encryptedDevToken ? decryptToken(dbData.encryptedDevToken) : '';
     const plainSecret = dbData.encryptedSecret ? decryptToken(dbData.encryptedSecret) : '';
+    const plainSaJson = dbData.encryptedServiceAccountJson ? decryptToken(dbData.encryptedServiceAccountJson) : fsSa.json;
+    
+    let saEmail = dbData.serviceAccountEmail || fsSa.email || '';
+    let saProjectId = dbData.serviceAccountProjectId || fsSa.projectId || '';
+    if (!saEmail && plainSaJson) {
+      try {
+        const parsed = JSON.parse(plainSaJson);
+        saEmail = parsed.client_email || '';
+        saProjectId = parsed.project_id || '';
+      } catch {}
+    }
+
+    const hasSa = Boolean(plainSaJson || saEmail);
+
     return {
       customerId: dbData.customerId || '',
       developerToken: plainDevToken || process.env.GOOGLE_DEVELOPER_TOKEN || '',
@@ -443,7 +498,11 @@ export async function getGoogleDirectConfig(): Promise<StoredGoogleDirectSetting
       ga4PropertyId: dbData.ga4PropertyId || '',
       scope: dbData.scope || 'READ_WRITE',
       isConnected: Boolean(dbData.isConnected),
-      isGa4Connected: Boolean(dbData.isGa4Connected),
+      isGa4Connected: Boolean(dbData.isGa4Connected || hasSa || dbData.ga4PropertyId),
+      serviceAccountJson: plainSaJson,
+      serviceAccountEmail: saEmail,
+      serviceAccountProjectId: saProjectId,
+      hasServiceAccount: hasSa,
       savedAt: dbData.savedAt,
       source: 'database',
     };
@@ -452,7 +511,8 @@ export async function getGoogleDirectConfig(): Promise<StoredGoogleDirectSetting
   const envDev = process.env.GOOGLE_DEVELOPER_TOKEN || '';
   const envClientId = process.env.GOOGLE_CLIENT_ID || '';
   const envClientSecret = process.env.GOOGLE_CLIENT_SECRET || '';
-  if (envDev || envClientId || envClientSecret) {
+  if (envDev || envClientId || envClientSecret || fsSa.json) {
+    const hasSa = Boolean(fsSa.json || fsSa.email);
     return {
       customerId: '',
       developerToken: envDev,
@@ -461,8 +521,12 @@ export async function getGoogleDirectConfig(): Promise<StoredGoogleDirectSetting
       ga4PropertyId: '',
       scope: 'READ_WRITE',
       isConnected: false,
-      isGa4Connected: false,
-      source: 'env',
+      isGa4Connected: hasSa,
+      serviceAccountJson: fsSa.json,
+      serviceAccountEmail: fsSa.email,
+      serviceAccountProjectId: fsSa.projectId,
+      hasServiceAccount: hasSa,
+      source: fsSa.json ? 'file' : 'env',
     };
   }
 
@@ -475,6 +539,10 @@ export async function getGoogleDirectConfig(): Promise<StoredGoogleDirectSetting
     scope: 'READ_WRITE',
     isConnected: false,
     isGa4Connected: false,
+    serviceAccountJson: '',
+    serviceAccountEmail: '',
+    serviceAccountProjectId: '',
+    hasServiceAccount: false,
     source: 'none',
   };
 }
@@ -488,6 +556,9 @@ export async function saveGoogleDirectConfig(settings: {
   scope?: 'READ_ONLY' | 'READ_WRITE';
   isConnected?: boolean;
   isGa4Connected?: boolean;
+  serviceAccountJson?: string;
+  serviceAccountEmail?: string;
+  serviceAccountProjectId?: string;
 }) {
   let devTokenToEncrypt = settings.developerToken?.trim() || '';
   if (!devTokenToEncrypt || devTokenToEncrypt.includes('•')) {
@@ -500,6 +571,28 @@ export async function saveGoogleDirectConfig(settings: {
     secretToEncrypt = existing.clientSecret;
   }
 
+  let saJsonToEncrypt = settings.serviceAccountJson?.trim() || '';
+  let saEmail = settings.serviceAccountEmail?.trim() || '';
+  let saProjectId = settings.serviceAccountProjectId?.trim() || '';
+
+  // Preserve existing encrypted SA JSON if user didn't re-upload
+  if (!saJsonToEncrypt) {
+    const existing = await getGoogleDirectConfig();
+    if (existing.serviceAccountJson) {
+      saJsonToEncrypt = existing.serviceAccountJson;
+      saEmail = saEmail || existing.serviceAccountEmail || '';
+      saProjectId = saProjectId || existing.serviceAccountProjectId || '';
+    }
+  } else {
+    try {
+      const parsed = typeof saJsonToEncrypt === 'string' ? JSON.parse(saJsonToEncrypt) : saJsonToEncrypt;
+      if (parsed.client_email) saEmail = parsed.client_email;
+      if (parsed.project_id) saProjectId = parsed.project_id;
+    } catch {}
+  }
+
+  const hasSa = Boolean(saJsonToEncrypt || saEmail);
+
   const payload = {
     customerId: settings.customerId?.trim() || '',
     encryptedDevToken: devTokenToEncrypt ? encryptToken(devTokenToEncrypt) : '',
@@ -508,16 +601,38 @@ export async function saveGoogleDirectConfig(settings: {
     ga4PropertyId: settings.ga4PropertyId?.trim() || '',
     scope: settings.scope || 'READ_WRITE',
     isConnected: Boolean(settings.isConnected),
-    isGa4Connected: Boolean(settings.isGa4Connected),
+    isGa4Connected: Boolean(settings.isGa4Connected || hasSa || settings.ga4PropertyId),
+    encryptedServiceAccountJson: saJsonToEncrypt ? encryptToken(saJsonToEncrypt) : '',
+    serviceAccountEmail: saEmail,
+    serviceAccountProjectId: saProjectId,
+    hasServiceAccount: hasSa,
     savedAt: new Date().toISOString(),
   };
+
+  // Safely write a local credentials copy for filesystem access
+  if (saJsonToEncrypt) {
+    try {
+      const credsDir = path.join(process.cwd(), 'credentials');
+      if (!fs.existsSync(credsDir)) fs.mkdirSync(credsDir, { recursive: true });
+      fs.writeFileSync(path.join(credsDir, 'google-service-account.json'), saJsonToEncrypt, 'utf-8');
+    } catch (err) {
+      console.warn('[SETTINGS_DB] Could not write credentials file:', err);
+    }
+  }
 
   return await saveSystemSetting('GOOGLE_DIRECT', payload, true);
 }
 
 export async function deleteGoogleDirectConfig(): Promise<{ success: boolean }> {
+  try {
+    const credPath = path.join(process.cwd(), 'credentials', 'google-service-account.json');
+    if (fs.existsSync(credPath)) {
+      fs.unlinkSync(credPath);
+    }
+  } catch {}
   return await deleteSystemSetting('GOOGLE_DIRECT');
 }
+
 
 // ==========================================
 // 3. TIKTOK DIRECT MARKETING API CREDENTIALS

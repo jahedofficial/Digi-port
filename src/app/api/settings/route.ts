@@ -117,6 +117,9 @@ export async function GET(req: NextRequest) {
           isGa4Connected: google.isGa4Connected,
           hasDevToken: Boolean(google.developerToken),
           hasSecret: Boolean(google.clientSecret),
+          hasServiceAccount: Boolean(google.hasServiceAccount || google.serviceAccountEmail),
+          serviceAccountEmail: google.serviceAccountEmail || '',
+          serviceAccountProjectId: google.serviceAccountProjectId || '',
           maskedDevToken,
           maskedSecret,
           source: google.source,
@@ -229,6 +232,9 @@ export async function GET(req: NextRequest) {
           isConnected: google.isConnected,
           isGa4Connected: google.isGa4Connected,
           hasDevToken: Boolean(google.developerToken),
+          hasServiceAccount: Boolean(google.hasServiceAccount || google.serviceAccountEmail),
+          serviceAccountEmail: google.serviceAccountEmail || '',
+          serviceAccountProjectId: google.serviceAccountProjectId || '',
           maskedDevToken: google.developerToken && google.developerToken.length > 6 ? `${google.developerToken.slice(0, 6)}•••••••••••••` : '',
           source: google.source,
           savedAt: google.savedAt,
@@ -337,7 +343,19 @@ export async function POST(req: NextRequest) {
     }
 
     if (key === 'GOOGLE_DIRECT') {
-      const { customerId, developerToken, clientId, clientSecret, ga4PropertyId, scope, isConnected, isGa4Connected } = data;
+      const {
+        customerId,
+        developerToken,
+        clientId,
+        clientSecret,
+        ga4PropertyId,
+        scope,
+        isConnected,
+        isGa4Connected,
+        serviceAccountJson,
+        serviceAccountEmail,
+        serviceAccountProjectId,
+      } = data;
 
       const res = await saveGoogleDirectConfig({
         customerId,
@@ -348,6 +366,9 @@ export async function POST(req: NextRequest) {
         scope,
         isConnected,
         isGa4Connected,
+        serviceAccountJson,
+        serviceAccountEmail,
+        serviceAccountProjectId,
       });
 
       return NextResponse.json({

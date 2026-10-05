@@ -43,4 +43,6 @@ next-env.d.ts
 
 # local persistent data
 /data/
+/credentials/
+*.json.key
 

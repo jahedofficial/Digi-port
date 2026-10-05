@@ -41,7 +41,8 @@ import {
   Hash,
   Cpu,
   Database,
-  Mail
+  Mail,
+  Upload
 } from 'lucide-react';
 import { PlatformConnectionDetails } from '@/types';
 
@@ -118,14 +119,22 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
     ga4PropertyId: '',
     isGa4Connected: false,
     isConnected: false,
+    serviceAccountJson: '',
+    serviceAccountEmail: '',
+    serviceAccountProjectId: '',
   });
   const [showGoogleDevToken, setShowGoogleDevToken] = useState(false);
   const [showGoogleSecret, setShowGoogleSecret] = useState(false);
+  const [showServiceAccountPaste, setShowServiceAccountPaste] = useState(false);
+  const [serviceAccountRawInput, setServiceAccountRawInput] = useState('');
   const [isVerifyingGoogle, setIsVerifyingGoogle] = useState(false);
   const [serverGoogleConfig, setServerGoogleConfig] = useState<{
     hasDevToken: boolean;
     hasSecret: boolean;
-    source?: 'database' | 'env' | 'none';
+    hasServiceAccount?: boolean;
+    serviceAccountEmail?: string;
+    serviceAccountProjectId?: string;
+    source?: 'database' | 'env' | 'file' | 'none';
     savedAt?: string;
   } | null>(null);
 
@@ -228,6 +237,9 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
           setServerGoogleConfig({
             hasDevToken: Boolean(googleDirect.hasDevToken),
             hasSecret: Boolean(googleDirect.clientSecret),
+            hasServiceAccount: Boolean(googleDirect.hasServiceAccount),
+            serviceAccountEmail: googleDirect.serviceAccountEmail,
+            serviceAccountProjectId: googleDirect.serviceAccountProjectId,
             source: googleDirect.source,
             savedAt: googleDirect.savedAt,
           });
@@ -238,8 +250,10 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
             clientId: googleDirect.clientId || prev.clientId,
             clientSecret: googleDirect.clientSecret || prev.clientSecret,
             ga4PropertyId: googleDirect.ga4PropertyId || prev.ga4PropertyId,
+            serviceAccountEmail: googleDirect.serviceAccountEmail || prev.serviceAccountEmail,
+            serviceAccountProjectId: googleDirect.serviceAccountProjectId || prev.serviceAccountProjectId,
             isConnected: Boolean(googleDirect.isConnected),
-            isGa4Connected: Boolean(googleDirect.isGa4Connected),
+            isGa4Connected: Boolean(googleDirect.isGa4Connected || googleDirect.hasServiceAccount),
           }));
         }
 
@@ -605,13 +619,53 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
     handleDeleteMeta();
   };
 
+  const handleServiceAccountJsonLoad = (jsonString: string, sourceName?: string) => {
+    try {
+      const parsed = JSON.parse(jsonString);
+      if (!parsed.client_email && !parsed.private_key && parsed.type !== 'service_account') {
+        showNotification('⚠️ সতর্কতা: এটি সঠিক Google Service Account JSON নয়। এতে "client_email" অথবা "type": "service_account" থাকা প্রয়োজন।');
+        return;
+      }
+      const email = parsed.client_email || '';
+      const projectId = parsed.project_id || '';
+      setGoogleSettings((prev) => ({
+        ...prev,
+        serviceAccountJson: jsonString,
+        serviceAccountEmail: email,
+        serviceAccountProjectId: projectId,
+        isGa4Connected: true,
+      }));
+      setServiceAccountRawInput(jsonString);
+      setShowServiceAccountPaste(false);
+      showNotification(`✓ Google Service Account JSON (${sourceName || email || projectId}) লোড হয়েছে! এবার Save এ ক্লিক করুন।`);
+    } catch {
+      showNotification('⚠️ অবৈধ JSON ফরম্যাট! দয়া করে সঠিক Google Cloud Service Account JSON ফাইল আপলোড বা পেস্ট করুন।');
+    }
+  };
+
+  const handleServiceAccountFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      if (text) {
+        handleServiceAccountJsonLoad(text, file.name);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   const handleVerifyGoogle = async () => {
     const customerId = googleSettings.customerId.trim();
     const developerToken = googleSettings.developerToken.trim();
     const ga4PropertyId = googleSettings.ga4PropertyId.trim();
+    const serviceAccountJson = googleSettings.serviceAccountJson.trim();
+    const serviceAccountEmail = googleSettings.serviceAccountEmail.trim();
 
-    if (!customerId && !ga4PropertyId) {
-      showNotification('⚠️ অনুগ্রহ করে Google Ads Customer ID অথবা GA4 Property ID প্রদান করুন।');
+    if (!customerId && !ga4PropertyId && !serviceAccountJson && !serviceAccountEmail) {
+      showNotification('⚠️ অনুগ্রহ করে Google Ads Customer ID, GA4 Property ID অথবা Service Account JSON কি প্রদান করুন।');
       return;
     }
 
@@ -626,6 +680,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
           clientId: googleSettings.clientId.trim(),
           clientSecret: googleSettings.clientSecret.trim(),
           ga4PropertyId,
+          serviceAccountJson,
         }),
       });
 
@@ -637,6 +692,8 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
           ...googleSettings,
           isConnected: Boolean(data.isGoogleConnected),
           isGa4Connected: Boolean(data.isGa4Connected),
+          serviceAccountEmail: data.serviceAccountEmail || serviceAccountEmail,
+          serviceAccountProjectId: data.serviceAccountProjectId || googleSettings.serviceAccountProjectId,
         };
         setGoogleSettings(updated);
         try {
@@ -659,12 +716,18 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                 scope: googleSettings.scope,
                 isConnected: Boolean(data.isGoogleConnected),
                 isGa4Connected: Boolean(data.isGa4Connected),
+                serviceAccountJson,
+                serviceAccountEmail: data.serviceAccountEmail || serviceAccountEmail,
+                serviceAccountProjectId: data.serviceAccountProjectId || googleSettings.serviceAccountProjectId,
               },
             }),
           });
           setServerGoogleConfig({
             hasDevToken: Boolean(developerToken),
             hasSecret: Boolean(googleSettings.clientSecret),
+            hasServiceAccount: Boolean(serviceAccountJson || data.serviceAccountEmail || serviceAccountEmail),
+            serviceAccountEmail: data.serviceAccountEmail || serviceAccountEmail,
+            serviceAccountProjectId: data.serviceAccountProjectId || googleSettings.serviceAccountProjectId,
             source: 'database',
           });
         } catch {}
@@ -693,9 +756,10 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
   const handleSaveGoogleDirect = async () => {
     const customerId = googleSettings.customerId.trim();
     const developerToken = googleSettings.developerToken.trim();
+    const hasAnyField = customerId || developerToken || googleSettings.clientId || googleSettings.ga4PropertyId || googleSettings.serviceAccountJson || googleSettings.serviceAccountEmail;
 
-    if (!customerId && !developerToken && !googleSettings.clientId && !googleSettings.ga4PropertyId) {
-      showNotification('⚠️ অনুগ্রহ করে অন্তত একটি Google ফিল্ড পূরণ করুন।');
+    if (!hasAnyField) {
+      showNotification('⚠️ অনুগ্রহ করে অন্তত একটি Google ফিল্ড পূরণ করুন অথবা Service Account JSON আপলোড করুন।');
       return;
     }
 
@@ -714,7 +778,10 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
             ga4PropertyId: googleSettings.ga4PropertyId.trim(),
             scope: googleSettings.scope,
             isConnected: googleSettings.isConnected,
-            isGa4Connected: googleSettings.isGa4Connected,
+            isGa4Connected: googleSettings.isGa4Connected || Boolean(googleSettings.serviceAccountEmail || googleSettings.serviceAccountJson),
+            serviceAccountJson: googleSettings.serviceAccountJson,
+            serviceAccountEmail: googleSettings.serviceAccountEmail,
+            serviceAccountProjectId: googleSettings.serviceAccountProjectId,
           },
         }),
       });
@@ -724,9 +791,12 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
         setServerGoogleConfig({
           hasDevToken: Boolean(developerToken),
           hasSecret: Boolean(googleSettings.clientSecret),
+          hasServiceAccount: Boolean(googleSettings.serviceAccountJson || googleSettings.serviceAccountEmail),
+          serviceAccountEmail: googleSettings.serviceAccountEmail,
+          serviceAccountProjectId: googleSettings.serviceAccountProjectId,
           source: 'database',
         });
-        showNotification('✓ Google Ads ও GA4 ক্রেডেনশিয়াল ডাটাবেসে সফলভাবে সেভ করা হয়েছে!');
+        showNotification('✓ Google Ads ও GA4 Service Account ক্রেডেনশিয়াল ডাটাবেসে সফলভাবে সেভ করা হয়েছে!');
       } else {
         showNotification(`⚠️ সেভ ব্যর্থ হয়েছে: ${data.error}`);
       }
@@ -750,13 +820,19 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
         ga4PropertyId: '',
         isGa4Connected: false,
         isConnected: false,
+        serviceAccountJson: '',
+        serviceAccountEmail: '',
+        serviceAccountProjectId: '',
       });
       setServerGoogleConfig({
         hasDevToken: false,
         hasSecret: false,
+        hasServiceAccount: false,
+        serviceAccountEmail: '',
+        serviceAccountProjectId: '',
         source: 'none',
       });
-      showNotification('✓ Google Ads ক্রেডেনশিয়াল ডাটাবেস থেকে মুছে ফেলা হয়েছে');
+      showNotification('✓ Google Ads ও GA4 ক্রেডেনশিয়াল ডাটাবেস থেকে মুছে ফেলা হয়েছে');
     } catch {
       showNotification('⚠️ মুছে ফেলতে সমস্যা হয়েছে');
     }
@@ -1890,11 +1966,19 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
 
                   <div className="flex items-center gap-2 shrink-0 self-start md:self-auto">
                     <button
-                      onClick={() => showNotification('GA4 Service Account Key JSON verified & cached.')}
+                      type="button"
+                      onClick={() => {
+                        const fileInput = document.getElementById('ga4-sa-file-input');
+                        if (fileInput) {
+                          fileInput.click();
+                        } else {
+                          setShowServiceAccountPaste(true);
+                        }
+                      }}
                       className="h-9 px-3 rounded-xl text-xs font-bold whitespace-nowrap border border-amber-300 dark:border-amber-700/60 bg-amber-50/70 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 flex items-center gap-1.5 transition-all cursor-pointer"
                     >
                       <KeyRound className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
-                      <span>GA4 Key</span>
+                      <span>{googleSettings.serviceAccountEmail || serverGoogleConfig?.serviceAccountEmail ? '✓ GA4 Key সক্রিয়' : 'GA4 Key আপলোড'}</span>
                     </button>
                     <button
                       onClick={handleVerifyGoogle}
@@ -1904,11 +1988,11 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                       {isVerifyingGoogle ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5 fill-current" />}
                       <span>Verify &amp; Connect</span>
                     </button>
-                    {(serverGoogleConfig?.hasDevToken || googleSettings.customerId || googleSettings.developerToken) && (
+                    {(serverGoogleConfig?.hasDevToken || serverGoogleConfig?.hasServiceAccount || googleSettings.customerId || googleSettings.developerToken || googleSettings.serviceAccountEmail) && (
                       <button
                         onClick={handleDeleteGoogle}
                         className="h-9 px-3 rounded-xl text-xs font-bold whitespace-nowrap border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-1.5 transition-all cursor-pointer"
-                        title="ডাটাবেস ও স্টোরেজ থেকে Google Ads ক্রেডেনশিয়াল মুছে ফেলুন"
+                        title="ডাটাবেস ও স্টোরেজ থেকে Google Ads ও GA4 ক্রেডেনশিয়াল মুছে ফেলুন"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                         <span>মুছে ফেলুন</span>
@@ -2040,24 +2124,24 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                   {/* GA4 SSOT Connection */}
                   <div className={`rounded-xl border p-5 ${
                     isLight ? 'bg-gradient-to-r from-emerald-50/70 via-teal-50/40 to-slate-50 border-emerald-200/80' : 'bg-gradient-to-r from-emerald-950/20 via-teal-950/10 to-[#060911] border-emerald-900/40'
-                  } space-y-3.5 shadow-2xs`}>
+                  } space-y-4 shadow-2xs`}>
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
                       <div>
                         <div className="flex items-center gap-2">
                           <TrendingUp className="h-4.5 w-4.5 text-emerald-500" />
                           <h4 className={`text-xs font-black ${textTitle}`}>
-                            Google Analytics 4 (GA4) SSOT Connection
+                            Google Analytics 4 (GA4) SSOT &amp; Service Account
                           </h4>
                         </div>
                         <p className="text-[11px] text-slate-400 mt-0.5 font-medium">
-                          Direct Google Cloud Service Account authentication for multi-channel revenue.
+                          Google Cloud Service Account JSON Key আপলোড করে GA4 কনভার্সন ও রিয়েল-টাইম রেভিনিউ ট্র্যাকিং কানেক্ট করুন।
                         </p>
                       </div>
 
-                      {googleSettings.isGa4Connected && googleSettings.ga4PropertyId ? (
+                      {googleSettings.isGa4Connected && (googleSettings.ga4PropertyId || googleSettings.serviceAccountEmail || serverGoogleConfig?.hasServiceAccount) ? (
                         <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
                           <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                          <span>GA4 Connected ({googleSettings.ga4PropertyId})</span>
+                          <span>GA4 Connected {googleSettings.ga4PropertyId ? `(#${googleSettings.ga4PropertyId})` : ''}</span>
                         </span>
                       ) : (
                         <span className="flex items-center gap-1.5 rounded-full bg-slate-500/10 px-3 py-1 text-[11px] font-medium text-slate-400 border border-slate-500/20 shrink-0">
@@ -2067,42 +2151,158 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                       )}
                     </div>
 
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-1">
-                      <div className="flex-1">
-                        <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1.5">
-                          GA4 PROPERTY ID
-                        </label>
-                        <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2 ${inputContainerBg}`}>
-                          <Hash className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                          <input
-                            type="text"
-                            value={googleSettings.ga4PropertyId}
-                            onChange={(e) => setGoogleSettings({ ...googleSettings, ga4PropertyId: e.target.value })}
-                            placeholder="e.g. 551294668"
-                            className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
-                          />
+                    {/* GA4 Property ID */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1.5">
+                        GA4 PROPERTY ID (ঐচ্ছিক / OPTIONAL)
+                      </label>
+                      <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2 ${inputContainerBg}`}>
+                        <Hash className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                        <input
+                          type="text"
+                          value={googleSettings.ga4PropertyId}
+                          onChange={(e) => setGoogleSettings({ ...googleSettings, ga4PropertyId: e.target.value })}
+                          placeholder="যেমন: 551294668"
+                          className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Google Cloud Service Account JSON Key Upload / Status Card */}
+                    <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <KeyRound className="h-4 w-4 text-amber-500 shrink-0" />
+                          <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
+                            Google Cloud Service Account JSON Key *
+                          </span>
                         </div>
+                        {(googleSettings.serviceAccountEmail || serverGoogleConfig?.serviceAccountEmail) && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                            <Check className="h-3 w-3" />
+                            {serverGoogleConfig?.source === 'database' ? 'ডাটাবেসে এনক্রিপ্টেড' : 'সংযুক্ত'}
+                          </span>
+                        )}
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => showNotification('Service Account JSON Key updated and stored in vault.')}
-                        className="sm:self-end px-4.5 py-2.5 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white flex items-center gap-2 shadow-md transition-all cursor-pointer"
-                      >
-                        <KeyRound className="h-3.5 w-3.5" />
-                        <span>Update Service Account JSON</span>
-                      </button>
+                      {/* If Service Account is already loaded / stored */}
+                      {(googleSettings.serviceAccountEmail || serverGoogleConfig?.serviceAccountEmail) ? (
+                        <div className="rounded-lg bg-black/20 border border-emerald-500/30 p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-slate-400 text-[11px] font-medium">Service Account Email:</span>
+                              <span className="font-mono text-emerald-500 font-semibold select-all">
+                                {googleSettings.serviceAccountEmail || serverGoogleConfig?.serviceAccountEmail}
+                              </span>
+                            </div>
+                            {(googleSettings.serviceAccountProjectId || serverGoogleConfig?.serviceAccountProjectId) && (
+                              <div className="text-[11px] text-slate-400 font-medium">
+                                Project ID: <span className="font-mono text-slate-300">{googleSettings.serviceAccountProjectId || serverGoogleConfig?.serviceAccountProjectId}</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <label
+                              htmlFor="ga4-sa-file-input"
+                              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 cursor-pointer flex items-center gap-1.5 transition-all"
+                            >
+                              <Upload className="h-3 w-3" />
+                              <span>নতুন Key আপলোড</span>
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setGoogleSettings(prev => ({
+                                  ...prev,
+                                  serviceAccountJson: '',
+                                  serviceAccountEmail: '',
+                                  serviceAccountProjectId: '',
+                                }));
+                                showNotification('Service Account Key নির্বাচন বাতিল করা হয়েছে। পরিবর্তন সংরক্ষণ করতে Save ক্লিক করুন।');
+                              }}
+                              className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-500 hover:bg-rose-500/10 border border-rose-500/20 cursor-pointer"
+                              title="Key রিমুভ করুন"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
+                          <label
+                            htmlFor="ga4-sa-file-input"
+                            className="flex-1 px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer text-center"
+                          >
+                            <Upload className="h-4 w-4" />
+                            <span>১-ক্লিকে JSON ফাইল আপলোড করুন (.json)</span>
+                          </label>
+
+                          <button
+                            type="button"
+                            onClick={() => setShowServiceAccountPaste(!showServiceAccountPaste)}
+                            className="px-4 py-2.5 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                          >
+                            <FileCode className="h-4 w-4 text-amber-500" />
+                            <span>{showServiceAccountPaste ? 'কোড হাইড করুন' : 'JSON টেক্সট পেস্ট করুন'}</span>
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Hidden File Input */}
+                      <input
+                        id="ga4-sa-file-input"
+                        type="file"
+                        accept=".json,application/json"
+                        onChange={handleServiceAccountFileUpload}
+                        className="hidden"
+                      />
+
+                      {/* Expandable Manual JSON Paste Box */}
+                      {showServiceAccountPaste && (
+                        <div className="space-y-2 pt-2 border-t border-amber-500/20">
+                          <label className="block text-[11px] font-bold text-slate-400">
+                            Service Account JSON কোড পেস্ট করুন:
+                          </label>
+                          <textarea
+                            rows={5}
+                            value={serviceAccountRawInput}
+                            onChange={(e) => setServiceAccountRawInput(e.target.value)}
+                            placeholder='{"type": "service_account", "project_id": "...", "private_key": "...", "client_email": "..."}'
+                            className="w-full rounded-xl border border-slate-700 bg-black/40 p-3 text-xs font-mono outline-none text-emerald-400 placeholder-slate-500 focus:border-amber-500"
+                          />
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setShowServiceAccountPaste(false)}
+                              className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:bg-slate-800 cursor-pointer"
+                            >
+                              বাতিল
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleServiceAccountJsonLoad(serviceAccountRawInput, 'Pasted JSON')}
+                              className="px-4 py-1.5 rounded-lg text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white cursor-pointer"
+                            >
+                              JSON প্রয়োগ করুন
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
+                        💡 <strong>কোথায় পাবেন:</strong> Google Cloud Console &gt; <em>IAM &amp; Admin</em> &gt; <em>Service Accounts</em> &gt; আপনার Service Account &gt; <em>Keys</em> &gt; <em>Add Key</em> &gt; <em>Create new key (JSON)</em> ডাউনলোড করে সরাসরি এখানে আপলোড অথবা পেস্ট করুন। এটি AES-256 দিয়ে ডাটাবেসে সুরক্ষিতভাবে সেভ থাকবে।
+                      </p>
                     </div>
                   </div>
 
                   {/* Action Buttons */}
                   <div className="flex items-center justify-between pt-2">
-                    {serverGoogleConfig?.hasDevToken || googleSettings.customerId || googleSettings.developerToken ? (
+                    {serverGoogleConfig?.hasDevToken || serverGoogleConfig?.hasServiceAccount || googleSettings.customerId || googleSettings.developerToken || googleSettings.serviceAccountJson || googleSettings.serviceAccountEmail ? (
                       <button
                         type="button"
                         onClick={handleDeleteGoogle}
                         className="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-500/10 border border-rose-500/30 flex items-center gap-1.5 transition-all cursor-pointer"
-                        title="ডাটাবেস ও স্টোরেজ থেকে Google Ads ক্রেডেনশিয়াল মুছে ফেলুন"
+                        title="ডাটাবেস ও স্টোরেজ থেকে Google Ads ও GA4 ক্রেডেনশিয়াল মুছে ফেলুন"
                       >
                         <Trash2 className="h-4 w-4" />
                         <span>মুছে ফেলুন (Delete)</span>
