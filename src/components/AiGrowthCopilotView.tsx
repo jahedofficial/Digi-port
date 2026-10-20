@@ -79,23 +79,62 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
   const [messages, setMessages] = useState<ChatMessage[]>([defaultWelcomeMessage]);
   const [hasLoadedSavedMessages, setHasLoadedSavedMessages] = useState(false);
 
-  // Load chat history from localStorage on mount and when client switches
+  const saveMessageToServer = (msg: ChatMessage) => {
+    fetch('/api/ai/conversations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        workspace: clientName || 'FakeIt',
+        appendMessage: msg,
+      }),
+    }).catch((err) => console.warn('Failed to sync message to server:', err));
+  };
+
+  // Load chat history from server (cross-device) and fallback to localStorage
   useEffect(() => {
+    let localFound = false;
+    let initialLocal: ChatMessage[] = [];
     try {
       const saved = localStorage.getItem(chatStorageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
           setMessages(parsed);
-          setHasLoadedSavedMessages(true);
-          return;
+          initialLocal = parsed;
+          localFound = true;
         }
       }
     } catch (e) {
-      console.error('Failed to load chat history:', e);
+      console.error('Failed to load local chat history:', e);
     }
-    setMessages([defaultWelcomeMessage]);
+
+    if (!localFound) {
+      setMessages([defaultWelcomeMessage]);
+    }
     setHasLoadedSavedMessages(true);
+
+    // Fetch unified conversation from server database / persistent storage
+    fetch(`/api/ai/conversations?workspace=${encodeURIComponent(clientName || 'FakeIt')}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.messages) && data.messages.length > 0) {
+          setMessages(data.messages);
+          try {
+            localStorage.setItem(chatStorageKey, JSON.stringify(data.messages.slice(-50)));
+          } catch {}
+        } else if (localFound && initialLocal.length > 1) {
+          // Sync existing local chat up to server for other devices
+          fetch('/api/ai/conversations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              workspace: clientName || 'FakeIt',
+              messages: initialLocal,
+            }),
+          }).catch(() => {});
+        }
+      })
+      .catch((err) => console.warn('Failed to fetch server conversations:', err));
   }, [clientName, chatStorageKey]);
 
   // Save chat history to localStorage whenever messages change
@@ -112,6 +151,9 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
     try {
       localStorage.removeItem(chatStorageKey);
     } catch {}
+    fetch(`/api/ai/conversations?workspace=${encodeURIComponent(clientName || 'FakeIt')}`, {
+      method: 'DELETE',
+    }).catch(() => {});
     setMessages([
       {
         id: `welcome-${Date.now()}`,
@@ -224,6 +266,7 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
     };
 
     setMessages((prev) => [...prev, userMsg]);
+    saveMessageToServer(userMsg);
     setInput('');
     setIsTyping(true);
 
@@ -281,6 +324,8 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
             };
             setMessages((prev) => [...prev, aiMsg]);
             setIsTyping(false);
+            saveMessageToServer(aiMsg);
+          } else {
             let extraHint = '';
             if (aiData.error === 'NO_KEY') {
               extraHint = '\n\n💡 *নোট: OpenRouter API Key কনফিগার করা হয়নি। আসল এআই রেসপন্সের জন্য openrouter.ai/keys থেকে আপনার আসল sk-or-v1-... কী নিয়ে Platform Connection Hub-এ সেভ করুন।*';
@@ -340,6 +385,7 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
 
     setMessages((prev) => [...prev, aiMsg]);
     setIsTyping(false);
+    saveMessageToServer(aiMsg);
   };
 
   const handleApprove = (msgId: string, actionId?: string) => {

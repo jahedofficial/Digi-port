@@ -2708,236 +2708,358 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
           {/* ======================================================== */}
           {activeTab === 'AI_GATEWAY' && (
             <div className="space-y-6">
-              <div className={`rounded-2xl border p-6 ${cardBg} space-y-6 relative overflow-hidden`}>
-                {/* Brand Header Line */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500" />
+              <div className={`rounded-3xl border p-6 sm:p-7 ${cardBg} space-y-7 relative overflow-hidden shadow-xl`}>
+                {/* Ambient Top Glow */}
+                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
 
-                {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800/80">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="h-11 w-11 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-600 to-purple-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-indigo-500/25 border border-white/10">
-                      <Bot className="h-5 w-5" />
+                {/* Hero Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800/80">
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-600 to-pink-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-indigo-500/25 border border-white/20">
+                      <Bot className="h-6 w-6" />
                     </div>
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className={`text-base font-black tracking-tight ${textTitle} whitespace-nowrap`}>
-                          OpenClaw &amp; OpenRouter AI Gateway
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        <h3 className={`text-lg font-black tracking-tight ${textTitle}`}>
+                          AI Intelligence &amp; OpenClaw Brain Studio
                         </h3>
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 whitespace-nowrap">
-                          Reasoning Engine
-                        </span>
                         {aiGatewaySettings.isConfigured ? (
-                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 whitespace-nowrap">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            Configured
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shadow-xs">
+                            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                            সক্রিয় ও কানেক্টেড (Live)
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-medium tracking-wide bg-slate-500/10 text-slate-400 border border-slate-500/20 whitespace-nowrap">
-                            <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                            Not Configured
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium bg-slate-500/10 text-slate-400 border border-slate-500/20">
+                            <span className="h-2 w-2 rounded-full bg-slate-400" />
+                            কানেকশন বাকি
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-400 mt-1 font-medium line-clamp-1">
-                        High-performance LLM routing, OpenRouter API keys, and autonomous ad strategy reasoning.
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
+                        আপনার ক্যাম্পেইন অপ্টিমাইজেশন, বিজ্ঞাপন কপিরাইটিং ও স্বয়ংক্রিয় অ্যাড স্ট্র্যাটেজির কেন্দ্রীয় ইঞ্জিন
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0 self-start md:self-auto">
+                  <div className="flex items-center gap-2.5 shrink-0">
                     <button
                       onClick={handleSaveAiGateway}
                       disabled={isVerifyingAi}
-                      className="h-9 px-4 rounded-xl text-xs font-bold whitespace-nowrap bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm shadow-indigo-500/25 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-60"
+                      className="h-10 px-5 rounded-xl text-xs font-bold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-md shadow-indigo-500/20 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-60 hover:scale-[1.02] active:scale-[0.98]"
                     >
-                      {isVerifyingAi ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5 fill-current" />}
-                      <span>Verify &amp; Save</span>
+                      {isVerifyingAi ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                      <span>{isVerifyingAi ? 'যাচাই হচ্ছে...' : 'সেভ ও ভেরিফাই'}</span>
                     </button>
                   </div>
                 </div>
 
-                {/* Form Fields: 2-column grid */}
-                <div className="space-y-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Base URL */}
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider mb-2 flex items-center gap-1.5">
-                        <Server className="h-3.5 w-3.5 text-indigo-500" />
-                        <span>AI GATEWAY BASE URL</span>
-                      </label>
-                      <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2.5 ${inputContainerBg}`}>
-                        <Globe className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                        <input
-                          type="text"
-                          value={aiGatewaySettings.baseUrl}
-                          onChange={(e) => setAiGatewaySettings({ ...aiGatewaySettings, baseUrl: e.target.value })}
-                          placeholder="https://openrouter.ai/api/v1"
-                          className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
-                        />
-                      </div>
-                      <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1.5 font-medium">
-                        <span>OpenRouter-এর জন্য ডিফল্ট: <code className="text-cyan-500 font-mono">https://openrouter.ai/api/v1</code></span>
-                        <button
-                          type="button"
-                          onClick={() => setAiGatewaySettings({ ...aiGatewaySettings, baseUrl: 'https://openrouter.ai/api/v1' })}
-                          className="text-indigo-500 hover:underline font-bold"
-                        >
-                          ডিফল্ট সেট করুন
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* API Secret Key */}
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-1.5 flex-wrap">
-                          <KeyRound className="h-3.5 w-3.5 text-indigo-500" />
-                          <span>OPENROUTER / OPENCLAW API SECRET KEY</span>
-                          {serverAiConfig?.hasKey && (
-                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                              {serverAiConfig.source === 'database' ? '✓ ডাটাবেসে সেভ আছে' : '✓ .env.local এ সেভ আছে'}
-                            </span>
-                          )}
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() => setShowAiKey(!showAiKey)}
-                          className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 cursor-pointer transition-colors"
-                        >
-                          {showAiKey ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                          <span>{showAiKey ? 'Hide' : 'Show'}</span>
-                        </button>
-                      </div>
-                      <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2.5 ${inputContainerBg}`}>
-                        <Lock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                        <input
-                          type={showAiKey ? 'text' : 'password'}
-                          value={aiGatewaySettings.secretKey}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            const shouldAutoFixBaseUrl = val.startsWith('sk-or-v1-') && (aiGatewaySettings.baseUrl.includes('18789') || aiGatewaySettings.baseUrl.includes('195.35'));
-                            setAiGatewaySettings({
-                              ...aiGatewaySettings,
-                              secretKey: val,
-                              baseUrl: shouldAutoFixBaseUrl ? 'https://openrouter.ai/api/v1' : aiGatewaySettings.baseUrl,
-                            });
-                          }}
-                          placeholder="sk-or-v1-••••••••••••••••••••"
-                          className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
-                        />
-                      </div>
-                      {aiGatewaySettings.secretKey.startsWith('sk-or-v1-') && aiGatewaySettings.secretKey.length > 0 && aiGatewaySettings.secretKey.length < 70 && (
-                        <p className="text-[11px] text-amber-500 font-semibold mt-1.5 flex items-center gap-1 animate-in fade-in duration-200">
-                          <AlertCircle className="h-3 w-3 shrink-0" />
-                          <span>কী-টি অসম্পূর্ণ মনে হচ্ছে ({aiGatewaySettings.secretKey.length}/৭৩ অক্ষর)। কপি করার সময় শেষের অংশ বাদ পড়ে থাকতে পারে।</span>
-                        </p>
-                      )}
-                      <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1.5 font-medium">
-                        <span>অটো-ফিল্ড সক্রিয়। সার্ভার-সাইড AES-256 এনক্রিপশনে সুরক্ষিত।</span>
-                        {aiGatewaySettings.secretKey && (
-                          <button
-                            type="button"
-                            onClick={() => setAiGatewaySettings({ ...aiGatewaySettings, secretKey: '' })}
-                            className="text-indigo-500 hover:underline font-semibold cursor-pointer flex items-center gap-0.5"
-                          >
-                            <Edit3 className="h-3 w-3" />
-                            <span>নতুন কী লিখুন</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Model Engine Selector */}
-                  <div>
+                {/* Section 1: Endpoint & Secret Key (Clean 2-Column Cards) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {/* Card 1: Gateway URL */}
+                  <div className={`p-4.5 rounded-2xl border transition-all ${
+                    isLight ? 'bg-white border-slate-200/90 shadow-xs' : 'bg-[#0b101c] border-slate-800'
+                  }`}>
                     <div className="flex items-center justify-between mb-2">
-                      <label className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
-                        <Cpu className="h-3.5 w-3.5 text-indigo-500" />
-                        <span>DEFAULT AI MODEL ENGINE (OPENROUTER LLM ROUTING)</span>
+                      <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                        <Globe className="h-4 w-4 text-indigo-500" />
+                        <span>গেটওয়ে কানেকশন URL (Gateway Endpoint)</span>
                       </label>
-                      <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/25">
-                        OpenClaw 6-Tier Resilient Chain Active
-                      </span>
                     </div>
-
-                    <div className={`rounded-xl border p-1 transition-all ${inputContainerBg}`}>
-                      <select
-                        value={aiGatewaySettings.modelEngine}
-                        onChange={(e) => setAiGatewaySettings({ ...aiGatewaySettings, modelEngine: e.target.value })}
-                        className="w-full bg-transparent px-3 py-2 text-xs font-bold outline-none cursor-pointer text-inherit"
-                      >
-                        <option value="deepseek-v4-flash">⚡ Primary: openrouter/deepseek/deepseek-v4-flash (DeepSeek v4 Flash — Recommended Default)</option>
-                        <option value="openrouter/openai/gpt-5.4-nano">🚀 Fallback 1: openrouter/openai/gpt-5.4-nano (Ultra-fast Nano)</option>
-                        <option value="openrouter/anthropic/claude-sonnet-5">🧠 Fallback 2: openrouter/anthropic/claude-sonnet-5 (Claude Sonnet 5)</option>
-                        <option value="openrouter/openai/gpt-5.5">🔬 Fallback 3: openrouter/openai/gpt-5.5 (GPT-5.5 Pro)</option>
-                        <option value="openrouter/deepseek/deepseek-v4-pro">🛡️ Fallback 4: openrouter/deepseek/deepseek-v4-pro (DeepSeek v4 Pro)</option>
-                        <option value="openrouter/minimax/minimax-m3">⚡ Fallback 5: openrouter/minimax/minimax-m3 (MiniMax M3)</option>
-                      </select>
-                    </div>
-
-                    {/* OpenClaw Active Fallback Chain Visualizer */}
-                    <div className="mt-2.5 p-3 rounded-xl border border-indigo-500/20 bg-indigo-500/5 text-[11px] space-y-1.5">
-                      <div className="font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
-                        <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
-                        <span>OpenClaw Zero-Downtime Autonomous Fallback Pipeline:</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 flex-wrap font-mono text-[10px]">
-                        <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">Primary: DeepSeek v4 Flash</span>
-                        <span>➔</span>
-                        <span className="px-2 py-0.5 rounded bg-slate-500/10 text-slate-600 dark:text-slate-300">1: GPT-5.4 Nano</span>
-                        <span>➔</span>
-                        <span className="px-2 py-0.5 rounded bg-slate-500/10 text-slate-600 dark:text-slate-300">2: Claude Sonnet 5</span>
-                        <span>➔</span>
-                        <span className="px-2 py-0.5 rounded bg-slate-500/10 text-slate-600 dark:text-slate-300">3: GPT-5.5</span>
-                        <span>➔</span>
-                        <span className="px-2 py-0.5 rounded bg-slate-500/10 text-slate-600 dark:text-slate-300">4: DeepSeek Pro</span>
-                        <span>➔</span>
-                        <span className="px-2 py-0.5 rounded bg-slate-500/10 text-slate-600 dark:text-slate-300">5: MiniMax M3</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Persona Instruction */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider mb-2 flex items-center gap-1.5">
-                      <Bot className="h-3.5 w-3.5 text-indigo-500" />
-                      <span>AI AGENT SYSTEM PERSONA &amp; TONE INSTRUCTION</span>
-                    </label>
-                    <div className={`rounded-xl border p-3 transition-all ${inputContainerBg}`}>
-                      <textarea
-                        rows={3}
-                        value={aiGatewaySettings.persona}
-                        onChange={(e) => setAiGatewaySettings({ ...aiGatewaySettings, persona: e.target.value })}
-                        className="w-full bg-transparent text-xs outline-none text-inherit leading-relaxed resize-none"
+                    <p className="text-[11px] text-slate-400 mb-2.5">
+                      যেখানে DigiPort Copilot আপনার মডেলের সাথে কথা বলবে:
+                    </p>
+                    
+                    <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2.5 ${inputContainerBg}`}>
+                      <Server className="h-4 w-4 text-slate-400 shrink-0" />
+                      <input
+                        type="text"
+                        value={aiGatewaySettings.baseUrl}
+                        onChange={(e) => setAiGatewaySettings({ ...aiGatewaySettings, baseUrl: e.target.value })}
+                        placeholder="https://openclaw.neexion.com"
+                        className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
                       />
                     </div>
-                  </div>
 
-                  {/* Save Settings Button */}
-                  <div className="flex items-center justify-between pt-2">
-                    {serverAiConfig?.hasKey ? (
+                    {/* Quick Preset Buttons */}
+                    <div className="mt-3 flex items-center gap-1.5 flex-wrap text-[11px]">
+                      <span className="text-slate-400 font-semibold text-[10px]">কুইক প্রিসেট:</span>
                       <button
                         type="button"
-                        onClick={handleDeleteAiGateway}
-                        className="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-500/10 border border-rose-500/30 flex items-center gap-1.5 transition-all cursor-pointer"
-                        title="ডাটাবেস ও স্টোরেজ থেকে AI Gateway সেটিংস মুছে ফেলুন"
+                        onClick={() => setAiGatewaySettings({ ...aiGatewaySettings, baseUrl: 'https://openclaw.neexion.com' })}
+                        className={`px-2 py-0.5 rounded-lg border text-[10px] font-bold transition-all ${
+                          aiGatewaySettings.baseUrl.includes('neexion.com')
+                            ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30'
+                            : 'text-slate-500 hover:text-slate-900 dark:hover:text-white border-slate-200 dark:border-slate-800'
+                        }`}
                       >
-                        <Trash2 className="h-4 w-4" />
-                        <span>মুছে ফেলুন (Delete)</span>
+                        ⚡ OpenClaw VPS
                       </button>
-                    ) : (
-                      <div />
-                    )}
+                      <button
+                        type="button"
+                        onClick={() => setAiGatewaySettings({ ...aiGatewaySettings, baseUrl: 'https://openrouter.ai/api/v1' })}
+                        className={`px-2 py-0.5 rounded-lg border text-[10px] font-bold transition-all ${
+                          aiGatewaySettings.baseUrl.includes('openrouter.ai')
+                            ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30'
+                            : 'text-slate-500 hover:text-slate-900 dark:hover:text-white border-slate-200 dark:border-slate-800'
+                        }`}
+                      >
+                        ☁️ OpenRouter Cloud
+                      </button>
+                    </div>
+                  </div>
 
-                    <button
-                      onClick={handleSaveAiGateway}
-                      disabled={isVerifyingAi}
-                      className="px-6 py-2.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white shadow-md flex items-center gap-2 transition-all cursor-pointer"
+                  {/* Card 2: API Secret Key */}
+                  <div className={`p-4.5 rounded-2xl border transition-all ${
+                    isLight ? 'bg-white border-slate-200/90 shadow-xs' : 'bg-[#0b101c] border-slate-800'
+                  }`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                        <KeyRound className="h-4 w-4 text-purple-500" />
+                        <span>মাস্টার সিক্রেট কী (API Key / Gateway Token)</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowAiKey(!showAiKey)}
+                        className="text-[11px] text-slate-400 hover:text-indigo-500 flex items-center gap-1 cursor-pointer transition-colors"
+                      >
+                        {showAiKey ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                        <span>{showAiKey ? 'লুকান' : 'দেখান'}</span>
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-slate-400 mb-2.5">
+                      OpenClaw গেটওয়ে টোকেন অথবা OpenRouter API Key দিন:
+                    </p>
+
+                    <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2.5 ${inputContainerBg}`}>
+                      <Lock className="h-4 w-4 text-slate-400 shrink-0" />
+                      <input
+                        type={showAiKey ? 'text' : 'password'}
+                        value={aiGatewaySettings.secretKey}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setAiGatewaySettings({
+                            ...aiGatewaySettings,
+                            secretKey: val,
+                          });
+                        }}
+                        placeholder="4ece2d... অথবা sk-or-v1-..."
+                        className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
+                      />
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-between text-[11px]">
+                      <div className="flex items-center gap-1 text-slate-400 text-[10px]">
+                        <Shield className="h-3 w-3 text-emerald-500" />
+                        <span>AES-256 এনক্রিপশনে ডাটাবেসে সুরক্ষিত</span>
+                      </div>
+                      {aiGatewaySettings.secretKey && (
+                        <button
+                          type="button"
+                          onClick={() => setAiGatewaySettings({ ...aiGatewaySettings, secretKey: '' })}
+                          className="text-rose-500 hover:underline font-semibold text-[10px]"
+                        >
+                          মুছে নতুন দিন
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 2: Interactive AI Model Selection Cards */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                      <Cpu className="h-4 w-4 text-indigo-500" />
+                      <span>ডিফল্ট AI মডেল বেছে নিন (Preferred Brain Model)</span>
+                    </label>
+                    <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20">
+                      ⚡ OpenClaw Resilient Chain Active
+                    </span>
+                  </div>
+
+                  {/* 3 Interactive Model Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {/* Card 1: DeepSeek v4 Flash */}
+                    <div
+                      onClick={() => setAiGatewaySettings({ ...aiGatewaySettings, modelEngine: 'deepseek-v4-flash' })}
+                      className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
+                        aiGatewaySettings.modelEngine === 'deepseek-v4-flash'
+                          ? isLight
+                            ? 'bg-indigo-50/90 border-indigo-500 shadow-sm ring-2 ring-indigo-500/20'
+                            : 'bg-indigo-950/40 border-indigo-500 shadow-md ring-2 ring-indigo-500/30'
+                          : isLight
+                          ? 'bg-white border-slate-200 hover:border-slate-300'
+                          : 'bg-[#0b101c] border-slate-800 hover:border-slate-700'
+                      }`}
                     >
-                      <Database className="h-4 w-4" />
-                      <span>{isVerifyingAi ? 'যাচাই ও ডাটাবেসে সেভ হচ্ছে...' : 'ডাটাবেসে সেভ ও ভেরিফাই করুন (Save to Database)'}</span>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-black flex items-center gap-1.5">
+                          ⚡ DeepSeek v4 Flash
+                        </span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                          Recommended
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                        দ্রুততম রেসপন্স ও গভীর মার্কেটিং ডেটা অ্যানালাইসিসের জন্য আদর্শ।
+                      </p>
+                    </div>
+
+                    {/* Card 2: Claude Sonnet 5 */}
+                    <div
+                      onClick={() => setAiGatewaySettings({ ...aiGatewaySettings, modelEngine: 'openrouter/anthropic/claude-sonnet-5' })}
+                      className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
+                        aiGatewaySettings.modelEngine === 'openrouter/anthropic/claude-sonnet-5'
+                          ? isLight
+                            ? 'bg-purple-50/90 border-purple-500 shadow-sm ring-2 ring-purple-500/20'
+                            : 'bg-purple-950/40 border-purple-500 shadow-md ring-2 ring-purple-500/30'
+                          : isLight
+                          ? 'bg-white border-slate-200 hover:border-slate-300'
+                          : 'bg-[#0b101c] border-slate-800 hover:border-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-black flex items-center gap-1.5">
+                          🧠 Claude 3.5 Sonnet
+                        </span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-purple-500/15 text-purple-600 dark:text-purple-400">
+                          Elite Copy
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                        উচ্চমানের মানবিক অ্যাড কপি ও ক্রিয়েটিভ হুক লেখার জন্য বিখ্যাত।
+                      </p>
+                    </div>
+
+                    {/* Card 3: GPT-5 Nano / 4o */}
+                    <div
+                      onClick={() => setAiGatewaySettings({ ...aiGatewaySettings, modelEngine: 'openrouter/openai/gpt-5.4-nano' })}
+                      className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
+                        aiGatewaySettings.modelEngine === 'openrouter/openai/gpt-5.4-nano'
+                          ? isLight
+                            ? 'bg-cyan-50/90 border-cyan-500 shadow-sm ring-2 ring-cyan-500/20'
+                            : 'bg-cyan-950/40 border-cyan-500 shadow-md ring-2 ring-cyan-500/30'
+                          : isLight
+                          ? 'bg-white border-slate-200 hover:border-slate-300'
+                          : 'bg-[#0b101c] border-slate-800 hover:border-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-black flex items-center gap-1.5">
+                          🚀 GPT-5 Nano / 4o
+                        </span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-cyan-500/15 text-cyan-600 dark:text-cyan-400">
+                          Speed &amp; Logic
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                        বাংলা ও ইংরেজি মিশ্রিত চ্যাটে সাবলীল ও নির্ভুল রুল অপ্টিমাইজেশন।
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Fallback chain visualizer */}
+                  <div className="mt-3 p-3 rounded-xl border border-indigo-500/20 bg-indigo-500/5 text-[11px] flex items-center gap-2 flex-wrap">
+                    <span className="font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+                      <Sparkles className="h-3.5 w-3.5" /> স্বয়ংক্রিয় ব্যাকআপ চেইন:
+                    </span>
+                    <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20 text-[10px]">
+                      DeepSeek v4
+                    </span>
+                    <span className="text-slate-400">➔</span>
+                    <span className="px-2 py-0.5 rounded bg-slate-500/10 text-slate-600 dark:text-slate-300 text-[10px]">
+                      GPT-4o Mini
+                    </span>
+                    <span className="text-slate-400">➔</span>
+                    <span className="px-2 py-0.5 rounded bg-slate-500/10 text-slate-600 dark:text-slate-300 text-[10px]">
+                      Claude 3.5
+                    </span>
+                    <span className="text-slate-400">➔</span>
+                    <span className="px-2 py-0.5 rounded bg-slate-500/10 text-slate-600 dark:text-slate-300 text-[10px]">
+                      GPT-4o
+                    </span>
+                  </div>
+                </div>
+
+                {/* Section 3: Human Persona & Brand Voice Selection */}
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-pink-500" />
+                      <span>AI এজেন্টের ব্যক্তিত্ব ও কথা বলার ধরন (Persona &amp; Tone)</span>
+                    </label>
+                    <span className="text-[10px] text-slate-400">যেকোনো একটি প্রিসেট বেছে নিন:</span>
+                  </div>
+
+                  {/* 1-Click Persona Presets */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => setAiGatewaySettings({
+                        ...aiGatewaySettings,
+                        persona: 'Senior Performance Marketing Strategist & Media Buyer for Luxury Streetwear Brand (Fakeit). Focused on high ROAS, creative fatigue prevention, and scalable budget optimization.'
+                      })}
+                      className="px-2.5 py-1 rounded-lg border text-[11px] font-semibold hover:border-indigo-500 transition-colors cursor-pointer text-slate-700 dark:text-slate-300"
+                    >
+                      🎯 গ্রোথ মার্কেটার ও বায়ার
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAiGatewaySettings({
+                        ...aiGatewaySettings,
+                        persona: 'Viral Ad Copywriter & Creative Hook Specialist. Writes captivating, high-CTR storytelling hooks and urgent luxury lifestyle captions.'
+                      })}
+                      className="px-2.5 py-1 rounded-lg border text-[11px] font-semibold hover:border-purple-500 transition-colors cursor-pointer text-slate-700 dark:text-slate-300"
+                    >
+                      ✍️ ক্রিয়েটিভ হুক কপিরাইটার
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAiGatewaySettings({
+                        ...aiGatewaySettings,
+                        persona: 'Bilingual (Bangla / Banglish) F-Commerce Customer Specialist. Polite, warm, rapid product recommendation and order conversion closer.'
+                      })}
+                      className="px-2.5 py-1 rounded-lg border text-[11px] font-semibold hover:border-emerald-500 transition-colors cursor-pointer text-slate-700 dark:text-slate-300"
+                    >
+                      🇧🇩 বাংলা এফ-কমার্স সেলস স্পেশালিস্ট
                     </button>
                   </div>
+
+                  {/* Persona Textarea */}
+                  <div className={`rounded-2xl border p-3.5 transition-all ${inputContainerBg}`}>
+                    <textarea
+                      rows={3}
+                      value={aiGatewaySettings.persona}
+                      onChange={(e) => setAiGatewaySettings({ ...aiGatewaySettings, persona: e.target.value })}
+                      placeholder="এখানে লিখে দিন AI কীভাবে আপনার সাথে কথা বলবে এবং কী কী বিষয়ে সাহায্য করবে..."
+                      className="w-full bg-transparent text-xs outline-none text-inherit leading-relaxed resize-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Footer Save & Reset Buttons */}
+                <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+                  {serverAiConfig?.hasKey ? (
+                    <button
+                      type="button"
+                      onClick={handleDeleteAiGateway}
+                      className="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-500/10 border border-rose-500/30 flex items-center gap-1.5 transition-all cursor-pointer"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span>রিসেট করুন (Delete)</span>
+                    </button>
+                  ) : (
+                    <div />
+                  )}
+
+                  <button
+                    onClick={handleSaveAiGateway}
+                    disabled={isVerifyingAi}
+                    className="px-6 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-indigo-600 via-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 text-white shadow-lg shadow-indigo-500/25 flex items-center gap-2 transition-all cursor-pointer hover:scale-[1.01]"
+                  >
+                    <Database className="h-4 w-4" />
+                    <span>{isVerifyingAi ? 'ডাটাবেসে যাচাই ও সেভ হচ্ছে...' : 'ডাটাবেসে সেভ ও কানেক্ট করুন (Save to Database)'}</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -3168,106 +3290,149 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
           {/* ======================================================== */}
           {activeTab === 'GUIDE' && (
             <div className="space-y-6 text-xs">
-              <div className={`p-5 rounded-2xl border ${cardBg}`}>
-                <div className="flex items-start gap-3.5">
-                  <div className="h-9 w-9 rounded-xl bg-blue-600/10 text-blue-600 flex items-center justify-center shrink-0">
-                    <Key className="h-5 w-5" />
+              {/* Hero Banner */}
+              <div className={`p-6 rounded-3xl border ${cardBg} relative overflow-hidden shadow-lg`}>
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-amber-500 to-rose-500" />
+                <div className="flex items-start gap-4">
+                  <div className="h-11 w-11 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white flex items-center justify-center shrink-0 shadow-md">
+                    <BookOpen className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className={`text-sm font-black ${textTitle}`}>
-                      Phase 0: শুরু করার জন্য অনুমোদন ও সেটআপ নির্দেশিকা (OAuth Credentials Guide)
-                    </h3>
-                    <p className="text-xs text-slate-400 mt-1 font-medium">
-                      Meta, Google এবং TikTok এর অনুমোদন পেতে কিছুটা সময় লাগে, তাই Phase 0 তেই আবেদন করে রাখুন।
+                    <div className="flex items-center gap-2">
+                      <h3 className={`text-base font-black tracking-tight ${textTitle}`}>
+                        কানেকশন ও এপিআই সেটআপ গাইড (Phase 0 Setup Guide)
+                      </h3>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
+                        Official OAuth 2.0
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                      Meta, Google এবং TikTok-এর অফিশিয়াল অ্যাড অ্যাকাউন্ট কানেক্ট করার জন্য মাত্র ৩টি সহজ ধাপ নিচে দেওয়া হলো:
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Platform 1: Meta Setup */}
-              <div className={`p-5.5 rounded-2xl border space-y-3 ${cardBg}`}>
-                <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-blue-600 flex items-center gap-2 text-sm">
-                    <span className="h-2 w-2 rounded-full bg-blue-600" />
-                    ১. Meta (Facebook Login for Business)
-                  </h4>
-                  <a
-                    href="https://developers.facebook.com"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-1 text-[11px] text-blue-500 hover:underline font-bold"
-                  >
-                    <span>developers.facebook.com</span>
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
+              {/* Universal Callback URL Helper Card */}
+              <div className={`p-4.5 rounded-2xl border ${
+                isLight ? 'bg-indigo-50/70 border-indigo-200' : 'bg-indigo-950/30 border-indigo-900/60'
+              }`}>
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300 flex items-center gap-1.5">
+                    <Globe className="h-4 w-4" /> আপনার লাইভ কলব্যাক ডোমেন (OAuth Redirect URI):
+                  </span>
+                  <span className="text-[10px] text-slate-400">ডেভেলপার পোর্টালে এই লিঙ্কটি দিন</span>
                 </div>
-                <ul className="list-disc pl-5 space-y-1.5 text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
-                  <li><strong>App তৈরি:</strong> Facebook Developer Portal-এ গিয়ে Business টাইপ App বানান এবং <code>Facebook Login for Business</code> যুক্ত করুন।</li>
-                  <li><strong>Redirect URI দিন:</strong> <code>https://your-domain.com/api/auth/meta/callback</code> যুক্ত করুন।</li>
-                  <li><strong>Permissions:</strong> <code>ads_read</code>, <code>ads_management</code>, <code>business_management</code> রিকোয়েস্ট করুন।</li>
-                  <li><strong>Development Mode সুবিধা:</strong> আপনি নিজে (App Admin/Developer/Tester) কোনো <em>App Review</em> ছাড়াই নিজের Ad Account ও Business Manager তাৎক্ষণিক কানেক্ট করতে পারবেন!</li>
-                  <li><strong>Token Exchange:</strong> শর্ট-লিভড টোকেন আসলে ব্যাকএন্ডে <code>grant_type=fb_exchange_token</code> দিয়ে ৬০ দিনের লং-লিভড টোকেনে কনভার্ট হয়ে AES-256 দিয়ে এনক্রিপ্ট হয়ে ডাটাবেজে স্টোর হয়।</li>
-                </ul>
+                <div className="flex items-center gap-2 mt-2">
+                  <code className="flex-1 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 font-mono text-xs select-all">
+                    https://digiport.neexion.com/api/auth/[platform]/callback
+                  </code>
+                </div>
               </div>
 
-              {/* Platform 2: Google Ads Setup */}
-              <div className={`p-5.5 rounded-2xl border space-y-3 ${cardBg}`}>
-                <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-amber-500 flex items-center gap-2 text-sm">
-                    <span className="h-2 w-2 rounded-full bg-amber-500" />
-                    ২. Google Ads (Sign in with Google &amp; API)
-                  </h4>
-                  <a
-                    href="https://console.cloud.google.com"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-1 text-[11px] text-amber-500 hover:underline font-bold"
-                  >
-                    <span>Google Cloud Console</span>
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
-                </div>
-                <ul className="list-disc pl-5 space-y-1.5 text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
-                  <li><strong>OAuth Client তৈরি:</strong> Google Cloud Console &gt; APIs &amp; Services &gt; Credentials থেকে Web Application OAuth Client ID তৈরি করুন।</li>
-                  <li><strong>Redirect URI দিন:</strong> <code>https://your-domain.com/api/auth/google/callback</code> যুক্ত করুন।</li>
-                  <li><strong>Scope:</strong> <code>https://www.googleapis.com/auth/adwords</code> নির্বাচন করুন।</li>
-                  <li><strong>Developer Token:</strong> Google Ads API Center (MCC Account) থেকে Developer Token-এর জন্য আবেদন করুন। Test Account-এ শুরু করার জন্য কোনো বিলম্ব ছাড়াই কাজ করা যায়।</li>
-                  <li><strong>Auto-Refresh:</strong> <code>access_type=offline</code> দিয়ে পাওয়া Refresh Token ব্যাকএন্ড স্বয়ংক্রিয়ভাবে রিফ্রেশ করতে পারে।</li>
-                </ul>
-              </div>
-
-              {/* Platform 3: TikTok Setup */}
-              <div className={`p-5.5 rounded-2xl border space-y-3 ${cardBg}`}>
-                <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-pink-500 flex items-center gap-2 text-sm">
-                    <span className="h-2 w-2 rounded-full bg-pink-500" />
-                    ৩. TikTok for Business (Marketing API)
-                  </h4>
-                  <a
-                    href="https://business-api.tiktok.com"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-1 text-[11px] text-pink-500 hover:underline font-bold"
-                  >
-                    <span>business-api.tiktok.com</span>
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
-                </div>
-                <ul className="list-disc pl-5 space-y-1.5 text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
-                  <li><strong>Developer App তৈরি:</strong> TikTok for Business Developer Portal-এ অ্যাপ তৈরি করে Marketing API এক্সেসের জন্য আবেদন করুন।</li>
-                  <li><strong>Redirect URI দিন:</strong> <code>https://your-domain.com/api/auth/tiktok/callback</code> দিন।</li>
-                  <li><strong>Advertiser Discovery:</strong> লগইন শেষে <code>/oauth2/advertiser/get/</code> কল করে অনুমোদিত সব Advertiser ID পেয়ে যাওয়া যায়।</li>
-                </ul>
-              </div>
-
-              {/* Security Rule F5 Notice */}
-              <div className="p-4.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 flex items-start gap-3">
-                <Lock className="h-4.5 w-4.5 shrink-0 mt-0.5" />
-                <div>
-                  <div className="font-bold">জরুরি নিরাপত্তা নিশ্চয়তা (Rule F5 Compliance):</div>
-                  <div className="mt-1 text-[11px] leading-relaxed font-medium">
-                    ব্যবহারকারীর পাসওয়ার্ড কখনই আমাদের অ্যাপে আসে না। ব্রাউজার বা ফ্রন্টএন্ডে কখনো কোনো টোকেন উন্মুক্ত থাকে না। কোড থেকে টোকেন এক্সচেঞ্জ এবং টোকেনের AES-256 এনক্রিপশন শুধুমাত্র ব্যাকএন্ড সার্ভারে সম্পাদিত হয়।
+              {/* 3 Modern Step Cards */}
+              <div className="grid grid-cols-1 gap-4">
+                {/* Platform 1: Meta Setup */}
+                <div className={`p-5 rounded-3xl border transition-all hover:shadow-md ${cardBg}`}>
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-8 w-8 rounded-xl bg-blue-500/15 text-blue-600 flex items-center justify-center font-bold">
+                        1
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
+                          <span>Meta (Facebook Login for Business &amp; Marketing API)</span>
+                        </h4>
+                        <span className="text-[10px] text-slate-400">Facebook Page &amp; Instagram Ad Accounts</span>
+                      </div>
+                    </div>
+                    <a
+                      href="https://developers.facebook.com"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-3 py-1.5 rounded-xl border border-blue-500/20 text-blue-600 hover:bg-blue-500/10 flex items-center gap-1.5 text-xs font-bold transition-colors"
+                    >
+                      <span>Developer Portal</span>
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
                   </div>
+                  <div className="pt-3.5 space-y-2 text-slate-600 dark:text-slate-300 leading-relaxed">
+                    <p>• <b>App তৈরি:</b> Developer Portal-এ গিয়ে <b>Business Type</b> App বানান এবং <code>Facebook Login for Business</code> যোগ করুন।</p>
+                    <p>• <b>Redirect URI:</b> <code>https://digiport.neexion.com/api/auth/meta/callback</code> দিন।</p>
+                    <p>• <b>Permissions:</b> <code>ads_read</code>, <code>ads_management</code>, <code>business_management</code> রিকোয়েস্ট করুন।</p>
+                    <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-500/10 p-2 rounded-xl border border-emerald-500/20">
+                      💡 <b>Development Mode সুবিধা:</b> আপনি নিজে (App Admin/Developer) কোনো App Review ছাড়াই তাৎক্ষণিক নিজের Ad Account কানেক্ট করতে পারবেন!
+                    </p>
+                  </div>
+                </div>
+
+                {/* Platform 2: Google Ads Setup */}
+                <div className={`p-5 rounded-3xl border transition-all hover:shadow-md ${cardBg}`}>
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-8 w-8 rounded-xl bg-amber-500/15 text-amber-600 flex items-center justify-center font-bold">
+                        2
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
+                          <span>Google Ads &amp; GA4 (Sign in with Google)</span>
+                        </h4>
+                        <span className="text-[10px] text-slate-400">Search, Shopping &amp; YouTube Ads Intelligence</span>
+                      </div>
+                    </div>
+                    <a
+                      href="https://console.cloud.google.com"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-3 py-1.5 rounded-xl border border-amber-500/20 text-amber-600 hover:bg-amber-500/10 flex items-center gap-1.5 text-xs font-bold transition-colors"
+                    >
+                      <span>Cloud Console</span>
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  </div>
+                  <div className="pt-3.5 space-y-2 text-slate-600 dark:text-slate-300 leading-relaxed">
+                    <p>• <b>OAuth Client তৈরি:</b> Google Cloud Console &gt; APIs &amp; Services &gt; Credentials থেকে <b>Web Application</b> Client ID তৈরি করুন।</p>
+                    <p>• <b>Redirect URI:</b> <code>https://digiport.neexion.com/api/auth/google/callback</code> দিন।</p>
+                    <p>• <b>Developer Token:</b> Google Ads API Center (MCC Account) থেকে Developer Token সংগ্রহ করুন।</p>
+                  </div>
+                </div>
+
+                {/* Platform 3: TikTok Setup */}
+                <div className={`p-5 rounded-3xl border transition-all hover:shadow-md ${cardBg}`}>
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-8 w-8 rounded-xl bg-rose-500/15 text-rose-600 flex items-center justify-center font-bold">
+                        3
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
+                          <span>TikTok for Business (Marketing API)</span>
+                        </h4>
+                        <span className="text-[10px] text-slate-400">TikTok Video &amp; Spark Ads</span>
+                      </div>
+                    </div>
+                    <a
+                      href="https://business-api.tiktok.com"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-3 py-1.5 rounded-xl border border-rose-500/20 text-rose-600 hover:bg-rose-500/10 flex items-center gap-1.5 text-xs font-bold transition-colors"
+                    >
+                      <span>TikTok Portal</span>
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  </div>
+                  <div className="pt-3.5 space-y-2 text-slate-600 dark:text-slate-300 leading-relaxed">
+                    <p>• <b>Developer App তৈরি:</b> TikTok for Business Developer Portal-এ অ্যাপ তৈরি করে Marketing API সিলেক্ট করুন।</p>
+                    <p>• <b>Redirect URI:</b> <code>https://digiport.neexion.com/api/auth/tiktok/callback</code> দিন।</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Security Assurance Banner */}
+              <div className="p-4.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 flex items-center gap-3">
+                <Shield className="h-5 w-5 shrink-0 text-emerald-500" />
+                <div className="text-[11px] leading-relaxed font-medium">
+                  <b>ব্যাংক-গ্রেড AES-256 এনক্রিপশন:</b> আপনার কোনো ক্রেডেনশিয়াল বা টোকেন কখনো ব্রাউজারে সংরক্ষিত হয় না। প্রতিটি টোকেন স্বয়ংক্রিয়ভাবে এনক্রিপ্ট হয়ে সার্ভারের সিকিউর ডাটাবেস ভল্টে জমা থাকে।
                 </div>
               </div>
             </div>

@@ -131,6 +131,7 @@ Instructions:
             'Authorization': `Bearer ${apiKey}`,
             'HTTP-Referer': 'https://digiport.neexion.com',
             'X-Title': 'DigiPort OpenClaw Copilot',
+            'x-openclaw-session-key': 'agent:main:main',
           },
           body: JSON.stringify({
             model: currentModel,
