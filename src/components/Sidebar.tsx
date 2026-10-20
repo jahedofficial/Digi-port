@@ -20,12 +20,14 @@ import {
   LogOut,
   User,
   Key,
-  X
+  X,
+  MessageSquare
 } from 'lucide-react';
 import { UserProfile } from '@/types';
 
 export type MainNavId = 
   | 'ANALYTICS' 
+  | 'UNIFIED_INBOX'
   | 'META_ADS'
   | 'GOOGLE_ADS'
   | 'TIKTOK_ADS'
@@ -173,7 +175,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </div>
                 </button>
 
-                {/* 2. Meta Ads */}
+                {/* 2. Unified Inbox & AI Copilot */}
+                <button
+                  onClick={() => onSelectNav('UNIFIED_INBOX')}
+                  className={`w-full flex items-center justify-between rounded-lg px-2.5 py-2 text-xs transition-all ${getNavClass('UNIFIED_INBOX')}`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <MessageSquare className="h-4 w-4 text-indigo-500" />
+                    <span>Unified Inbox</span>
+                  </div>
+                  <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold border ${
+                    isLight 
+                      ? 'bg-indigo-50 text-indigo-700 border-indigo-200' 
+                      : 'bg-indigo-950/70 text-indigo-400 border-indigo-800'
+                  }`}>
+                    Copilot
+                  </span>
+                </button>
+
+                {/* 3. Meta Ads */}
                 <button
                   onClick={() => onSelectNav('META_ADS')}
                   className={`w-full flex items-center justify-between rounded-lg px-2.5 py-2 text-xs transition-all ${getNavClass('META_ADS')}`}
