@@ -12,7 +12,6 @@ import { TrackingHealthView } from '@/components/TrackingHealthView';
 import { OptimizationEngineView } from '@/components/OptimizationEngineView';
 import { ReportsView } from '@/components/ReportsView';
 import { AiGrowthCopilotView } from '@/components/AiGrowthCopilotView';
-import { UnifiedInboxView } from '@/components/UnifiedInboxView';
 import { PlatformConnectionHubModal } from '@/components/PlatformConnectionHubModal';
 import { BusinessWorkspaceDropdown } from '@/components/BusinessWorkspaceDropdown';
 import { NotificationDropdown } from '@/components/NotificationDropdown';
@@ -70,14 +69,12 @@ export default function Home() {
     }
     setIsAuthLoaded(true);
 
-    // Support direct tab links like ?tab=copilot or ?tab=ai or ?tab=inbox
+    // Support direct tab links like ?tab=copilot or ?tab=ai
     try {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab')?.toLowerCase();
       if (tabParam === 'copilot' || tabParam === 'ai' || tabParam === 'ai_copilot') {
         setActiveNav('AI_COPILOT');
-      } else if (tabParam === 'inbox' || tabParam === 'unified_inbox') {
-        setActiveNav('UNIFIED_INBOX');
       }
     } catch {}
 
@@ -658,12 +655,7 @@ export default function Home() {
             />
           )}
 
-          {/* 2. F-Commerce Unified Inbox & AI Copilot */}
-          {activeNav === 'UNIFIED_INBOX' && (
-            <UnifiedInboxView theme={theme} />
-          )}
-
-          {/* 3. Meta Ads (Performance Engine) */}
+          {/* 2. Meta Ads (Performance Engine) */}
           {activeNav === 'META_ADS' && (
             <MetaAdsPerformanceDashboard 
               theme={theme} 
