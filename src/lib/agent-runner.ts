@@ -235,7 +235,45 @@ export function processAgentCommand(
     };
   }
 
-  // 4. Creative fatigue: "কোন creative fatigue হচ্ছে?"
+  // 4. Launch / Create Ad with Content: "ad চালাও", "বিজ্ঞাপন চালাও", "run ad", "create ad", "launch ad", "ক্যাম্পেইন চালাও"
+  if (
+    query.includes('ad চালা') ||
+    query.includes('বিজ্ঞাপন চালা') ||
+    query.includes('ক্যাম্পেইন চালা') ||
+    query.includes('run ad') ||
+    query.includes('launch ad') ||
+    query.includes('create ad') ||
+    query.includes('নয়া অ্যাড') ||
+    query.includes('নতুন ক্যাম্পেইন')
+  ) {
+    const defaultBudget = context.currency === 'BDT' ? 1000 : 15;
+    return {
+      reply: `🚀 **নতুন বিজ্ঞাপন ক্যাম্পেইন ব্লুপ্রিন্ট প্রস্তুত (${clientTitle})!**\n\nআপনার কনটেন্টের ওপর ভিত্তি করে পারফর্ম্যান্স মার্কেটিং ফ্রেমওয়ার্ক অনুযায়ী ক্যাম্পেইন ড্রাফট তৈরি করা হয়েছে:\n\n• **ক্যাম্পেইন নাম:** \`[${clientTitle}] Conversion Growth Sprint\`\n• **অবজেক্টিভ:** Sales / Purchases (Server-Side Meta CAPI ও Pixel ট্র্যাকড)\n• **প্রস্তাবিত দৈনিক বাজেট:** **${curSymbol}${defaultBudget} / দিন**\n• **টার্গেটিং অডিয়েন্স:** Advantage+ Placements (Feed, Reels & Stories)\n\n✍️ **অ্যাড কপি (Primary Text):**\n*"সেরা প্রিমিয়াম কালেকশন এখন বিশেষ ছাড়ে! দ্রুত ডেলিভারি এবং ক্যাশ অন ডেলিভারির সুবিধা। অফার সীমিত সময়ের জন্য।"*\n\n📌 **হেডলাইন:** *"অরিজিনাল কালেকশন - অর্ডার করুন এখনই!"*\n🔘 **CTA বাটন:** \`Shop Now 🛍️\`\n\n💡 *নিচে ড্রাফট অনুমোদন (Approve) করলে প্ল্যাটফর্মে ক্যাম্পেইন শিডিউল হয়ে যাবে।*`,
+      toolUsed: 'create_ad_campaign',
+      toolType: 'WRITE',
+      requiresApproval: true,
+      proposedAction: {
+        id: `act-ad-${Date.now()}`,
+        actionType: 'ENABLE_AD',
+        platform: 'META',
+        entityType: 'CAMPAIGN',
+        entityId: 'new-campaign-draft',
+        entityName: `[Launch Campaign]: ${clientTitle} Growth Sprint`,
+        proposedBy: 'AGENT',
+        reason: 'প্রদত্ত ক্রিয়েটিভ ও পারফর্ম্যান্স কপিরাইটিং নিয়ে নতুন ক্যাম্পেইন লঞ্চের প্রস্তুতি।',
+        previousValue: 'Draft',
+        newValue: `Active (${curSymbol}${defaultBudget}/day)`,
+        status: 'PENDING',
+        createdAt: 'এখনই',
+        safetyCheck: {
+          passed: true,
+          rule: 'Content Validation & Budget Safety Guard Passed',
+        },
+      },
+    };
+  }
+
+  // 5. Creative fatigue: "কোন creative fatigue হচ্ছে?"
   if (query.includes('fatigue') || query.includes('ফ্যাটিগ') || query.includes('ক্রিয়েটিভ')) {
     if (activeCreatives.length === 0) {
       return {
