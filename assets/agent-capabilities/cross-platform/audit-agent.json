@@ -1,0 +1,14 @@
+{
+  "$schema": "https://digiport.neexion.com/schemas/agent-capability.v1.json",
+  "agent": "AuditAgent",
+  "platform": "CROSS_PLATFORM",
+  "supportedOperations": [
+    "AUDIT_SPEND_PACING",
+    "AUDIT_ROAS_EFFICIENCY",
+    "DETECT_HIGH_CPA_BLEED",
+    "DETECT_CREATIVE_FATIGUE",
+    "VERIFY_PIXEL_TRACKING_HEALTH"
+  ],
+  "requiresApproval": false,
+  "outputFormat": "STRUCTURED_AUDIT_REPORT"
+}

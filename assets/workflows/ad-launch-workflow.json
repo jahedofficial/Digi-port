@@ -1,0 +1,13 @@
+{
+  "$schema": "https://digiport.neexion.com/schemas/workflow.v1.json",
+  "id": "workflow-ad-launch-pipeline",
+  "name": "Full-Funnel Ad Campaign Launch & Human Approval Pipeline",
+  "version": "1.0.0",
+  "stages": [
+    { "id": "INTENT_ANALYSIS", "handler": "CEOAgent", "timeoutMs": 5000 },
+    { "id": "CREATIVE_SYNTHESIS", "handler": "CreativeAgent", "timeoutMs": 10000 },
+    { "id": "RISK_AUDIT", "handler": "RiskEngine", "timeoutMs": 5000 },
+    { "id": "HUMAN_APPROVAL", "handler": "ActionQueue", "requiresHuman": true },
+    { "id": "PLATFORM_DISPATCH", "handler": "PlatformAdapter", "timeoutMs": 15000 }
+  ]
+}

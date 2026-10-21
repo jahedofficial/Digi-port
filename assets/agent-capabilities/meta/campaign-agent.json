@@ -1,0 +1,15 @@
+{
+  "$schema": "https://digiport.neexion.com/schemas/agent-capability.v1.json",
+  "agent": "CampaignAgent",
+  "platform": "META",
+  "supportedObjectives": ["OUTCOME_SALES", "OUTCOME_LEADS", "OUTCOME_TRAFFIC", "OUTCOME_ENGAGEMENT"],
+  "supportedCampaignTypes": ["ADVANTAGE_PLUS_SHOPPING", "MANUAL_CONVERSION", "CATALOG_SALES"],
+  "supportedBiddingStrategies": ["LOWEST_COST_WITHOUT_CAP", "COST_CAP", "MINIMUM_ROAS"],
+  "supportedAssetTypes": ["IMAGE", "VIDEO", "CAROUSEL", "COLLECTION"],
+  "requiresApproval": true,
+  "validationRules": [
+    "Daily budget must not exceed workspace daily limit",
+    "Ad creative must include verified destination URL",
+    "Meta Pixel ID must be active"
+  ]
+}

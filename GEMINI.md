@@ -7,3 +7,5 @@ This project follows the Antigravity agent guidelines defined in [.agents/rules/
 3. **API Standards**: Uniform JSON response formatting (`{ success: boolean, data?: ..., error?: string }`).
 4. **UI/UX**: High-end modern marketing dashboard aesthetic with responsive dark themes.
 5. **Language**: Bilingual support (Bengali / English) tailored to the user.
+6. **Enterprise Architecture**: Multi-agent orchestration complying with [docs/architecture/ENTERPRISE_BLUEPRINT.md](file:///c:/Projects/Digital%20Marketr/docs/architecture/ENTERPRISE_BLUEPRINT.md) (Phases 1–17).
+

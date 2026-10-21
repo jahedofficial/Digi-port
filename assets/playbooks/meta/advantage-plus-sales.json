@@ -1,0 +1,47 @@
+{
+  "$schema": "https://digiport.neexion.com/schemas/playbook.v1.json",
+  "id": "playbook-meta-advantage-plus-sales",
+  "name": "Meta Advantage+ Shopping Campaign (ASC) Launch & Scale",
+  "version": "1.0.0",
+  "targetPlatforms": ["META"],
+  "purpose": "Deploy and scale an automated high-converting Advantage+ Shopping campaign on Meta with catalog integration and creative diversity.",
+  "prerequisites": [
+    "Meta Ad Account connected with active payment method",
+    "Meta Pixel & CAPI healthy with event deduplication active",
+    "Product catalog synced or at least 5 creative assets ready"
+  ],
+  "executionSteps": [
+    {
+      "step": 1,
+      "name": "Validate Tracking Health",
+      "specialistAgent": "TrackingAgent",
+      "action": "Verify Purchase event match quality score >= 8.0"
+    },
+    {
+      "step": 2,
+      "name": "Assemble Creative Blueprint",
+      "specialistAgent": "CreativeAgent",
+      "action": "Select top 3 video hooks and 2 static product carousels"
+    },
+    {
+      "step": 3,
+      "name": "Construct Draft Campaign",
+      "specialistAgent": "CampaignAgent",
+      "action": "Create Advantage+ Shopping Campaign draft with Target ROAS guardrail"
+    },
+    {
+      "step": 4,
+      "name": "Risk & Policy Assessment",
+      "specialistAgent": "RiskEngine",
+      "action": "Ensure ad text adheres to Meta Advertising Standards and daily budget is within safe limits"
+    },
+    {
+      "step": 5,
+      "name": "Human Approval Gate",
+      "specialistAgent": "CEOAgent",
+      "action": "Emit ActionQueueItem with [Approve] and [Reject] controls"
+    }
+  ],
+  "requiredApprovals": true,
+  "rollbackStrategy": "Set campaign status to PAUSED immediately if first 24h spend exceeds $30 with zero conversions"
+}

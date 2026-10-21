@@ -1,0 +1,26 @@
+{
+  "$schema": "https://digiport.neexion.com/schemas/schedule.v1.json",
+  "id": "schedule-heartbeat-default",
+  "name": "DigiPort 24/7 Watchdog Heartbeat Schedule",
+  "description": "Recurring background health check for ad spend pacing, CPA spikes, pixel deduplication, and platform connectivity.",
+  "defaultInterval": "30m",
+  "supportedIntervals": ["15m", "30m", "1h", "2h", "5h", "12h", "24h"],
+  "tasks": [
+    {
+      "name": "Audit High CPA Spend",
+      "condition": "spend > targetCPA * 2 AND conversions == 0",
+      "action": "Emit high-priority alert to Telegram & proposed pause action"
+    },
+    {
+      "name": "Verify CAPI & Enhanced Conversions Pipeline",
+      "condition": "lastReceivedAt > 3 hours ago",
+      "action": "Trigger tracking check alert and flag in Pixel Health tab"
+    },
+    {
+      "name": "Cross-Client Daily Performance Snapshot",
+      "cronExpression": "0 8 * * *",
+      "action": "Generate executive summary and dispatch Telegram digest"
+    }
+  ],
+  "notificationChannels": ["TELEGRAM", "IN_APP_NOTIFICATION"]
+}

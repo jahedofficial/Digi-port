@@ -1,0 +1,15 @@
+{
+  "$schema": "https://digiport.neexion.com/schemas/agent-capability.v1.json",
+  "agent": "CampaignAgent",
+  "platform": "GOOGLE",
+  "supportedObjectives": ["SALES", "LEADS", "WEBSITE_TRAFFIC"],
+  "supportedCampaignTypes": ["PERFORMANCE_MAX", "SEARCH", "SHOPPING", "DEMAND_GEN"],
+  "supportedBiddingStrategies": ["TARGET_ROAS", "TARGET_CPA", "MAXIMIZE_CONVERSIONS"],
+  "supportedAssetTypes": ["TEXT_HEADLINE", "TEXT_DESCRIPTION", "MARKETING_IMAGE", "SQUARE_IMAGE", "LOGO", "YOUTUBE_VIDEO"],
+  "requiresApproval": true,
+  "validationRules": [
+    "Customer ID must be 10 digits formatted (e.g. 123-456-7890)",
+    "Enhanced Conversions must be enabled for tROAS",
+    "Final URL must be reachable (HTTP 200)"
+  ]
+}

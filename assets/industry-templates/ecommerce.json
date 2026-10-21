@@ -1,0 +1,40 @@
+{
+  "$schema": "https://digiport.neexion.com/schemas/industry-template.v1.json",
+  "id": "template-ecommerce-growth",
+  "name": "E-commerce & Direct-to-Consumer (D2C)",
+  "version": "1.0.0",
+  "businessGoals": [
+    "Maximize Blended ROAS (> 3.5x)",
+    "Acquire New Customers at Target CPA",
+    "Reduce Cart Abandonment via Multi-Touch Retargeting"
+  ],
+  "platformMix": {
+    "recommendedRoles": {
+      "google": "High-intent demand capture via Search, Shopping, and Performance Max",
+      "meta": "Cold audience discovery, visual storytelling, and dynamic catalog retargeting",
+      "tiktok": "Trend jacking, short-form creative testing, and Spark Ads engagement"
+    },
+    "budgetSplitRanges": {
+      "google": { "minPercent": 30, "maxPercent": 50, "defaultPercent": 40 },
+      "meta": { "minPercent": 40, "maxPercent": 60, "defaultPercent": 50 },
+      "tiktok": { "minPercent": 10, "maxPercent": 25, "defaultPercent": 10 }
+    }
+  },
+  "biddingStrategy": {
+    "google": "Maximize Conversion Value with Target ROAS (tROAS)",
+    "meta": "Highest Volume / Cost Cap with Minimum ROAS Guardrail",
+    "tiktok": "Lowest Cost with Bid Cap on Scaling Ad Groups"
+  },
+  "trackingRequirements": [
+    "Meta Conversions API (CAPI) with Server-Side Deduplication (event_id)",
+    "Google Enhanced Conversions via GTM Server-Side Container",
+    "TikTok Events API (Browser + Webhook Server Events)",
+    "GA4 E-commerce Purchase Events with currency and items array"
+  ],
+  "kpiTargets": {
+    "targetROAS": 3.5,
+    "targetCTR": 1.8,
+    "maxCPAUSD": 18.0,
+    "targetEventMatchQuality": 8.5
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://digiport.neexion.com/schemas/report-scoring.v1.json",
+  "id": "scoring-performance-audit-v1",
+  "version": "1.0.0",
+  "dimensions": {
+    "roasHealth": { "weight": 0.35, "target": 3.0, "scale": "0-100" },
+    "cpaEfficiency": { "weight": 0.25, "targetCpaMultiplier": 1.2, "scale": "0-100" },
+    "creativeFreshness": { "weight": 0.20, "maxFrequency": 3.5, "scale": "0-100" },
+    "trackingQuality": { "weight": 0.20, "minEventMatchQuality": 8.0, "scale": "0-100" }
+  },
+  "scoreThresholds": {
+    "EXCELLENT": 85,
+    "GOOD": 70,
+    "ATTENTION_NEEDED": 50,
+    "CRITICAL": 0
+  }
+}
