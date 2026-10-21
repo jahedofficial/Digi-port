@@ -39,8 +39,11 @@ export async function POST(req: NextRequest) {
     const modelEngine = gatewaySettings?.modelEngine || dbConfig.modelEngine || 'deepseek/deepseek-chat';
     const persona = gatewaySettings?.persona || dbConfig.persona || 'Senior Performance Marketing Strategist & Copywriter';
 
-    // If no valid API key is available, report clearly that OpenClaw is not configured
-    if (!isValidApiKey(apiKey)) {
+    // Detect OpenClaw VPS Gateway
+    const isOpenClawGateway = baseUrl.includes('openclaw') || baseUrl.includes(':18789');
+
+    // If no valid API key is available (and not using OpenClaw VPS gateway), report clearly
+    if (!isOpenClawGateway && !isValidApiKey(apiKey)) {
       return NextResponse.json({
         success: false,
         error: 'NO_KEY',
@@ -81,13 +84,20 @@ Live Context:
 
     // Determine target completion endpoint
     let targetEndpoint = 'https://openrouter.ai/api/v1/chat/completions';
-    if (apiKey.startsWith('sk-or-v1-') || baseUrl.includes('openrouter.ai')) {
+    if (isOpenClawGateway) {
+      targetEndpoint = baseUrl.includes(':18789')
+        ? 'http://127.0.0.1:18789/v1/chat/completions'
+        : `${baseUrl.replace(/\/+$/, '')}/chat/completions`;
+    } else if (apiKey.startsWith('sk-or-v1-') || baseUrl.includes('openrouter.ai')) {
       targetEndpoint = 'https://openrouter.ai/api/v1/chat/completions';
-    } else if (baseUrl.includes(':18789') || baseUrl.includes('digiport.neexion.com')) {
-      targetEndpoint = 'http://127.0.0.1:18789/v1/chat/completions';
     } else {
-      targetEndpoint = `${baseUrl}/chat/completions`;
+      targetEndpoint = `${baseUrl.replace(/\/+$/, '')}/chat/completions`;
     }
+
+    // Effective authorization token
+    const effectiveToken = isOpenClawGateway && (!apiKey || apiKey.startsWith('sk-or-v1-'))
+      ? (process.env.OPENCLAW_GATEWAY_TOKEN || '4ece2d197256275d2f46027da92b46010f1311ce8a5a7a6b')
+      : apiKey;
 
     // Map user configured model to API string
     const mapToOpenRouterId = (name: string): string => {
@@ -125,7 +135,7 @@ Live Context:
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
+            'Authorization': `Bearer ${effectiveToken}`,
             'HTTP-Referer': 'https://digiport.neexion.com',
             'X-Title': 'DigiPort OpenClaw Copilot',
             'x-openclaw-session-key': 'agent:main:main',
