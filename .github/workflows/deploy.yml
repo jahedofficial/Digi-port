@@ -36,8 +36,16 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
+      - name: Verify SSH Secrets Presence
+        run: |
+          echo "VPS_HOST configured: ${{ secrets['VPS_HOST'] != '' }}"
+          echo "VPS_USERNAME configured: ${{ secrets['VPS_USERNAME'] != '' }}"
+          echo "VPS_SSH_KEY configured: ${{ secrets['VPS_SSH_KEY'] != '' }}"
+          echo "VPS_PASSWORD configured: ${{ secrets['VPS_PASSWORD'] != '' }}"
+
       - name: Execute Remote SSH Commands
         uses: appleboy/ssh-action@v1.0.3
+        if: secrets['VPS_HOST'] != ''
         with:
           host: ${{ secrets['VPS_HOST'] }}
           username: ${{ secrets['VPS_USERNAME'] }}
