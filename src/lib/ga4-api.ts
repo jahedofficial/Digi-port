@@ -9,6 +9,8 @@ export interface Ga4ReportResult {
   conversions: number;
   eventCount: number;
   totalRevenue: number;
+  realtimeUsers?: number;
+  realtimeCountry?: string;
   propertyId: string;
   clientEmail: string;
   error?: string;
@@ -144,6 +146,39 @@ export async function fetchGa4LiveMetrics(
   const eventCount = Math.round(getValue('eventCount'));
   const totalRevenue = getValue('totalRevenue');
 
+  // Query Official GA4 Realtime API (Active Users in Last 30 Minutes & Country)
+  let realtimeUsers = 0;
+  let realtimeCountry = 'Bangladesh';
+  try {
+    const realtimeUrl = `https://analyticsdata.googleapis.com/v1beta/properties/${cleanPropertyId}:runRealtimeReport`;
+    const realtimeRes = await fetch(realtimeUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        metrics: [{ name: 'activeUsers' }],
+        dimensions: [{ name: 'country' }],
+      }),
+    });
+
+    if (realtimeRes.ok) {
+      const rtData = await realtimeRes.json();
+      if (rtData.rows && rtData.rows.length > 0) {
+        realtimeUsers = rtData.rows.reduce(
+          (sum: number, r: any) => sum + (parseInt(r.metricValues?.[0]?.value || '0', 10)),
+          0
+        );
+        if (rtData.rows[0]?.dimensionValues?.[0]?.value) {
+          realtimeCountry = rtData.rows[0].dimensionValues[0].value;
+        }
+      }
+    }
+  } catch (rtErr) {
+    console.warn('[GA4 Realtime API] Notice:', rtErr);
+  }
+
   return {
     success: true,
     activeUsers,
@@ -153,6 +188,8 @@ export async function fetchGa4LiveMetrics(
     conversions,
     eventCount,
     totalRevenue,
+    realtimeUsers,
+    realtimeCountry,
     propertyId: cleanPropertyId,
     clientEmail: saEmail,
     rawResponse: reportData,

@@ -60,6 +60,8 @@ export default function Home() {
     totalRevenue?: number;
     screenPageViews?: number;
     eventCount?: number;
+    realtimeUsers?: number;
+    realtimeCountry?: string;
   } | null>(null);
 
   // Load persisted authentication state from localStorage

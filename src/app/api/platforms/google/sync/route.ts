@@ -31,6 +31,8 @@ export async function GET() {
             eventCount: live.eventCount,
             totalRevenue: live.totalRevenue,
             screenPageViews: live.screenPageViews,
+            realtimeUsers: live.realtimeUsers ?? 0,
+            realtimeCountry: live.realtimeCountry || 'Bangladesh',
           };
           isLive = true;
         }
@@ -109,6 +111,8 @@ export async function POST(req: NextRequest) {
       eventCount: ga4MetricsData.eventCount,
       totalRevenue: ga4MetricsData.totalRevenue,
       screenPageViews: ga4MetricsData.screenPageViews,
+      realtimeUsers: ga4MetricsData.realtimeUsers ?? 0,
+      realtimeCountry: ga4MetricsData.realtimeCountry || 'Bangladesh',
     } : null;
 
     // GA4 standalone property or Service Account validation

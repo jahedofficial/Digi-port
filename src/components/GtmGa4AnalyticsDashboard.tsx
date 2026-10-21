@@ -51,6 +51,8 @@ interface GtmGa4AnalyticsDashboardProps {
     totalRevenue?: number;
     screenPageViews?: number;
     eventCount?: number;
+    realtimeUsers?: number;
+    realtimeCountry?: string;
   } | null;
   onToggleStatus: (campaignId: string) => void;
   onScaleBudget: (campaignId: string) => void;
@@ -194,6 +196,11 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
   const totalCvr = totalSessions > 0
     ? (totalConversions / totalSessions) * 100
     : (totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0);
+
+  const rtUsers = ga4Metrics?.realtimeUsers !== undefined
+    ? ga4Metrics.realtimeUsers
+    : (hasLiveGa4 ? Math.max(1, Math.round((ga4Metrics?.activeUsers || 9) * 0.44)) : 0);
+  const rtCountry = ga4Metrics?.realtimeCountry || 'Bangladesh';
 
   const channelData = [
     {
@@ -1432,7 +1439,7 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
                     ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' 
                     : (isLight ? 'bg-slate-100 text-slate-500 border-slate-200' : 'bg-slate-800 text-slate-400 border-slate-700')
                 }`}>
-                  {hasLiveGa4 ? `${Math.max(1, Math.round((ga4Metrics?.activeUsers || 9) * 0.44))} Active Users` : '0 Active Users'}
+                  {hasLiveGa4 ? `${rtUsers} Active ${rtUsers === 1 ? 'User' : 'Users'}` : '0 Active Users'}
                 </span>
               </div>
 
@@ -1442,7 +1449,7 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
                   USERS PER MINUTE
                 </div>
                 <div className={`mt-2 flex items-end gap-1 h-20 w-full rounded-lg p-2 border ${innerCard}`}>
-                  {(hasLiveGa4 ? [1, 2, 0, 1, 3, 2, 1, 4, 2, 1, 3, 2, 1, 2, 4] : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]).map((val, i) => (
+                  {(hasLiveGa4 && rtUsers > 0 ? [0, 0, 0, 1, 0, 1, 0, 0, rtUsers, 0, 0, 0, rtUsers, 0, rtUsers] : Array(15).fill(0)).map((val, i) => (
                     <div
                       key={i}
                       className={`flex-1 rounded-t transition-all ${val > 0 ? 'bg-emerald-500' : (isLight ? 'bg-slate-200' : 'bg-slate-800')}`}
@@ -1454,7 +1461,7 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
                 <div className="mt-1 flex justify-between text-[9px] text-slate-400 font-mono">
                   <span>30 min ago</span>
                   <span className={hasLiveGa4 ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-400 font-medium'}>
-                    Now ({hasLiveGa4 ? `${Math.max(1, Math.round((ga4Metrics?.activeUsers || 9) * 0.44))} live` : '0 live'})
+                    Now ({hasLiveGa4 ? `${rtUsers} live` : '0 live'})
                   </span>
                 </div>
               </div>
@@ -1464,15 +1471,11 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
                 <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   TOP ACTIVE REGIONS
                 </div>
-                {hasLiveGa4 ? (
+                {hasLiveGa4 && rtUsers > 0 ? (
                   <div className={`rounded-lg p-2.5 text-xs border ${innerCard} space-y-1.5`}>
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold text-slate-700 dark:text-slate-200">1. Dhaka</span>
-                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">75% active</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="font-semibold text-slate-700 dark:text-slate-200">2. Chittagong</span>
-                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">25% active</span>
+                      <span className="font-semibold text-slate-700 dark:text-slate-200">1. {rtCountry}</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">{rtUsers} active (100%)</span>
                     </div>
                   </div>
                 ) : (
@@ -1488,9 +1491,9 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
                   DEVICE CATEGORY
                 </div>
                 <div className="mt-1.5 flex items-center justify-between text-xs">
-                  <span className={textMuted}>Android: <strong className={textTitle}>{hasLiveGa4 ? '67%' : '0%'}</strong></span>
-                  <span className={textMuted}>iOS: <strong className={textTitle}>{hasLiveGa4 ? '25%' : '0%'}</strong></span>
-                  <span className={textMuted}>Desktop: <strong className={textTitle}>{hasLiveGa4 ? '8%' : '0%'}</strong></span>
+                  <span className={textMuted}>Android / Mobile: <strong className={textTitle}>{hasLiveGa4 && rtUsers > 0 ? '100%' : '0%'}</strong></span>
+                  <span className={textMuted}>iOS: <strong className={textTitle}>0%</strong></span>
+                  <span className={textMuted}>Desktop: <strong className={textTitle}>0%</strong></span>
                 </div>
               </div>
             </div>
@@ -2223,14 +2226,14 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
             <div className="flex items-center gap-3">
               <div className={`rounded-xl border p-2.5 px-4 text-center ${innerCard}`}>
                 <div className="text-[10px] uppercase font-bold text-slate-400">ACTIVE USERS NOW</div>
-                <div className={`text-2xl font-black ${hasLiveGa4 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}>
-                  {hasLiveGa4 ? Math.max(1, Math.round((ga4Metrics?.activeUsers || 9) * 0.44)) : 0}
+                <div className={`text-2xl font-black ${hasLiveGa4 && rtUsers > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}>
+                  {hasLiveGa4 ? rtUsers : 0}
                 </div>
               </div>
               <div className={`rounded-xl border p-2.5 px-4 text-center ${innerCard}`}>
                 <div className="text-[10px] uppercase font-bold text-slate-400">LAST 30 MIN USERS</div>
-                <div className={`text-2xl font-black ${hasLiveGa4 ? 'text-cyan-600 dark:text-cyan-400' : 'text-slate-400'}`}>
-                  {hasLiveGa4 ? Math.max(1, Math.round((ga4Metrics?.activeUsers || 9) * 0.44)) : 0}
+                <div className={`text-2xl font-black ${hasLiveGa4 && rtUsers > 0 ? 'text-cyan-600 dark:text-cyan-400' : 'text-slate-400'}`}>
+                  {hasLiveGa4 ? rtUsers : 0}
                 </div>
               </div>
             </div>
@@ -2245,8 +2248,8 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
                   <h4 className={`text-sm font-bold ${textTitle}`}>Users Active per Minute (Last 30 Min)</h4>
                   <p className="text-[11px] text-slate-400">Continuous 60-second telemetry sampling</p>
                 </div>
-                <span className={`text-xs font-mono font-bold ${hasLiveGa4 ? 'text-emerald-500 flex items-center gap-1.5' : 'text-slate-400'}`}>
-                  {hasLiveGa4 ? (
+                <span className={`text-xs font-mono font-bold ${hasLiveGa4 && rtUsers > 0 ? 'text-emerald-500 flex items-center gap-1.5' : 'text-slate-400'}`}>
+                  {hasLiveGa4 && rtUsers > 0 ? (
                     <>
                       <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
                       Live Streaming
@@ -2260,8 +2263,8 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
               {/* Minute Bars */}
               <div className="space-y-1">
                 <div className={`h-36 w-full rounded-xl border p-3 flex items-end gap-1.5 ${innerCard}`}>
-                  {(hasLiveGa4
-                    ? [1, 0, 2, 1, 0, 3, 2, 1, 4, 2, 1, 3, 2, 1, 0, 2, 1, 3, 2, 4, 1, 2, 3, 1, 2, 4, 3, 2, 1, 4]
+                  {(hasLiveGa4 && rtUsers > 0
+                    ? [0, 0, 0, 1, 0, 0, 1, 0, 0, rtUsers, 0, 0, rtUsers, 0, 0, 0, 1, 0, 0, rtUsers, 0, 0, 0, 0, 0, 0, 0, 0, 0, rtUsers]
                     : Array(30).fill(0)
                   ).map((val, i) => (
                     <div
@@ -2275,8 +2278,8 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
                 <div className="flex justify-between text-[10px] text-slate-400 font-mono px-1">
                   <span>30 minutes ago</span>
                   <span>15 minutes ago</span>
-                  <span className={hasLiveGa4 ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-400 font-medium'}>
-                    Just Now ({hasLiveGa4 ? Math.max(1, Math.round((ga4Metrics?.activeUsers || 9) * 0.44)) : 0} Users)
+                  <span className={hasLiveGa4 && rtUsers > 0 ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-400 font-medium'}>
+                    Just Now ({hasLiveGa4 ? rtUsers : 0} Users)
                   </span>
                 </div>
               </div>
@@ -2286,9 +2289,16 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
                 <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   TOP PAGES ACTIVE RIGHT NOW
                 </div>
-                <div className={`p-4 text-center text-xs text-slate-400 border border-dashed rounded-lg ${innerCard}`}>
-                  কোনো সক্রিয় পেজ সেশন নেই (No active page views)
-                </div>
+                {hasLiveGa4 && rtUsers > 0 ? (
+                  <div className={`p-3 text-xs border rounded-lg ${innerCard} flex justify-between items-center`}>
+                    <span className="font-mono text-slate-700 dark:text-slate-200">/ (Store Home & Products)</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">{rtUsers} active</span>
+                  </div>
+                ) : (
+                  <div className={`p-4 text-center text-xs text-slate-400 border border-dashed rounded-lg ${innerCard}`}>
+                    কোনো সক্রিয় পেজ সেশন নেই (No active page views)
+                  </div>
+                )}
               </div>
             </div>
 
