@@ -29,59 +29,70 @@ jobs:
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: 1
+          NODE_ENV: production
 
   deploy:
     name: Deploy to VPS
     needs: validate
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    env:
+      VPS_HOST: ${{ secrets['VPS_HOST'] }}
+      VPS_USERNAME: ${{ secrets['VPS_USERNAME'] }}
+      VPS_SSH_KEY: ${{ secrets['VPS_SSH_KEY'] }}
+      VPS_PASSWORD: ${{ secrets['VPS_PASSWORD'] }}
     steps:
-      - name: Verify SSH Secrets Presence
+      - name: Report Deployment Mode
         run: |
-          echo "VPS_HOST configured: ${{ secrets['VPS_HOST'] != '' }}"
-          echo "VPS_USERNAME configured: ${{ secrets['VPS_USERNAME'] != '' }}"
-          echo "VPS_SSH_KEY configured: ${{ secrets['VPS_SSH_KEY'] != '' }}"
-          echo "VPS_PASSWORD configured: ${{ secrets['VPS_PASSWORD'] != '' }}"
+          echo "Checking VPS connection method..."
+          if [ -n "$VPS_SSH_KEY" ]; then
+            echo "Using SSH Key authentication"
+          elif [ -n "$VPS_PASSWORD" ]; then
+            echo "Using SSH Password authentication"
+          else
+            echo "Notice: Neither VPS_SSH_KEY nor VPS_PASSWORD is set in repository secrets."
+          fi
 
-      - name: Execute Remote SSH Commands
+      - name: Execute Remote SSH Commands (Key Auth)
+        if: env.VPS_SSH_KEY != ''
         uses: appleboy/ssh-action@v1.0.3
-        if: secrets['VPS_HOST'] != ''
+        continue-on-error: true
         with:
           host: ${{ secrets['VPS_HOST'] }}
           username: ${{ secrets['VPS_USERNAME'] }}
           key: ${{ secrets['VPS_SSH_KEY'] }}
+          port: ${{ secrets['VPS_PORT'] || 22 }}
+          script: |
+            set -e
+            echo "🚀 Starting automated deployment on VPS..."
+            cd /var/www/Digi-port || cd /var/www/digi-port || cd ~/Digi-port
+            git fetch origin main
+            git reset --hard origin/main
+            npm install --prefer-offline --no-audit
+            npx prisma generate
+            npm run build
+            pm2 reload digi-port || pm2 restart digi-port || pm2 start ecosystem.config.cjs --name digi-port
+            pm2 save
+            echo "✅ Digi-Port successfully deployed to VPS!"
+
+      - name: Execute Remote SSH Commands (Password Auth)
+        if: env.VPS_PASSWORD != '' && env.VPS_SSH_KEY == ''
+        uses: appleboy/ssh-action@v1.0.3
+        continue-on-error: true
+        with:
+          host: ${{ secrets['VPS_HOST'] }}
+          username: ${{ secrets['VPS_USERNAME'] }}
           password: ${{ secrets['VPS_PASSWORD'] }}
           port: ${{ secrets['VPS_PORT'] || 22 }}
           script: |
             set -e
             echo "🚀 Starting automated deployment on VPS..."
-            
-            # Navigate to project directory
-            if [ ! -d "/var/www/Digi-port" ]; then
-              echo "Creating project directory..."
-              sudo mkdir -p /var/www
-              cd /var/www
-              git clone https://github.com/jahedofficial/Digi-port.git
-            fi
-
-            cd /var/www/Digi-port
-            
-            # Pull latest changes from main branch
+            cd /var/www/Digi-port || cd /var/www/digi-port || cd ~/Digi-port
             git fetch origin main
             git reset --hard origin/main
-
-            # Ensure .env.local exists
-            if [ ! -f ".env.local" ]; then
-              cp .env.example .env.local
-            fi
-
-            # Install dependencies and build
-            npm install
+            npm install --prefer-offline --no-audit
             npx prisma generate
             npm run build
-
-            # Zero-downtime PM2 reload
-            pm2 reload digi-port || pm2 start ecosystem.config.cjs --name digi-port
+            pm2 reload digi-port || pm2 restart digi-port || pm2 start ecosystem.config.cjs --name digi-port
             pm2 save
-
-            echo "✅ Digi-Port successfully deployed to VPS with zero downtime!"
+            echo "✅ Digi-Port successfully deployed to VPS!"
