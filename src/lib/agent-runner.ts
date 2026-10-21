@@ -284,22 +284,37 @@ export function processAgentCommand(
     };
   }
 
-  // 6. Heartbeat & Automated Periodic Check: "heartbeat", "হার্টবিট", "প্রতি ৩০ মিনিট", "প্রতি ১ ঘণ্টা", "auto check"
-  if (
+  // 6. Dynamic Heartbeat & Periodic Check (e.g. "5hr", "2 ঘণ্টা", "15 min", "প্রতি ৩ ঘণ্টা")
+  const isHeartbeatIntent = 
     query.includes('heartbeat') ||
     query.includes('হার্টবিট') ||
-    query.includes('প্রতি ৩০ মিনিট') ||
-    query.includes('প্রতি 30 মিনিট') ||
-    query.includes('প্রতি ১ ঘণ্টা') ||
-    query.includes('প্রতি 1 ঘণ্টা') ||
     query.includes('auto check') ||
-    query.includes('অটো চেক')
-  ) {
+    query.includes('অটো চেক') ||
+    query.includes('নিয়মিত চেক') ||
+    /(?:প্রতি|পর\s*পর|\bevery\b).*(?:hr|hour|ঘণ্টা|ঘন্টা|min|মিনিট)/i.test(query);
+
+  if (isHeartbeatIntent) {
     let interval = '৩০ মিনিট';
-    if (query.includes('১ ঘণ্টা') || query.includes('1 hour') || query.includes('1 ঘন্টা')) {
-      interval = '১ ঘণ্টা';
-    } else if (query.includes('১৫ মিনিট') || query.includes('15 min')) {
-      interval = '১৫ মিনিট';
+
+    // Helper to normalize Bengali digits to English
+    const normalizeDigits = (str: string) => {
+      const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+      return str.replace(/[০-৯]/g, (d) => bnDigits.indexOf(d).toString());
+    };
+
+    const cleanQ = normalizeDigits(query);
+
+    // Dynamic match for Hours: e.g. "5hr", "5 hours", "5 ঘণ্টা", "2.5 hrs"
+    const hourMatch = cleanQ.match(/(\d+(?:\.\d+)?)\s*(?:hr|hrs|hours?|h|ঘণ্টা|ঘন্টা)/i);
+    // Dynamic match for Minutes: e.g. "30min", "45 mins", "15 মিনিট"
+    const minMatch = cleanQ.match(/(\d+)\s*(?:min|mins|minutes?|m|মিনিট)/i);
+
+    if (hourMatch) {
+      const h = hourMatch[1];
+      interval = `${h} ঘণ্টা`;
+    } else if (minMatch) {
+      const m = minMatch[1];
+      interval = `${m} মিনিট`;
     }
 
     return {
