@@ -72,7 +72,7 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
   const defaultWelcomeMessage: ChatMessage = {
     id: 'welcome-msg',
     sender: 'AI',
-    text: `Hey Jahed! Ki obostha? Currently monitoring **${clientName}** (${currency}). Any ads to check, scale or optimize today?`,
+    text: `Hey Boss! Ki obostha? Currently monitoring **${clientName}** (${currency}). Any ads to check, scale or optimize today?`,
     timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
   };
 
@@ -158,7 +158,7 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
       {
         id: `welcome-${Date.now()}`,
         sender: 'AI',
-        text: `Hey Jahed! Ki obostha? Currently monitoring **${clientName}** (${currency}). Any ads to check, scale or optimize today?`,
+        text: `Hey Boss! Ki obostha? Currently monitoring **${clientName}** (${currency}). Any ads to check, scale or optimize today?`,
         timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
       },
     ]);

@@ -454,7 +454,7 @@ export function processAgentCommand(
 
   // Default response
   return {
-    reply: `আমি কমান্ডটি গ্রহণ করেছি: "${rawCommand}"।\n\nবর্তমান ফোকাস: **${clientTitle}**।\nআমি Google Ads, Meta Ads এবং TikTok Ads-এর ডাটা অ্যানালাইসিস করতে পারি। আপনি আমাকে রিপোর্ট বানাতে, সব ক্লায়েন্টের ওভারভিউ দেখতে ("সব ক্লায়েন্ট"), ফ্যাটিগ ক্রিয়েটিভ খুঁজতে, বা বাজেট অপ্টিমাইজ করতে বলতে পারেন।`,
+    reply: `জি বস! আমি নির্দেশ পেয়েছি: "${rawCommand}"।\n\nবর্তমান ফোকাস: **${clientTitle}**।\nবস, আমি Google Ads, Meta Ads এবং TikTok Ads-এর লাইভ ক্যাম্পেইন অপ্টিমাইজ করতে প্রস্তুত। আপনি আমাকে রিপোর্ট বানাতে, সব ক্লায়েন্টের ওভারভিউ দেখতে ("সব ক্লায়েন্ট"), ফ্যাটিগ ক্রিয়েটিভ খুঁজতে বা বাজেট স্কেল করতে নির্দেশ দিতে পারেন।`,
     toolUsed: 'get_metrics',
     toolType: 'READ',
     requiresApproval: false,
