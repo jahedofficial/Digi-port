@@ -654,6 +654,17 @@ export const AiGrowthCopilotView: React.FC<AiGrowthCopilotViewProps> = ({
           </button>
           <button
             type="button"
+            onClick={() => setInput('প্রতি ৩০ মিনিট পর পর হার্টবিট চেক করবা')}
+            className={`text-[11px] px-2.5 py-1 rounded-full border whitespace-nowrap transition-colors cursor-pointer shrink-0 font-medium ${
+              isLight
+                ? 'bg-rose-50/70 border-rose-200 text-rose-700 hover:bg-rose-100 hover:border-rose-300'
+                : 'bg-rose-950/30 border-rose-800 text-rose-300 hover:bg-rose-900/50 hover:border-rose-700'
+            }`}
+          >
+            💓 ৩০ মি. হার্টবিট চেক
+          </button>
+          <button
+            type="button"
             onClick={() => setInput('নতুন অ্যাড আইডিয়া দাও')}
             className={`text-[11px] px-2.5 py-1 rounded-full border whitespace-nowrap transition-colors cursor-pointer shrink-0 font-medium ${
               isLight

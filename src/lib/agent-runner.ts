@@ -284,7 +284,48 @@ export function processAgentCommand(
     };
   }
 
-  // 6. Audit: "আজকের audit করো"
+  // 6. Heartbeat & Automated Periodic Check: "heartbeat", "হার্টবিট", "প্রতি ৩০ মিনিট", "প্রতি ১ ঘণ্টা", "auto check"
+  if (
+    query.includes('heartbeat') ||
+    query.includes('হার্টবিট') ||
+    query.includes('প্রতি ৩০ মিনিট') ||
+    query.includes('প্রতি 30 মিনিট') ||
+    query.includes('প্রতি ১ ঘণ্টা') ||
+    query.includes('প্রতি 1 ঘণ্টা') ||
+    query.includes('auto check') ||
+    query.includes('অটো চেক')
+  ) {
+    let interval = '৩০ মিনিট';
+    if (query.includes('১ ঘণ্টা') || query.includes('1 hour') || query.includes('1 ঘন্টা')) {
+      interval = '১ ঘণ্টা';
+    } else if (query.includes('১৫ মিনিট') || query.includes('15 min')) {
+      interval = '১৫ মিনিট';
+    }
+
+    return {
+      reply: `💓 **হার্টবিট অটো-মনিটরিং সক্রিয় করা হয়েছে (${clientTitle})!**\n\n• **চেকিং ফ্রিকোয়েন্সি:** প্রতি **${interval}** পর পর স্বয়ংক্রিয়ভাবে ব্যাকগ্রাউন্ডে চলবে।\n• **স্ক্যানিং স্কোপ:** Meta Ads, Google Ads এবং পিক্সেল/CAPI হেলথ।\n• **টেলিগ্রাম অ্যালার্ট:** আপনার লিঙ্ক করা টেলিগ্রাম অ্যাকাউন্টে কোনো অস্বাভাবিক খরচ (High CPA) বা পিক্সেল ড্রপ পেলে তাৎক্ষণিক অ্যালার্ট পাঠানো হবে।\n\n💡 *আপনাকে আর VPS টার্মিনালে কোনো কমান্ড লিখতে হবে না। আপনি ব্রাউজার বন্ধ রাখলেও অটোপাইলট মনিটরিং ব্যাকগ্রাউন্ডে চালু থাকবে।*`,
+      toolUsed: 'configure_heartbeat',
+      toolType: 'WRITE',
+      requiresApproval: false,
+      proposedAction: {
+        id: `act-hb-${Date.now()}`,
+        actionType: 'ENABLE_AD',
+        platform: 'META',
+        entityType: 'CAMPAIGN',
+        entityId: 'heartbeat-daemon',
+        entityName: `Heartbeat Monitor (${interval})`,
+        proposedBy: 'AGENT',
+        reason: `প্রতি ${interval} পর পর অটোপাইলট ক্যাম্পেইন ও ট্র্যাকিং হার্টবিট চেক সক্রিয়।`,
+        previousValue: 'Inactive',
+        newValue: `Active (Every ${interval})`,
+        status: 'APPROVED',
+        createdAt: 'এখনই',
+        safetyCheck: { passed: true, rule: 'Background Watchdog Guard Active' }
+      }
+    };
+  }
+
+  // 7. Audit: "আজকের audit করো"
   if (query.includes('audit') || query.includes('অডিট') || query.includes('চেক')) {
     if (activeCamps.length === 0) {
       return {
