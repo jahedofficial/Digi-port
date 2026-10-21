@@ -1,0 +1,20 @@
+{
+  "id": "tpl_cro_audit",
+  "title": "Conversion Rate Optimization & Landing Page Friction Audit",
+  "reportType": "CRO_AUDIT",
+  "version": "1.0.0",
+  "platform": "CROSS_PLATFORM",
+  "sections": {
+    "executiveSummary": "Post-click conversion funnel audit analyzing landing page speed, UX, and form completion rates.",
+    "overallScore": "CRO Index (0-100) combining Mobile Core Web Vitals, checkout step drop-off, and conversion friction.",
+    "findings": "Landing page performance benchmarks, mobile responsiveness, and CTA visual salience analysis.",
+    "issues": "Identified high bounce rates (>65%), slow Largest Contentful Paint (LCP > 2.5s), and checkout friction.",
+    "recommendations": "Technical and UX optimizations to accelerate page load and simplify conversion actions.",
+    "priorityMatrix": "Development effort vs revenue uplift prioritization matrix.",
+    "actionPlan": "A/B testing roadmap for headline copy, form field reductions, and mobile speed optimizations.",
+    "supportingEvidence": "PageSpeed Insights scores, Core Web Vitals metrics (LCP, FID, CLS), and funnel step drop-off data.",
+    "appendix": "Tested destination URLs, device breakdowns, and browser compatibility notes."
+  },
+  "requiredMetrics": ["bounceRate", "conversionRate", "lcpSeconds", "clsScore", "mobileSpeedScore"],
+  "scoringDimensions": ["mobileSpeed", "coreWebVitals", "funnelFrictionIndex"]
+}

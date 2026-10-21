@@ -1,0 +1,20 @@
+{
+  "id": "tpl_meta_ads_audit",
+  "title": "Meta Ads & Advantage+ Health Audit Report",
+  "reportType": "META_ADS_AUDIT",
+  "version": "1.0.0",
+  "platform": "META",
+  "sections": {
+    "executiveSummary": "Executive overview of Meta Graph API ad accounts, Advantage+ Shopping efficiency, and creative fatigue.",
+    "overallScore": "Deterministic performance score (0-100) combining blended ROAS, frequency saturation, and CAPI health.",
+    "findings": "Audited account structure, CBO/ABO allocation, Advantage+ creative performance, and audience fragmentation.",
+    "issues": "Identified auction overlap, creative fatigue (frequency > 3.5), and degraded Event Match Quality.",
+    "recommendations": "Actionable proposals for budget consolidation, creative rotation, and CAPI deduplication fixes.",
+    "priorityMatrix": "Urgency classification matrix from immediate waste reduction to creative expansion.",
+    "actionPlan": "Detailed execution steps for campaign scaling and underperforming ad set pauses.",
+    "supportingEvidence": "Meta Insights metric tables, frequency distributions, and Event Quality Match metrics.",
+    "appendix": "Meta attribution settings (7-day click / 1-day view), Pixel ID list, and catalog connection status."
+  },
+  "requiredMetrics": ["spend", "impressions", "clicks", "conversions", "conversionValue", "roas", "frequency"],
+  "scoringDimensions": ["roasHealth", "cpaEfficiency", "creativeFreshness", "trackingQuality"]
+}

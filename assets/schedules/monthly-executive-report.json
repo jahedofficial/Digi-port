@@ -1,0 +1,16 @@
+{
+  "id": "sched_monthly_executive_report",
+  "name": "Monthly Board-Level Executive Growth & Performance Brief",
+  "description": "Monthly executive summary report summarizing blended ROAS, marketing efficiency ratio (MER), and quarterly budget reallocations.",
+  "clientId": "*",
+  "type": "CRON",
+  "cronExpression": "0 0 1 * *",
+  "targetWorkflowId": "workflow-full-audit-pipeline",
+  "targetOperation": "REPORT",
+  "parameters": {
+    "reportType": "EXECUTIVE_REPORT",
+    "exportDocx": true,
+    "exportPdf": true
+  },
+  "status": "ACTIVE"
+}

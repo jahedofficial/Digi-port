@@ -20,8 +20,8 @@ export async function sendTelegramNotification(payload: TelegramAlertPayload | s
   }
 
   const dbConfig = await getTelegramAlertsConfig();
-  const botToken = customToken || dbConfig.botToken || process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = customChatId || dbConfig.chatId || process.env.TELEGRAM_CHAT_ID;
+  const botToken = customToken || dbConfig.botToken || process.env.TELEGRAM_BOT_TOKEN || '8202907344:AAGzue1FYgVe06zA4j6qxVLhEQ5IbZc2h8g';
+  const chatId = customChatId || dbConfig.chatId || process.env.TELEGRAM_CHAT_ID || '6540687043';
 
   if (!botToken || !chatId) {
     console.log('[TELEGRAM] Token or Chat ID missing in database or .env.local');
@@ -49,7 +49,7 @@ export async function sendTelegramNotification(payload: TelegramAlertPayload | s
   }
 
   try {
-    const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+    let res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -60,12 +60,30 @@ export async function sendTelegramNotification(payload: TelegramAlertPayload | s
       }),
     });
 
-    const data = await res.json();
+    let data = await res.json();
     if (data.ok) {
       return { success: true };
-    } else {
-      return { success: false, error: data.description || 'Telegram API Error' };
     }
+
+    // If HTML parsing failed due to tags, retry as plain text
+    if (data.description?.includes('can\'t parse entities')) {
+      const plainRes = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: formattedText.replace(/<[^>]*>?/gm, ''),
+          disable_web_page_preview: true,
+        }),
+      });
+      const plainData = await plainRes.json();
+      if (plainData.ok) {
+        return { success: true };
+      }
+      return { success: false, error: plainData.description || 'Telegram API Error' };
+    }
+
+    return { success: false, error: data.description || 'Telegram API Error' };
   } catch (err: unknown) {
     return {
       success: false,

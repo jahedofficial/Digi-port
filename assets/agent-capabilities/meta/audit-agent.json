@@ -1,0 +1,22 @@
+{
+  "id": "cap_audit_agent_meta",
+  "agentName": "AuditSpecialistAgent",
+  "supportedPlatforms": ["META"],
+  "supportedCampaignTypes": {
+    "META": ["ADVANTAGE_PLUS_SHOPPING", "CONVERSIONS"]
+  },
+  "supportedObjectives": {
+    "META": ["OUTCOME_SALES", "OUTCOME_LEADS"]
+  },
+  "supportedOperations": ["AUDIT", "AUDIT_ROAS_EFFICIENCY", "DETECT_CREATIVE_FATIGUE"],
+  "supportedServices": ["MetaGraphApiService", "MetaConversionsApiService"],
+  "supportedAssetTypes": ["IMAGE_1X1", "VIDEO_4X5"],
+  "supportedExtensions": [],
+  "supportedBiddingStrategies": ["LOWEST_COST", "COST_CAP"],
+  "requiredInputs": ["clientId", "dateRange"],
+  "expectedOutputs": ["healthScore", "fatiguedCreatives", "summaryBangla", "summaryEnglish"],
+  "requiredApprovals": false,
+  "validationRules": ["Valid Meta Ad Account ID required"],
+  "failureConditions": ["META_API_RATE_LIMIT"],
+  "recoveryStrategy": "Throttle requests if Graph API rate limit is reached."
+}

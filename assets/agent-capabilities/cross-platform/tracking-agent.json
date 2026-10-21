@@ -1,0 +1,56 @@
+{
+  "id": "cap_tracking_agent_cross_platform",
+  "agentName": "TrackingSpecialistAgent",
+  "supportedPlatforms": ["GOOGLE", "META", "TIKTOK"],
+  "supportedCampaignTypes": {
+    "GOOGLE": ["SEARCH", "PERFORMANCE_MAX"],
+    "META": ["CONVERSIONS", "ADVANTAGE_PLUS_SHOPPING"],
+    "TIKTOK": ["WEB_CONVERSIONS"]
+  },
+  "supportedObjectives": {
+    "GOOGLE": ["SALES", "LEADS"],
+    "META": ["OUTCOME_SALES", "OUTCOME_LEADS"],
+    "TIKTOK": ["CONVERSIONS"]
+  },
+  "supportedOperations": [
+    "VERIFY_TRACKING",
+    "AUDIT_PIXEL",
+    "AUDIT_CAPI",
+    "VERIFY_DEDUPLICATION"
+  ],
+  "supportedServices": [
+    "GoogleTagManagerService",
+    "MetaConversionsApiService",
+    "TikTokEventsApiService"
+  ],
+  "supportedAssetTypes": [
+    "PIXEL_ID",
+    "EVENT_SOURCE_ID",
+    "CONVERSION_ACTION_ID"
+  ],
+  "supportedExtensions": [],
+  "supportedBiddingStrategies": [],
+  "requiredInputs": [
+    "clientId",
+    "targetPlatform",
+    "trackingIdentifier"
+  ],
+  "expectedOutputs": [
+    "trackingHealthStatus",
+    "eventMatchQualityScore",
+    "deduplicationRatio",
+    "summaryBangla",
+    "summaryEnglish"
+  ],
+  "requiredApprovals": false,
+  "validationRules": [
+    "Tracking verification audits server and client event streams only; does not log PII",
+    "CAPI event ID must match client-side browser event ID for deduplication"
+  ],
+  "failureConditions": [
+    "PIXEL_NOT_FOUND",
+    "CAPI_TOKEN_EXPIRED",
+    "ZERO_EVENTS_RECORDED_LAST_24H"
+  ],
+  "recoveryStrategy": "Trigger diagnostic ping against platform test endpoint; return actionable troubleshooting guide if CAPI stream is offline."
+}

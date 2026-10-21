@@ -1,0 +1,109 @@
+{
+  "id": "template-education-admissions",
+  "name": "Higher Education, Online Courses & Bootcamps",
+  "industry": "education",
+  "version": "1.0.0",
+  "businessGoals": [
+    "Drive Student Enrollments and Course Applications for Upcoming Cohorts",
+    "Generate Qualified Prospectus / Syllabus Downloads",
+    "Nurture Prospective Students through Information Sessions and Webinars"
+  ],
+  "campaignStructure": {
+    "funnelStages": ["Curriculum Awareness", "Alumni Success Stories", "Application Deadline Push"],
+    "namingConvention": "EDU_[PROGRAM]_[COHORT]_[CHANNEL]_[FORMAT]"
+  },
+  "recommendedCampaignTypes": {
+    "google": ["Search Course Specific Keywords", "YouTube TrueView Video Ads", "Discovery"],
+    "meta": ["Lead Generation Forms", "Video Storytelling", "Retargeting Downloaders"],
+    "tiktok": ["Day-in-the-Life Campus Videos", "Spark Ads Student Reviews"]
+  },
+  "budgetStrategy": {
+    "google": "Maximize Conversions with Budget Surge 30 days before Cohort Deadline",
+    "meta": "CBO with Course-Specific Ad Sets",
+    "tiktok": "Accelerated Delivery during Final Application Week"
+  },
+  "biddingStrategy": {
+    "google": "Target CPA on Application Submission",
+    "meta": "Highest Volume Lead Generation with Quality Filter",
+    "tiktok": "Lowest Cost per Form Completion"
+  },
+  "conversionGoals": [
+    "Course Application Submitted",
+    "Brochure / Syllabus Downloaded",
+    "Attended Open House / Webinar"
+  ],
+  "trackingRequirements": [
+    "GA4 application_submission conversion event",
+    "Meta Conversions API with hashed student email",
+    "Google Ads Enhanced Conversions for Admissions",
+    "TikTok Events API Complete Registration event"
+  ],
+  "assetRequirements": {
+    "formats": ["Student Testimonial Videos", "Curriculum Infographics", "Faculty Spotlights"],
+    "aspectRatios": ["1:1", "9:16", "16:9"],
+    "maxVideoDurationSeconds": 60,
+    "headlineCharacterLimit": 30
+  },
+  "namingConventions": {
+    "campaignPattern": "EDU_{PLATFORM}_{COURSE}_{SEMESTER}_{VERSION}",
+    "adGroupPattern": "AG_{ACADEMIC_INTEREST}_{GEO}",
+    "adPattern": "AD_{VALUE_PROP}_{CALL_TO_ACTION}"
+  },
+  "kpiTargets": {
+    "targetCPA": 65.0,
+    "applicationCompletionRate": 18.0,
+    "targetCTR": 2.4
+  },
+  "reportingMetrics": [
+    "Spend",
+    "Impressions",
+    "Clicks",
+    "Leads",
+    "ApplicationsSubmitted",
+    "CostPerApplication",
+    "EnrollmentRate"
+  ],
+  "bestPractices": [
+    "Prominently highlight accreditation, job placement rates, and career outcomes",
+    "Incorporate countdown timers as application deadlines approach",
+    "Segment messaging between working professionals and recent graduates"
+  ],
+  "platformMix": {
+    "recommendedRoles": {
+      "google": "Capturing high-intent career transitioners searching for degree/certifications",
+      "meta": "Alumni stories, downloadable syllabus lead forms, and webinar registrations",
+      "tiktok": "Relatable student lifestyle, career transformation before/afters, and faculty hooks"
+    },
+    "budgetSplitRanges": {
+      "google": { "minPercent": 35, "maxPercent": 55, "defaultPercent": 45 },
+      "meta": { "minPercent": 30, "maxPercent": 50, "defaultPercent": 40 },
+      "tiktok": { "minPercent": 10, "maxPercent": 25, "defaultPercent": 15 }
+    },
+    "perPlatformCampaignTypes": {
+      "google": ["Search", "YouTube Video"],
+      "meta": ["Lead Generation", "Conversions"],
+      "tiktok": ["Lead Generation", "Video Views"]
+    },
+    "perPlatformObjectives": {
+      "google": "LEAD_GENERATION",
+      "meta": "OUTCOME_LEADS",
+      "tiktok": "LEAD_GENERATION"
+    },
+    "perPlatformOptimizationEvents": {
+      "google": "SUBMIT_LEAD_FORM",
+      "meta": "LEAD",
+      "tiktok": "SUBMIT_FORM"
+    },
+    "perPlatformCreativeRequirements": {
+      "google": { "formats": ["TEXT", "VIDEO"], "aspectRatios": ["16:9", "1:1"] },
+      "meta": { "formats": ["IMAGE", "VIDEO"], "aspectRatios": ["1:1", "9:16"] },
+      "tiktok": { "formats": ["VIDEO"], "aspectRatios": ["9:16"], "maxDurationSeconds": 60 }
+    },
+    "policyConstraints": {
+      "specialAdCategory": "NONE",
+      "google": ["Accreditation disclosure required", "No guaranteed salary claims without verified source"],
+      "meta": ["Clear tuition and financial aid disclosures; no deceptive job guarantees"],
+      "tiktok": ["Authentic student representations, clear terms for scholarships"]
+    }
+  }
+}

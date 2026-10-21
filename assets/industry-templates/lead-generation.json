@@ -1,0 +1,110 @@
+{
+  "id": "template-lead-generation",
+  "name": "High-Intent Lead Generation & Professional Services",
+  "industry": "lead-generation",
+  "version": "1.0.0",
+  "businessGoals": [
+    "Capture High-Intent Inbound Consultation & Quote Requests",
+    "Qualify Leads at Sub-$35 Cost Per Qualified Lead (CPQL)",
+    "Shorten Sales Pipeline Cycle Time via Instant Response Automation"
+  ],
+  "campaignStructure": {
+    "funnelStages": ["Direct Search Capture", "Meta Instant Forms", "Retargeting Case Studies"],
+    "namingConvention": "LEADGEN_[CHANNEL]_[GEO]_[SERVICE]_[OFFER]"
+  },
+  "recommendedCampaignTypes": {
+    "google": ["Search Exact/Phrase Match", "Call-Only Ads", "Performance Max for Leads"],
+    "meta": ["Instant Forms Lead Ads", "Messenger/WhatsApp Conversations", "Landing Page Leads"],
+    "tiktok": ["Instant Form Lead Generation", "Web Conversions"]
+  },
+  "budgetStrategy": {
+    "google": "Target CPA with Enhanced Conversions Enabled",
+    "meta": "CBO with Dynamic Form Fields",
+    "tiktok": "Lowest Cost with Automated Bidding"
+  },
+  "biddingStrategy": {
+    "google": "Maximize Conversions with Target CPA (tCPA)",
+    "meta": "Maximize Number of Leads with High Intent Filter",
+    "tiktok": "Lowest Cost Lead Generation"
+  },
+  "conversionGoals": [
+    "Form Submission (Qualified Lead)",
+    "Phone Call (> 90 seconds)",
+    "Calendar Appointment Booked"
+  ],
+  "trackingRequirements": [
+    "Google Ads Enhanced Conversions for Leads via hashed email/phone",
+    "Meta Conversions API with Lead Quality Feedback Loop",
+    "GA4 generate_lead event with lead_type parameter",
+    "CRM Webhook Integration (HubSpot / Salesforce sync)"
+  ],
+  "assetRequirements": {
+    "formats": ["Static Testimonials", "Short Video Case Studies", "Custom Form Covers"],
+    "aspectRatios": ["1:1", "9:16", "1.91:1"],
+    "maxVideoDurationSeconds": 45,
+    "headlineCharacterLimit": 30
+  },
+  "namingConventions": {
+    "campaignPattern": "LEAD_{PLATFORM}_{GEO}_{SERVICE}_{VERSION}",
+    "adGroupPattern": "AG_{INTENT_LEVEL}_{AUDIENCE}",
+    "adPattern": "AD_{HEADLINE_HOOK}_{OFFER_TYPE}"
+  },
+  "kpiTargets": {
+    "targetCPA": 35.0,
+    "targetLeadToOpportunityRate": 25.0,
+    "targetCTR": 3.2,
+    "formCompletionRate": 12.0
+  },
+  "reportingMetrics": [
+    "Spend",
+    "Clicks",
+    "Leads",
+    "CPA",
+    "FormSubmissions",
+    "Calls",
+    "CostPerQualifiedLead"
+  ],
+  "bestPractices": [
+    "Use qualifying multiple-choice questions on instant lead forms to deter spam",
+    "Trigger immediate SMS or email confirmation within 5 minutes of form submission",
+    "Add negative keyword list weekly to prevent budget waste on Google Search"
+  ],
+  "platformMix": {
+    "recommendedRoles": {
+      "google": "Primary high-intent capture when prospects actively search for solutions",
+      "meta": "Low-friction mobile lead form capture and video testimonial retargeting",
+      "tiktok": "Engaging demonstration hooks and B2C/Gen-Z service acquisition"
+    },
+    "budgetSplitRanges": {
+      "google": { "minPercent": 40, "maxPercent": 60, "defaultPercent": 50 },
+      "meta": { "minPercent": 25, "maxPercent": 45, "defaultPercent": 35 },
+      "tiktok": { "minPercent": 5, "maxPercent": 20, "defaultPercent": 15 }
+    },
+    "perPlatformCampaignTypes": {
+      "google": ["Search", "Performance Max"],
+      "meta": ["Lead Generation", "Messages"],
+      "tiktok": ["Lead Generation"]
+    },
+    "perPlatformObjectives": {
+      "google": "LEAD_GENERATION",
+      "meta": "OUTCOME_LEADS",
+      "tiktok": "LEAD_GENERATION"
+    },
+    "perPlatformOptimizationEvents": {
+      "google": "SUBMIT_LEAD_FORM",
+      "meta": "LEAD",
+      "tiktok": "SUBMIT_FORM"
+    },
+    "perPlatformCreativeRequirements": {
+      "google": { "formats": ["TEXT", "IMAGE"], "aspectRatios": ["1:1", "1.91:1"] },
+      "meta": { "formats": ["IMAGE", "VIDEO", "LEAD_FORM"], "aspectRatios": ["1:1", "9:16"] },
+      "tiktok": { "formats": ["VIDEO"], "aspectRatios": ["9:16"], "maxDurationSeconds": 45 }
+    },
+    "policyConstraints": {
+      "specialAdCategory": "NONE",
+      "google": ["Privacy policy URL required on all lead form extensions", "No deceptive guarantees"],
+      "meta": ["Explicit consent checkboxes for telemarketing and SMS contact"],
+      "tiktok": ["No misleading claims regarding financial or career outcomes"]
+    }
+  }
+}

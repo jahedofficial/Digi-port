@@ -1,0 +1,134 @@
+version: '3.9'
+
+networks:
+  digiport-net:
+    driver: bridge
+
+volumes:
+  pgdata:
+    driver: local
+  redisdata:
+    driver: local
+  openclawdata:
+    driver: local
+  traefik_certs:
+    driver: local
+
+services:
+  # Traefik v3 Reverse Proxy & SSL Edge Router
+  traefik:
+    image: traefik:v3.1
+    container_name: digiport-traefik-proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
+      - traefik_certs:/letsencrypt
+    networks:
+      - digiport-net
+
+  # Core Next.js Web App & Universal Paid Media OS Runtime
+  digiport-app:
+    image: digiport-os:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: digiport-core-app
+    restart: always
+    expose:
+      - "3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://postgres:${PG_PASSWORD}@postgres:5432/digital_marketr?schema=public
+      - REDIS_URL=redis://redis:6379
+      - ENCRYPTION_SECRET=${ENCRYPTION_SECRET}
+      - JWT_SECRET=${JWT_SECRET}
+      - OPENCLAW_BASE_URL=http://openclaw:18789
+      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+      - META_ACCESS_TOKEN=${META_ACCESS_TOKEN}
+      - META_AD_ACCOUNT_ID=${META_AD_ACCOUNT_ID}
+      - META_PIXEL_ID=${META_PIXEL_ID}
+      - GOOGLE_ADS_DEVELOPER_TOKEN=${GOOGLE_ADS_DEVELOPER_TOKEN}
+      - GOOGLE_ADS_CLIENT_ID=${GOOGLE_ADS_CLIENT_ID}
+      - GOOGLE_ADS_CLIENT_SECRET=${GOOGLE_ADS_CLIENT_SECRET}
+      - GOOGLE_ADS_REFRESH_TOKEN=${GOOGLE_ADS_REFRESH_TOKEN}
+      - GOOGLE_ADS_CUSTOMER_ID=${GOOGLE_ADS_CUSTOMER_ID}
+      - TIKTOK_ACCESS_TOKEN=${TIKTOK_ACCESS_TOKEN}
+      - TIKTOK_ADVERTISER_ID=${TIKTOK_ADVERTISER_ID}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      openclaw:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3000/api/platforms/ai/test || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.digiport.rule=Host(`${DOMAIN_NAME}`)"
+      - "traefik.http.routers.digiport.entrypoints=websecure"
+      - "traefik.http.routers.digiport.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.digiport.middlewares=sec-headers@file,rate-limit@file"
+      - "traefik.http.services.digiport.loadbalancer.server.port=3000"
+    networks:
+      - digiport-net
+
+  # AI Gateway & Model Routing Service
+  openclaw:
+    image: openclaw/gateway:latest
+    container_name: openclaw-agent-gateway
+    restart: always
+    expose:
+      - "18789"
+    volumes:
+      - openclawdata:/root/.openclaw
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+    networks:
+      - digiport-net
+
+  # PostgreSQL 16 Relational Database Engine
+  postgres:
+    image: postgres:16-alpine
+    container_name: digiport-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: digital_marketr
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - digiport-net
+
+  # Redis 7.2 High-Performance Cache & Message Queue
+  redis:
+    image: redis:7.2-alpine
+    container_name: digiport-redis
+    restart: always
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - digiport-net

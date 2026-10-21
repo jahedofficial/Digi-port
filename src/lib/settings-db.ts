@@ -154,6 +154,22 @@ export async function getAiGatewayConfig(): Promise<StoredAiGatewaySettings> {
     };
   }
 
+  // Fallback to OpenClaw Autonomous Gateway (Environment or VPS)
+  const openclawUrl = process.env.OPENCLAW_BASE_URL?.trim() || 'https://openclaw.neexion.com';
+  const openclawToken = process.env.OPENCLAW_GATEWAY_TOKEN?.trim() || '4ece2d197256275d2f46027da92b46010f1311ce8a5a7a6b';
+  const openclawModel = process.env.OPENCLAW_DEFAULT_MODEL?.trim() || 'openclaw';
+
+  if (openclawUrl && openclawToken) {
+    return {
+      baseUrl: openclawUrl,
+      secretKey: openclawToken,
+      modelEngine: openclawModel,
+      persona: 'Senior Performance Marketing Strategist & Copywriter',
+      isConfigured: true,
+      source: 'env',
+    };
+  }
+
   return {
     baseUrl: 'https://openrouter.ai/api/v1',
     secretKey: '',

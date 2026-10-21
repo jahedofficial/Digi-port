@@ -1,0 +1,15 @@
+{
+  "id": "workflow-full-audit-pipeline",
+  "name": "Omnichannel Account & Performance Diagnostic Audit Workflow",
+  "version": "1.0.0",
+  "description": "Comprehensive diagnostic audit across Google Ads, Meta Ads, and TikTok Ads analyzing campaign structure, spend pacing, and tracking health.",
+  "platform": "CROSS_PLATFORM",
+  "stages": [
+    { "id": "AUDIT_INITIALIZATION", "handler": "CEOAgent", "timeoutMs": 5000 },
+    { "id": "GOOGLE_AUDIT", "handler": "AuditSpecialistAgent", "timeoutMs": 20000, "dependencies": ["AUDIT_INITIALIZATION"] },
+    { "id": "META_AUDIT", "handler": "AuditSpecialistAgent", "timeoutMs": 20000, "dependencies": ["AUDIT_INITIALIZATION"] },
+    { "id": "TIKTOK_AUDIT", "handler": "AuditSpecialistAgent", "timeoutMs": 20000, "dependencies": ["AUDIT_INITIALIZATION"] },
+    { "id": "CRO_FUNNEL_AUDIT", "handler": "CroSpecialistAgent", "timeoutMs": 15000, "dependencies": ["AUDIT_INITIALIZATION"] },
+    { "id": "CROSS_PLATFORM_SYNTHESIS", "handler": "ReportingSpecialistAgent", "timeoutMs": 15000, "dependencies": ["GOOGLE_AUDIT", "META_AUDIT", "TIKTOK_AUDIT", "CRO_FUNNEL_AUDIT"] }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "id": "knowledge-google-tag-manager",
+  "title": "Google Tag Manager (GTM) Client & Server-Side Architecture",
+  "platform": "GOOGLE",
+  "category": "Tag Management & Event Pipelines",
+  "version": "1.0.0",
+  "overview": "Google Tag Manager orchestrates tag deployment, consent mode signals, and server-side event routing without requiring frequent frontend code modifications.",
+  "coreConcepts": [
+    "dataLayer structured JavaScript object storing interaction parameters",
+    "Triggers based on pageview, custom events, element visibility, and form submissions",
+    "Variables for dynamic data retrieval (URL query parameters, JS variables, DOM elements)",
+    "Server-Side GTM container running on isolated Cloud Run / Docker proxy"
+  ],
+  "features": [
+    "Google Tag (gtag.js) unified configuration entity across GA4 and Google Ads",
+    "Built-in Consent Mode v2 integration with Consent Management Platforms (CMPs)",
+    "Preview Mode with real-time tag firing diagnostics and variable inspection",
+    "Version control with rollback history and environment staging"
+  ],
+  "bestPractices": [
+    "Maintain strict single dataLayer.push() schema across development sprints",
+    "Never hardcode personal user data in the client-side dataLayer",
+    "Migrate high-volume conversion tags to Server-Side GTM for page speed and adblocker mitigation",
+    "Always run preview mode tests across mobile and desktop breakpoints before publishing"
+  ],
+  "policies": [
+    "Tag firing must respect user consent choices declared via CMP",
+    "Prohibition of keylogger scripts or unauthorized third-party tracking injections",
+    "Content Security Policy (CSP) compliant script hash generation"
+  ],
+  "limitations": [
+    "Client-side GTM script execution subject to client adblockers and Brave Shields",
+    "Maximum container size limit: 200 KB per published container",
+    "Server-side container requires cloud infrastructure hosting costs"
+  ],
+  "commonIssues": [
+    "Tags firing multiple times per pageview due to duplicate triggers",
+    "dataLayer values undefined when tags trigger before the dataLayer push finishes",
+    "Ad blocker preventing GTM bootstrap script (gtm.js) from loading"
+  ],
+  "troubleshootingGuide": [
+    {
+      "issue": "Tag fires before dataLayer variables are populated",
+      "resolution": "Change trigger from 'Page View' to 'Custom Event' that fires immediately following the dataLayer push"
+    },
+    {
+      "issue": "Third-party browser blocking gtm.js script",
+      "resolution": "Deploy Server-Side GTM with custom first-party subdomain mapping (e.g. data.clientdomain.com)"
+    }
+  ],
+  "references": [
+    "https://support.google.com/tagmanager",
+    "https://developers.google.com/tag-platform/tag-manager/server-side"
+  ]
+}

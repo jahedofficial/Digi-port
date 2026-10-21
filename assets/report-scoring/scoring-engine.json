@@ -1,12 +1,23 @@
 {
-  "$schema": "https://digiport.neexion.com/schemas/report-scoring.v1.json",
   "id": "scoring-performance-audit-v1",
   "version": "1.0.0",
-  "dimensions": {
+  "universalDimensions": {
     "roasHealth": { "weight": 0.35, "target": 3.0, "scale": "0-100" },
     "cpaEfficiency": { "weight": 0.25, "targetCpaMultiplier": 1.2, "scale": "0-100" },
     "creativeFreshness": { "weight": 0.20, "maxFrequency": 3.5, "scale": "0-100" },
     "trackingQuality": { "weight": 0.20, "minEventMatchQuality": 8.0, "scale": "0-100" }
+  },
+  "specializedDimensions": {
+    "croAudit": {
+      "mobileSpeed": { "weight": 0.40, "target": 85, "scale": "0-100" },
+      "coreWebVitals": { "weight": 0.35, "targetLcpSeconds": 2.5, "scale": "0-100" },
+      "funnelFrictionIndex": { "weight": 0.25, "maxBounceRate": 55, "scale": "0-100" }
+    },
+    "merchantCatalogAudit": {
+      "catalogApprovalRate": { "weight": 0.50, "targetPercent": 95, "scale": "0-100" },
+      "dataRichnessScore": { "weight": 0.30, "minAttributes": 8, "scale": "0-100" },
+      "priceStockAccuracy": { "weight": 0.20, "maxMismatchPercent": 1.0, "scale": "0-100" }
+    }
   },
   "scoreThresholds": {
     "EXCELLENT": 85,

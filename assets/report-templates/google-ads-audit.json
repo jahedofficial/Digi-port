@@ -1,0 +1,20 @@
+{
+  "id": "tpl_google_ads_audit",
+  "title": "Google Ads Performance & Health Audit Report",
+  "reportType": "GOOGLE_ADS_AUDIT",
+  "version": "1.0.0",
+  "platform": "GOOGLE",
+  "sections": {
+    "executiveSummary": "High-level diagnostic of Google Ads account health, spend pacing, and ROAS floor compliance.",
+    "overallScore": "Deterministic health score (0-100) combining ROAS, CPA drift, search impression share, and Quality Score.",
+    "findings": "Categorized audit findings across Performance Max asset groups, Search match types, and Shopping feeds.",
+    "issues": "Identified spend bleeders, low Quality Score keywords (<5/10), and negative keyword conflicts.",
+    "recommendations": "Ranked optimization proposals including bid adjustments and negative keyword additions.",
+    "priorityMatrix": "Impact vs Effort 4-quadrant prioritization matrix (P0 Critical to P3 Housekeeping).",
+    "actionPlan": "Numbered step-by-step implementation roadmap with expected impact metrics.",
+    "supportingEvidence": "Aggregated Google Ads GAQL metric snapshots and impression share statistics.",
+    "appendix": "Technical definitions, conversion action configuration status, and attribution models."
+  },
+  "requiredMetrics": ["spend", "impressions", "clicks", "conversions", "conversionValue", "roas", "cpa"],
+  "scoringDimensions": ["roasHealth", "cpaEfficiency", "qualityScoreAverage", "impressionShareLostToBudget"]
+}

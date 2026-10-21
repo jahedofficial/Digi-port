@@ -1,0 +1,20 @@
+{
+  "id": "tpl_executive_report",
+  "title": "Executive Marketing Summary & Omnichannel Scorecard",
+  "reportType": "EXECUTIVE_REPORT",
+  "version": "1.0.0",
+  "platform": "CROSS_PLATFORM",
+  "sections": {
+    "executiveSummary": "C-level marketing performance summary covering total spend, revenue, customer acquisition, and blended ROAS.",
+    "overallScore": "Omnichannel Marketing Health Score (0-100) benchmarking overall paid media efficiency against targets.",
+    "findings": "High-level strategic achievements, vertical performance highlights, and revenue growth drivers.",
+    "issues": "Macro-level performance drags, escalating acquisition costs in key markets, and channel fatigue.",
+    "recommendations": "High-impact strategic recommendations for quarterly budget allocation and platform expansion.",
+    "priorityMatrix": "Executive strategic priority matrix balancing immediate ROI gains with brand equity.",
+    "actionPlan": "Strategic milestone roadmap for next marketing sprint.",
+    "supportingEvidence": "Executive charts: Monthly Spend vs Revenue, Channel Contribution, Blended CAC/ROAS trends.",
+    "appendix": "Glossary of marketing KPIs, platform exchange rates, and attribution model disclosures."
+  },
+  "requiredMetrics": ["spend", "conversions", "conversionValue", "roas", "cpa"],
+  "scoringDimensions": ["blendedRoasHealth", "cpaEfficiency", "budgetGrowthRatio"]
+}

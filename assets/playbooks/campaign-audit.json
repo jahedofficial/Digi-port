@@ -1,0 +1,68 @@
+{
+  "id": "playbook-campaign-audit",
+  "name": "Comprehensive Multi-Channel Campaign & Performance Audit",
+  "version": "1.0.0",
+  "targetPlatforms": ["GOOGLE", "META", "TIKTOK"],
+  "purpose": "Conduct deep programmatic audits of live campaigns across Google, Meta, and TikTok to identify wasted spend, fatigued creatives, audience overlap, and tracking anomalies.",
+  "triggerConditions": [
+    "Weekly scheduled audit cron job",
+    "Performance drop alert triggered by Heartbeat",
+    "User prompt requesting account or campaign audit"
+  ],
+  "prerequisites": [
+    "Active campaigns running for at least 7 days",
+    "Platform adapters connected with read permissions",
+    "Baseline benchmark KPI targets established from industry template"
+  ],
+  "executionSteps": [
+    {
+      "step": 1,
+      "name": "Extract Multi-Channel Performance Metrics",
+      "specialistAgent": "AuditAgent",
+      "action": "Query last 7, 14, and 30-day performance data (Spend, Impressions, Clicks, Conversions, ROAS, CPA) via platform adapters"
+    },
+    {
+      "step": 2,
+      "name": "Detect Wasted Spend & Bleeding Ad Sets",
+      "specialistAgent": "AuditAgent",
+      "action": "Flag search queries with zero conversions and spend > 2x target CPA; flag ad sets with high frequency and crashing CTR"
+    },
+    {
+      "step": 3,
+      "name": "Audit Creative Fatigue & Saturation",
+      "specialistAgent": "CreativeAgent",
+      "action": "Identify ads with frequency > 3.5 and declining 7-day ROAS; rank creatives by first-3-second hook retention"
+    },
+    {
+      "step": 4,
+      "name": "Audit Conversion Tracking Integrity",
+      "specialistAgent": "TrackingAgent",
+      "action": "Compare browser vs. server-side event counts; check event deduplication rates and GA4 attribution discrepancies"
+    },
+    {
+      "step": 5,
+      "name": "Calculate Account Health Score & Action Plan",
+      "specialistAgent": "ReportingAgent",
+      "action": "Synthesize a 100-point account health score across Structure, Bidding, Creative, and Tracking with prioritized recommendations"
+    }
+  ],
+  "specialistAgents": ["AuditAgent", "CreativeAgent", "TrackingAgent", "ReportingAgent"],
+  "requiredApprovals": false,
+  "expectedOutputs": [
+    "Executive Audit Report (Markdown / Telegram summary)",
+    "Wasted Spend Itemization List",
+    "Prioritized Remediation Action Items"
+  ],
+  "successCriteria": [
+    "100% of live campaigns audited across all active channels",
+    "Accurate identification of bleeding ad sets with verifiable spend data",
+    "Audit generated within 30 seconds"
+  ],
+  "failureHandling": {
+    "retryStrategy": "Retry platform metric fetch up to 2 times with 10s cooldown if rate-limited",
+    "alertChannel": "Telegram Notification",
+    "maxRetries": 2,
+    "onUnrecoverable": "NOTIFY"
+  },
+  "rollbackStrategy": "Read-only operation; no changes applied to live ad accounts. Cached metrics retained if partial fetch fails."
+}

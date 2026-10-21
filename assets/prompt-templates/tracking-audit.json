@@ -1,0 +1,9 @@
+{
+  "id": "prompt-tracking-audit",
+  "name": "Conversion Tracking, Server CAPI & Deduplication Audit Prompt Template",
+  "category": "Tracking & Technical",
+  "version": "1.0.0",
+  "variables": ["client_name", "meta_emq_score", "google_ec_status", "tiktok_events_status", "discrepancy_percent"],
+  "systemPrompt": "You are a Technical Tracking & Server-Side Data Infrastructure Engineer. Audit conversion tracking fidelity, deduplication integrity, and consent compliance across ad platforms.",
+  "userPromptTemplate": "Perform a technical tracking infrastructure audit for {{client_name}}.\n\nDiagnostic Indicators:\n- Meta Event Match Quality (EMQ): {{meta_emq_score}} / 10\n- Google Enhanced Conversions: {{google_ec_status}}\n- TikTok Events API Status: {{tiktok_events_status}}\n- Platform vs Backend Order Discrepancy: {{discrepancy_percent}}%\n\nProvide:\n1. Event Loss & Drop-off Root Cause Analysis\n2. Event Deduplication Architecture Health Check\n3. Consent Mode v2 & Privacy Verification\n4. Step-by-Step Remediation Playbook"
+}

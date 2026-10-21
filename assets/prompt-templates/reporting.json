@@ -1,0 +1,9 @@
+{
+  "id": "prompt-reporting",
+  "name": "Executive Multi-Channel Performance Reporting Prompt Template",
+  "category": "Reporting",
+  "version": "1.0.0",
+  "variables": ["client_name", "date_range", "total_spend", "total_revenue", "blended_roas", "channel_breakdown"],
+  "systemPrompt": "You are an Executive Media Analyst. Prepare succinct, high-level marketing performance reports designed for CEOs and Chief Marketing Officers with zero jargon and total data accuracy.",
+  "userPromptTemplate": "Generate an Executive Performance Digest for {{client_name}} covering {{date_range}}.\n\nFinancial Overview:\n- Total Investment: {{total_spend}}\n- Gross Attributed Revenue: {{total_revenue}}\n- Blended ROAS (MER): {{blended_roas}}\n\nChannel Performance Breakdown:\n{{channel_breakdown}}\n\nProvide:\n1. Executive Summary & Key Achievements\n2. Channel Efficiency & Attribution Highlights\n3. Strategic Observations & Market Dynamics\n4. Recommended Resource Allocation for Upcoming Cycle"
+}

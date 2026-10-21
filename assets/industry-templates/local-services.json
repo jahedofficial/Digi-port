@@ -1,0 +1,108 @@
+{
+  "id": "template-local-services",
+  "name": "Local Home Services, Contractors & Repair Professionals",
+  "industry": "local-services",
+  "version": "1.0.0",
+  "businessGoals": [
+    "Maximize Emergency Inbound Phone Calls & Same-Day Service Requests",
+    "Maintain #1 Local Pack & Map Visibility within Service Territory",
+    "Acquire Loyal Service Contract & Preventative Maintenance Customers"
+  ],
+  "campaignStructure": {
+    "funnelStages": ["Emergency Immediate Service", "Neighborhood Reputation & Reviews", "Seasonal Maintenance Offers"],
+    "namingConvention": "LOCAL_[TRADE]_[GEO_ZIP]_[CHANNEL]_[CALL_VS_FORM]"
+  },
+  "recommendedCampaignTypes": {
+    "google": ["Local Services Ads (Google Screened)", "Call-Only Search Ads", "Google Maps Local Extensions"],
+    "meta": ["Local Awareness Radius Ads", "Messenger Quick Estimate Inquiries", "Neighborhood Community Testimonials"],
+    "tiktok": ["Satisfying Before/After Clean/Repair Videos", "Local Contractor Tips"]
+  },
+  "budgetStrategy": {
+    "google": "Aggressive Dayparted Bidding during High Emergency Call Hours (8am - 6pm)",
+    "meta": "Local Radius Geofenced Budget (5-10 mile radius)",
+    "tiktok": "Minimal Local Brand Testing"
+  },
+  "biddingStrategy": {
+    "google": "Maximize Conversions with Target CPA on Direct Phone Calls",
+    "meta": "Lowest Cost per Local Lead Inquiry",
+    "tiktok": "Lowest Cost Local Traffic"
+  },
+  "conversionGoals": [
+    "Phone Call to Dispatcher (> 60s)",
+    "Online Quote Form Completed",
+    "Request Callback Submitted"
+  ],
+  "trackingRequirements": [
+    "CallRail / CallTrackingMetrics Dynamic Number Insertion (DNI)",
+    "Google Ads Call Conversion Reporting with recording verification",
+    "Meta Conversions API with client phone number and service zip code",
+    "GA4 phone_call and get_directions conversions"
+  ],
+  "assetRequirements": {
+    "formats": ["Branded Service Truck Photos", "Licensed & Insured Badge Creatives", "Before/After Project Photos"],
+    "aspectRatios": ["1:1", "1.91:1", "9:16"],
+    "maxVideoDurationSeconds": 30,
+    "headlineCharacterLimit": 30
+  },
+  "namingConventions": {
+    "campaignPattern": "LOC_{PLATFORM}_{TRADE}_{NEIGHBORHOOD}_{VERSION}",
+    "adGroupPattern": "AG_{SERVICE_TYPE}_{RADIUS_MILES}",
+    "adPattern": "AD_{DISCOUNT_OR_EMERGENCY}_{CTA}"
+  },
+  "kpiTargets": {
+    "targetCPA": 32.0,
+    "callAnswerRate": 90.0,
+    "targetCTR": 4.5
+  },
+  "reportingMetrics": [
+    "Spend",
+    "Clicks",
+    "CallsReceived",
+    "QuoteRequests",
+    "CPA",
+    "BookedJobsCount"
+  ],
+  "bestPractices": [
+    "Emphasize 'Licensed, Bonded & Insured' and 'Same Day Service' in every headline",
+    "Display authentic Google Customer Review count and 5-star ratings prominently",
+    "Pause call ads immediately outside business hours unless 24/7 on-call dispatch is active"
+  ],
+  "platformMix": {
+    "recommendedRoles": {
+      "google": "Capturing urgent emergency repair searches (plumbing, HVAC, roofing, towing)",
+      "meta": "Establishing neighborhood trust, maintenance promotions, and direct message quotes",
+      "tiktok": "Engaging transformation videos, repair satisfying clips, and homeowner DIY education"
+    },
+    "budgetSplitRanges": {
+      "google": { "minPercent": 50, "maxPercent": 70, "defaultPercent": 60 },
+      "meta": { "minPercent": 20, "maxPercent": 40, "defaultPercent": 30 },
+      "tiktok": { "minPercent": 5, "maxPercent": 15, "defaultPercent": 10 }
+    },
+    "perPlatformCampaignTypes": {
+      "google": ["Search", "Local"],
+      "meta": ["Lead Generation", "Messages"],
+      "tiktok": ["Traffic"]
+    },
+    "perPlatformObjectives": {
+      "google": "LEAD_GENERATION",
+      "meta": "OUTCOME_LEADS",
+      "tiktok": "TRAFFIC"
+    },
+    "perPlatformOptimizationEvents": {
+      "google": "PHONE_CALL_CONVERSION",
+      "meta": "LEAD",
+      "tiktok": "VIEW_CONTENT"
+    },
+    "perPlatformCreativeRequirements": {
+      "google": { "formats": ["TEXT", "CALL_ASSET"], "aspectRatios": ["1.91:1"] },
+      "meta": { "formats": ["IMAGE", "VIDEO"], "aspectRatios": ["1:1", "9:16"] },
+      "tiktok": { "formats": ["VIDEO"], "aspectRatios": ["9:16"], "maxDurationSeconds": 30 }
+    },
+    "policyConstraints": {
+      "specialAdCategory": "NONE",
+      "google": ["Google Local Services License & Insurance Verification (Google Guaranteed/Screened)"],
+      "meta": ["Accurate local business address and service radius verification"],
+      "tiktok": ["No false emergency fear tactics"]
+    }
+  }
+}

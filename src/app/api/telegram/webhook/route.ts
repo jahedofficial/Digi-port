@@ -1,11 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { processAgentCommand } from '@/lib/agent-runner';
-import { INITIAL_CLIENT_WORKSPACES } from '@/lib/workspace-presets';
+import { handleTelegramCopilotChat } from '@/lib/telegram-copilot';
+import { getTelegramAlertsConfig } from '@/lib/settings-db';
+
+export async function GET(req: NextRequest) {
+  try {
+    const tgConfig = await getTelegramAlertsConfig();
+    const botToken = tgConfig.botToken || process.env.TELEGRAM_BOT_TOKEN || '8202907344:AAGzue1FYgVe06zA4j6qxVLhEQ5IbZc2h8g';
+
+    const infoRes = await fetch(`https://api.telegram.org/bot${botToken}/getWebhookInfo`);
+    const infoData = await infoRes.json();
+
+    const action = req.nextUrl.searchParams.get('action');
+    if (action === 'set' || action === 'register') {
+      const webhookUrl = 'https://digiport.neexion.com/api/telegram/webhook';
+      const setRes = await fetch(`https://api.telegram.org/bot${botToken}/setWebhook?url=${encodeURIComponent(webhookUrl)}`);
+      const setData = await setRes.json();
+      return NextResponse.json({
+        success: setData.ok,
+        result: setData,
+        webhookUrl,
+      });
+    }
+
+    if (action === 'delete' || action === 'clear') {
+      const delRes = await fetch(`https://api.telegram.org/bot${botToken}/deleteWebhook`);
+      const delData = await delRes.json();
+      return NextResponse.json({
+        success: delData.ok,
+        result: delData,
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      webhookInfo: infoData.result,
+      botConfigured: Boolean(botToken),
+    });
+  } catch (err: any) {
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    const tgConfig = await getTelegramAlertsConfig();
+    const botToken = tgConfig.botToken || process.env.TELEGRAM_BOT_TOKEN || '8202907344:AAGzue1FYgVe06zA4j6qxVLhEQ5IbZc2h8g';
 
     // Handle Telegram Inline Keyboard Callbacks (e.g. Approve / Reject actions)
     if (body?.callback_query) {
@@ -49,47 +89,38 @@ export async function POST(req: NextRequest) {
     const chatId = message.chat.id;
     const userText = message.text;
 
-    // Default primary workspace for context
-    const primaryWs = INITIAL_CLIENT_WORKSPACES[0];
-
-    // Process via our unified AI agent runner (same brain used by Web Copilot)
-    const aiResponse = processAgentCommand(userText, {
-      activePlatform: 'ALL',
-      campaigns: primaryWs?.campaigns || [],
-      creatives: primaryWs?.creatives || [],
-      clientName: primaryWs?.clientName || 'Main Brand Account',
-      currency: primaryWs?.currency || 'BDT',
-      allWorkspaces: INITIAL_CLIENT_WORKSPACES,
-    });
+    // Process message through OpenClaw AI Copilot
+    const copilotReply = await handleTelegramCopilotChat(chatId, userText);
 
     if (botToken) {
-      // Build inline action buttons if AI proposed an action requiring approval
-      const replyMarkup = aiResponse.requiresApproval && aiResponse.proposedAction ? {
-        inline_keyboard: [
-          [
-            { text: '✅ Approve', callback_data: `approve_${aiResponse.proposedAction.id}` },
-            { text: '❌ Reject', callback_data: `reject_${aiResponse.proposedAction.id}` },
-          ]
-        ]
-      } : undefined;
-
-      // Send response back to Telegram chat
-      await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      // Send response back to Telegram chat with plain text fallback to prevent markdown entity errors
+      const sendRes = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           chat_id: chatId,
-          text: `🤖 <b>Digital Marketr AI Copilot:</b>\n\n${aiResponse.reply.replace(/\*\*/g, '')}`,
-          parse_mode: 'HTML',
-          reply_markup: replyMarkup,
+          text: copilotReply,
         }),
       });
+
+      const sendData = await sendRes.json();
+      if (!sendData.ok && sendData.description?.includes('parse')) {
+        // Fallback retry
+        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: copilotReply.replace(/<[^>]*>?/gm, '').replace(/[*_`]/g, ''),
+          }),
+        });
+      }
     }
 
     return NextResponse.json({ ok: true });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Telegram webhook error:', error);
-    return NextResponse.json({ ok: false }, { status: 500 });
+    return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 }
 

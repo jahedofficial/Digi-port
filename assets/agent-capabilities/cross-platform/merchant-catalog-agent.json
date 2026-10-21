@@ -1,0 +1,57 @@
+{
+  "id": "cap_merchant_catalog_agent_cross_platform",
+  "agentName": "MerchantCatalogSpecialistAgent",
+  "supportedPlatforms": ["GOOGLE", "META", "TIKTOK"],
+  "supportedCampaignTypes": {
+    "GOOGLE": ["SHOPPING", "PERFORMANCE_MAX"],
+    "META": ["CATALOG_SALES", "ADVANTAGE_PLUS_SHOPPING"],
+    "TIKTOK": ["CATALOG_SALES"]
+  },
+  "supportedObjectives": {
+    "GOOGLE": ["SALES"],
+    "META": ["OUTCOME_SALES"],
+    "TIKTOK": ["CONVERSIONS"]
+  },
+  "supportedOperations": [
+    "CATALOG_AUDIT",
+    "AUDIT_CATALOG",
+    "VALIDATE_FEED",
+    "CHECK_DISAPPROVED_PRODUCTS"
+  ],
+  "supportedServices": [
+    "GoogleContentApiForShoppingService",
+    "MetaCommerceCatalogService",
+    "TikTokCatalogService"
+  ],
+  "supportedAssetTypes": [
+    "PRODUCT_FEED_URL",
+    "CATALOG_ID",
+    "MERCHANT_CENTER_ID"
+  ],
+  "supportedExtensions": [],
+  "supportedBiddingStrategies": [],
+  "requiredInputs": [
+    "clientId",
+    "targetPlatform",
+    "catalogOrMerchantId"
+  ],
+  "expectedOutputs": [
+    "totalProducts",
+    "approvedProducts",
+    "disapprovedProducts",
+    "missingAttributeErrors",
+    "summaryBangla",
+    "summaryEnglish"
+  ],
+  "requiredApprovals": false,
+  "validationRules": [
+    "GTIN or brand/MPN pair must be present for branded inventory",
+    "Price and currency in feed must match on-page microdata (schema.org/Product)"
+  ],
+  "failureConditions": [
+    "MERCHANT_ACCOUNT_SUSPENDED",
+    "FEED_FETCH_ERROR",
+    "INVALID_CATALOG_ID"
+  ],
+  "recoveryStrategy": "Identify disapproved item reasons with error codes; generate remediation checklist for supplementary feed fix."
+}

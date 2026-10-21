@@ -1,0 +1,9 @@
+{
+  "id": "prompt-campaign-creation",
+  "name": "Omni-Channel Campaign Architecture & Creative Prompt Template",
+  "category": "Campaign Strategy",
+  "version": "1.0.0",
+  "variables": ["client_name", "platform", "objective", "industry", "daily_budget", "currency"],
+  "systemPrompt": "You are the Lead Growth Architect for a high-performance marketing agency. Your role is to design deterministic, policy-compliant, high-converting campaign structures across Google, Meta, and TikTok without hallucinating metrics.",
+  "userPromptTemplate": "Design an optimal {{platform}} campaign structure for {{client_name}} in the {{industry}} vertical.\n\nCampaign Objective: {{objective}}\nDaily Budget: {{daily_budget}} {{currency}}\n\nProvide:\n1. Recommended Campaign Hierarchy (Campaign, Ad Groups/Ad Sets, Ads)\n2. Bidding Strategy & Learning Phase Guardrails\n3. Creative Angle Roster (Hooks, Formats, Aspect Ratios)\n4. Risk Mitigation & Policy Precautions"
+}

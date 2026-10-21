@@ -1,0 +1,32 @@
+http:
+  middlewares:
+    # Enterprise Security Headers (HSTS, CSP, Frame Options)
+    sec-headers:
+      headers:
+        sslRedirect: true
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        forceSTSHeader: true
+        contentTypeNosniff: true
+        browserXssFilter: true
+        frameDeny: true
+        referrerPolicy: "strict-origin-when-cross-origin"
+        permissionsPolicy: "camera=(), microphone=(), geolocation=()"
+        customResponseHeaders:
+          X-Powered-By: "DigiPort Universal Paid Media OS"
+          Server: ""
+
+    # Reverse Proxy Rate Limiting
+    rate-limit:
+      rateLimit:
+        average: 100
+        burst: 50
+        period: "1m"
+
+    # API Strict Rate Limiting (Protects from credential stuffing)
+    api-rate-limit:
+      rateLimit:
+        average: 30
+        burst: 10
+        period: "1m"

@@ -1,0 +1,15 @@
+{
+  "id": "sched_weekly_performance_audit",
+  "name": "Weekly Comprehensive Performance & Account Health Audit",
+  "description": "Weekly deep-dive audit across Google Ads, Meta Ads, and TikTok Ads inspecting Quality Score, creative fatigue, and ROAS benchmarks.",
+  "clientId": "*",
+  "type": "CRON",
+  "cronExpression": "0 2 * * 1",
+  "targetWorkflowId": "workflow-full-audit-pipeline",
+  "targetOperation": "AUDIT",
+  "parameters": {
+    "dateRangeDays": 7,
+    "generatePdf": true
+  },
+  "status": "ACTIVE"
+}

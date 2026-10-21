@@ -1,0 +1,55 @@
+{
+  "id": "knowledge-meta-pixel-capi",
+  "title": "Meta Pixel, Conversions API (CAPI) & Event Deduplication",
+  "platform": "META",
+  "category": "Tracking & Server-Side Ingestion",
+  "version": "1.0.0",
+  "overview": "Meta Conversions API creates a direct, server-to-server connection between marketing data and Meta systems to optimize ad delivery, measure outcomes, and decrease cost per action post-cookie loss.",
+  "coreConcepts": [
+    "Redundant event collection: Browser Pixel (fbq) paired with Server-Side CAPI",
+    "Event Deduplication key: matching event_name + event_id between browser and server payloads",
+    "Event Match Quality (EMQ): evaluated from 0 to 10 based on hashed customer parameters (em, ph, fn, ln, ct, zp, country)",
+    "Meta Aggregated Event Measurement (AEM) protocol for iOS 14.5+ attribution"
+  ],
+  "features": [
+    "Direct REST endpoint: https://graph.facebook.com/v20.0/{PIXEL_ID}/events",
+    "Batch event uploading supporting up to 1,000 events per HTTP request",
+    "Test Events Tool inside Meta Events Manager for real-time payload debugging",
+    "Automatic Advanced Matching for enhanced browser-side parameter capture"
+  ],
+  "bestPractices": [
+    "Always generate a unique UUIDv4 event_id on the server and pass it down to both fbq() and CAPI",
+    "Hash all personal identifiers using lowercase SHA-256 before transmitting",
+    "Pass client_user_agent and client_ip_address with all server events",
+    "Aim for an Event Match Quality score >= 8.0 on Purchase and Lead events"
+  ],
+  "policies": [
+    "Meta Health Advertising Policy: Never transmit sensitive medical data or health symptoms",
+    "Prohibition on passing plaintext credit card numbers, passwords, or government IDs",
+    "Explicit user consent required where mandated by regional privacy regulations (GDPR/DMA)"
+  ],
+  "limitations": [
+    "CAPI event ingestion latency: typically within seconds, maximum 7 days backdated",
+    "Server events without client_ip_address or client_user_agent suffer lower match quality",
+    "Meta Graph API token requires renewal every 60 days unless System User token is used"
+  ],
+  "commonIssues": [
+    "Duplicate purchase reporting caused by missing event_id deduplication keys",
+    "Low Event Match Quality (< 6.0) due to passing only client IP without hashed email or phone",
+    "401 Unauthorized errors caused by expired user access tokens"
+  ],
+  "troubleshootingGuide": [
+    {
+      "issue": "Events reported twice in Ads Manager",
+      "resolution": "Verify that fbq('track', 'Purchase', {...}, {eventID: id}) and CAPI payload pass the exact same string in event_id"
+    },
+    {
+      "issue": "CAPI token expired error",
+      "resolution": "Generate a permanent System User token inside Meta Business Manager instead of temporary user tokens"
+    }
+  ],
+  "references": [
+    "https://developers.facebook.com/docs/marketing-api/conversions-api",
+    "https://developers.facebook.com/docs/marketing-api/conversions-api/deduplicate-pixel-and-capi-events"
+  ]
+}

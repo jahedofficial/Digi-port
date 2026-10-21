@@ -1,0 +1,69 @@
+{
+  "id": "playbook-cross-platform-budget-allocation",
+  "name": "Dynamic Cross-Platform Budget Allocation & Rebalancing",
+  "version": "1.0.0",
+  "targetPlatforms": ["GOOGLE", "META", "TIKTOK"],
+  "purpose": "Analyze marginal efficiency across Google Ads, Meta Ads, and TikTok Ads to intelligently shift budget towards the highest performing channels while respecting industry template floors.",
+  "triggerConditions": [
+    "Bi-weekly cross-channel budget rebalancing review",
+    "One platform experiencing significant CPA inflation while another outperforms",
+    "User prompt requesting cross-platform budget review"
+  ],
+  "prerequisites": [
+    "At least 2 active advertising platforms with live spend",
+    "Last 14 days of synchronized conversion and spend data",
+    "Client monthly budget cap and platform split limits defined"
+  ],
+  "executionSteps": [
+    {
+      "step": 1,
+      "name": "Extract Platform Marginal ROAS & CPA",
+      "specialistAgent": "AuditAgent",
+      "action": "Calculate marginal CPA and marginal ROAS across Google, Meta, and TikTok over the past 14 days"
+    },
+    {
+      "step": 2,
+      "name": "Model Cross-Channel Reallocation Matrix",
+      "specialistAgent": "OptimizationAgent",
+      "action": "Model budget shift (e.g. shift 10% from lower-efficiency channel to higher-efficiency channel) staying within template min/max ranges"
+    },
+    {
+      "step": 3,
+      "name": "Verify Platform Minimum Baseline Floors",
+      "specialistAgent": "RiskEngine",
+      "action": "Ensure no platform budget is cut below its minimum viability threshold (e.g. Google Search brand capture must not be defunded)"
+    },
+    {
+      "step": 4,
+      "name": "Human Approval Gate",
+      "specialistAgent": "CEOAgent",
+      "action": "Present proposed reallocation table (Current Budget vs Proposed Budget) for user approval",
+      "requiredApprovals": true
+    },
+    {
+      "step": 5,
+      "name": "Execute Staggered Budget Rebalance",
+      "specialistAgent": "CampaignAgent",
+      "action": "Apply new daily budgets across platform adapters in a staggered manner over 48 hours"
+    }
+  ],
+  "specialistAgents": ["AuditAgent", "OptimizationAgent", "RiskEngine", "CEOAgent", "CampaignAgent"],
+  "requiredApprovals": true,
+  "expectedOutputs": [
+    "Cross-Channel Efficiency Comparison Table",
+    "Budget Reallocation Proposal & Rationale",
+    "Blended Target ROAS Forecast"
+  ],
+  "successCriteria": [
+    "Blended account ROAS improves by >= 10% within 14 days of rebalance",
+    "No channel drops below its designated minimum exploratory budget",
+    "Total combined spend matches exactly the approved monthly budget target"
+  ],
+  "failureHandling": {
+    "retryStrategy": "Retry platform budget adjustment once; abort if total spend would exceed master cap",
+    "alertChannel": "Telegram Copilot Channel",
+    "maxRetries": 1,
+    "onUnrecoverable": "ROLLBACK"
+  },
+  "rollbackStrategy": "Restore original platform budget split ratios immediately if blended CAC increases over 3 consecutive days."
+}

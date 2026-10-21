@@ -11,7 +11,7 @@ DigiPort is an enterprise-grade autonomous marketing platform designed to ingest
 
 ### Core Architectural Separation of Concerns
 1. **CEO Agent (Orchestration Only):** Responsible for parsing user objectives, identifying target platforms, assembling execution plans from Playbooks and Industry Templates, validating risk, and delegating execution. **The CEO Agent never calls platform APIs directly.**
-2. **Specialist Agents (Execution Only):** Domain-specific agents (Audit, Campaign, Tracking, Optimization, Reporting, CRO, Merchant & Catalog, Creative). Specialist agents execute assigned tasks via Platform Adapters (or Maton API Gateway), return structured outputs, and never make unvetted business decisions.
+2. **Specialist Agents (Execution Only):** Domain-specific agents (Audit, Campaign, Tracking, Optimization, Reporting, CRO, Merchant & Catalog, Creative). Specialist agents execute assigned tasks via Direct Platform Adapters (Official Platform APIs via Credential Manager), return structured outputs, and never make unvetted business decisions.
 3. **Decision & Risk Engines (Validation & Guardrails):** Enforces budget caps (±20% daily scaling limit), detects policy constraints (Healthcare, Finance, Real Estate), calculates confidence scores, and constructs rollback plans.
 4. **Platform Adapters & Cross-Platform Normalization:** Translates unified data models into platform-specific API payloads for Google Ads, Meta Marketing API, and TikTok Business API.
 
@@ -54,7 +54,7 @@ graph TD
         PlatformAdapters <--> GoogleAdapter[Google Ads & GA4 / GTM Adapter]
         PlatformAdapters <--> MetaAdapter[Meta Ads & CAPI Adapter]
         PlatformAdapters <--> TikTokAdapter[TikTok Ads & Events API Adapter]
-        PlatformAdapters <--> MatonGateway[Maton API Gateway / Direct OAuth]
+        PlatformAdapters <--> CredentialManager[Credential & Token Manager / Direct Platform OAuth2 & System Tokens]
     end
 
     subgraph "External Channels"

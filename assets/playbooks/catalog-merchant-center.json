@@ -1,0 +1,69 @@
+{
+  "id": "playbook-catalog-merchant-center",
+  "name": "Product Feed Synchronization & Disapproved Item Remediation",
+  "version": "1.0.0",
+  "targetPlatforms": ["GOOGLE", "META", "TIKTOK"],
+  "purpose": "Synchronize and optimize product catalogs across Google Merchant Center, Meta Commerce Manager, and TikTok Shop/Catalog, resolving disapproved items and GTIN/MPN errors.",
+  "triggerConditions": [
+    "Merchant Center disapproved product alert",
+    "Weekly scheduled catalog health audit",
+    "New inventory or pricing catalog upload"
+  ],
+  "prerequisites": [
+    "Google Merchant Center ID connected",
+    "Meta Commerce Manager Catalog ID connected",
+    "TikTok Business Catalog connected",
+    "Source ecommerce XML/CSV feed URL or direct API sync active"
+  ],
+  "executionSteps": [
+    {
+      "step": 1,
+      "name": "Query Merchant Center Diagnostics",
+      "specialistAgent": "AuditAgent",
+      "action": "Fetch disapproved items, warnings, and missing attribute errors (GTIN, brand, price, shipping, availability) from GMC API"
+    },
+    {
+      "step": 2,
+      "name": "Query Meta Catalog Diagnostics",
+      "specialistAgent": "AuditAgent",
+      "action": "Check Meta Catalog items rejected for policy, missing description, low image resolution, or out-of-stock discrepancies"
+    },
+    {
+      "step": 3,
+      "name": "Query TikTok Catalog Status",
+      "specialistAgent": "AuditAgent",
+      "action": "Verify TikTok Video Shopping Ads catalog sync and currency formatting"
+    },
+    {
+      "step": 4,
+      "name": "Remediate Feed Formatting & Attributes",
+      "specialistAgent": "OptimizationAgent",
+      "action": "Generate feed supplement rules or mapped attributes to supply missing identifiers and correct tax/shipping formats"
+    },
+    {
+      "step": 5,
+      "name": "Re-submit Feed for Express Review",
+      "specialistAgent": "OptimizationAgent",
+      "action": "Trigger on-demand feed fetch and request re-review of remediated disapproved items"
+    }
+  ],
+  "specialistAgents": ["AuditAgent", "OptimizationAgent"],
+  "requiredApprovals": false,
+  "expectedOutputs": [
+    "Catalog Health Report across Google, Meta, and TikTok",
+    "Disapproved Product Root Cause Breakdown",
+    "Feed Correction Rule Mappings"
+  ],
+  "successCriteria": [
+    "Disapproved product rate under 2% of total active inventory",
+    "Zero account-level Merchant Center suspension warnings",
+    "All approved items synchronized with live on-site prices and stock status"
+  ],
+  "failureHandling": {
+    "retryStrategy": "Retry feed fetch request once after 15 minutes",
+    "alertChannel": "Telegram Emergency Channel",
+    "maxRetries": 1,
+    "onUnrecoverable": "NOTIFY"
+  },
+  "rollbackStrategy": "Restore previous valid feed mapping rules if new rules cause mass product disapprovals."
+}

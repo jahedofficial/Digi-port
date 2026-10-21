@@ -1,0 +1,57 @@
+{
+  "id": "cap_reporting_agent_cross_platform",
+  "agentName": "ReportingSpecialistAgent",
+  "supportedPlatforms": ["GOOGLE", "META", "TIKTOK"],
+  "supportedCampaignTypes": {
+    "GOOGLE": ["SEARCH", "PERFORMANCE_MAX", "SHOPPING", "DEMAND_GEN"],
+    "META": ["ADVANTAGE_PLUS_SHOPPING", "CONVERSIONS", "TRAFFIC"],
+    "TIKTOK": ["SMART_PERFORMANCE_CAMPAIGN", "WEB_CONVERSIONS"]
+  },
+  "supportedObjectives": {
+    "GOOGLE": ["SALES", "LEADS", "WEBSITE_TRAFFIC"],
+    "META": ["OUTCOME_SALES", "OUTCOME_LEADS", "OUTCOME_TRAFFIC"],
+    "TIKTOK": ["CONVERSIONS", "TRAFFIC"]
+  },
+  "supportedOperations": [
+    "REPORT",
+    "GENERATE_REPORT",
+    "EXPORT_SUMMARY",
+    "FORMAT_TELEGRAM_ALERT"
+  ],
+  "supportedServices": [
+    "AnalyticsAggregationService",
+    "TelegramAlertService",
+    "ReportExportService"
+  ],
+  "supportedAssetTypes": [
+    "EXECUTIVE_SUMMARY_MARKDOWN",
+    "KPI_SCORECARD",
+    "CHARTS_METRIC_DATA"
+  ],
+  "supportedExtensions": [],
+  "supportedBiddingStrategies": [],
+  "requiredInputs": [
+    "clientId",
+    "dateRange",
+    "reportType",
+    "destinationChannels"
+  ],
+  "expectedOutputs": [
+    "executiveSummaryMarkdown",
+    "blendedRoasScore",
+    "telegramHtmlFormattedAlert",
+    "summaryBangla",
+    "summaryEnglish"
+  ],
+  "requiredApprovals": false,
+  "validationRules": [
+    "Reporting Agent only uses verified adapter metrics; never fabricates figures",
+    "Date range must fall within available platform historical retention limits"
+  ],
+  "failureConditions": [
+    "NO_METRIC_DATA_RETURNED",
+    "TELEGRAM_GATEWAY_TIMEOUT",
+    "INVALID_DATE_RANGE"
+  ],
+  "recoveryStrategy": "Return partial report with platform status notations if one platform times out; dispatch alert via secondary channel."
+}

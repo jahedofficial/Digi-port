@@ -1,5 +1,4 @@
 {
-  "$schema": "https://digiport.neexion.com/schemas/schedule.v1.json",
   "id": "schedule-heartbeat-default",
   "name": "DigiPort 24/7 Watchdog Heartbeat Schedule",
   "description": "Recurring background health check for ad spend pacing, CPA spikes, pixel deduplication, and platform connectivity.",

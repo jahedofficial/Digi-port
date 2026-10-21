@@ -1,0 +1,20 @@
+{
+  "id": "tpl_cross_platform_performance",
+  "title": "Cross-Platform Blended Performance & Attribution Report",
+  "reportType": "CROSS_PLATFORM_PERFORMANCE",
+  "version": "1.0.0",
+  "platform": "CROSS_PLATFORM",
+  "sections": {
+    "executiveSummary": "Blended holistic evaluation across Google, Meta, and TikTok paid media channels.",
+    "overallScore": "Omnichannel performance index (0-100) reflecting blended ROAS vs target profit floors.",
+    "findings": "Channel contribution analysis, budget split execution, and customer acquisition cross-pollination.",
+    "issues": "Channel attribution overlap, competing budget requests, and over-reliance on a single channel.",
+    "recommendations": "Cross-platform budget reallocations shifting spend to highest marginal ROAS platforms.",
+    "priorityMatrix": "Capital allocation priority matrix balancing scaling vs channel diversification.",
+    "actionPlan": "Weekly channel spend shift schedule and KPI monitoring checkpoints.",
+    "supportingEvidence": "Cross-platform comparison matrices (Spend, Blended CPA, Platform ROAS, MER).",
+    "appendix": "Marketing Efficiency Ratio (MER) formulas, attribution methodology, and platform exchange rates."
+  },
+  "requiredMetrics": ["spend", "impressions", "clicks", "conversions", "roas", "cpa"],
+  "scoringDimensions": ["blendedRoasHealth", "portfolioDiversification", "cpaEfficiency"]
+}

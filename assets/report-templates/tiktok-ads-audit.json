@@ -1,0 +1,20 @@
+{
+  "id": "tpl_tiktok_ads_audit",
+  "title": "TikTok Ads Performance & Creative Resonance Audit",
+  "reportType": "TIKTOK_ADS_AUDIT",
+  "version": "1.0.0",
+  "platform": "TIKTOK",
+  "sections": {
+    "executiveSummary": "Summary of TikTok Business API performance, SPC campaign stability, and video hook rate dynamics.",
+    "overallScore": "Deterministic audit score (0-100) based on conversion efficiency, hook/hold rates, and creative fatigue.",
+    "findings": "Breakdown of top creative concepts, vertical 9:16 aspect compliance, and Smart Performance pacing.",
+    "issues": "Identified creative exhaustion (CTR decay > 30%), high CPA ad groups, and short video drop-off.",
+    "recommendations": "Proposals for UGC creative refreshes, Spark Ad boosting, and bidding adjustments.",
+    "priorityMatrix": "4-quadrant impact matrix prioritizing rapid video testing vs budget reallocation.",
+    "actionPlan": "Structured execution actions for campaign optimization and creative replacement.",
+    "supportingEvidence": "Video view metrics (2s, 6s, 100%), hook rates, hold rates, and cost-per-conversion trends.",
+    "appendix": "TikTok Events API deduplication status, pixel codes, and commercial policy compliance notes."
+  },
+  "requiredMetrics": ["spend", "impressions", "clicks", "conversions", "roas", "videoViews", "videoHookRate"],
+  "scoringDimensions": ["roasHealth", "cpaEfficiency", "videoHookRate", "creativeFreshness"]
+}

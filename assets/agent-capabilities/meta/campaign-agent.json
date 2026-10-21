@@ -1,15 +1,67 @@
 {
-  "$schema": "https://digiport.neexion.com/schemas/agent-capability.v1.json",
-  "agent": "CampaignAgent",
-  "platform": "META",
-  "supportedObjectives": ["OUTCOME_SALES", "OUTCOME_LEADS", "OUTCOME_TRAFFIC", "OUTCOME_ENGAGEMENT"],
-  "supportedCampaignTypes": ["ADVANTAGE_PLUS_SHOPPING", "MANUAL_CONVERSION", "CATALOG_SALES"],
-  "supportedBiddingStrategies": ["LOWEST_COST_WITHOUT_CAP", "COST_CAP", "MINIMUM_ROAS"],
-  "supportedAssetTypes": ["IMAGE", "VIDEO", "CAROUSEL", "COLLECTION"],
-  "requiresApproval": true,
+  "id": "cap_campaign_agent_meta",
+  "agentName": "CampaignSpecialistAgent",
+  "supportedPlatforms": ["META"],
+  "supportedCampaignTypes": {
+    "META": ["ADVANTAGE_PLUS_SHOPPING", "CONVERSIONS", "TRAFFIC", "LEAD_GENERATION", "CATALOG_SALES"]
+  },
+  "supportedObjectives": {
+    "META": ["OUTCOME_SALES", "OUTCOME_LEADS", "OUTCOME_TRAFFIC", "OUTCOME_ENGAGEMENT"]
+  },
+  "supportedOperations": [
+    "LAUNCH",
+    "CREATE_CAMPAIGN",
+    "PAUSE",
+    "SET_STATUS",
+    "UPDATE_BUDGET"
+  ],
+  "supportedServices": [
+    "MetaCampaignService",
+    "MetaAdSetService",
+    "MetaAdCreativeService"
+  ],
+  "supportedAssetTypes": [
+    "PRIMARY_TEXT",
+    "HEADLINE",
+    "DESCRIPTION",
+    "IMAGE_1X1",
+    "VIDEO_4X5",
+    "VIDEO_9X16",
+    "CAROUSEL_CARDS"
+  ],
+  "supportedExtensions": [],
+  "supportedBiddingStrategies": [
+    "LOWEST_COST_WITHOUT_CAP",
+    "COST_CAP",
+    "MINIMUM_ROAS"
+  ],
+  "requiredInputs": [
+    "clientId",
+    "campaignName",
+    "objective",
+    "dailyBudget",
+    "creativeId",
+    "pixelId",
+    "customEvent"
+  ],
+  "expectedOutputs": [
+    "campaignId",
+    "adSetId",
+    "adId",
+    "status",
+    "summaryBangla",
+    "summaryEnglish"
+  ],
+  "requiredApprovals": true,
   "validationRules": [
-    "Daily budget must not exceed workspace daily limit",
-    "Ad creative must include verified destination URL",
-    "Meta Pixel ID must be active"
-  ]
+    "Pixel ID must be verified and connected with active CAPI stream",
+    "Special Ad Categories must be explicitly declared (NONE, HOUSING, CREDIT, EMPLOYMENT)",
+    "Daily budget must not exceed client monthly budget cap"
+  ],
+  "failureConditions": [
+    "SPECIAL_AD_CATEGORY_VIOLATION",
+    "PIXEL_DISCONNECTED",
+    "GRAPH_API_CALL_LIMIT_REACHED"
+  ],
+  "recoveryStrategy": "Throttle requests if Graph API call count > 80%; abort and notify CEO Agent if Ad Account has billing or policy hold."
 }

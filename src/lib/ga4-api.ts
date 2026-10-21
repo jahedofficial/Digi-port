@@ -7,6 +7,7 @@ export interface Ga4ReportResult {
   sessions: number;
   screenPageViews: number;
   conversions: number;
+  eventCount: number;
   totalRevenue: number;
   propertyId: string;
   clientEmail: string;
@@ -107,6 +108,7 @@ export async function fetchGa4LiveMetrics(
         { name: 'sessions' },
         { name: 'screenPageViews' },
         { name: 'conversions' },
+        { name: 'eventCount' },
         { name: 'totalRevenue' },
       ],
     }),
@@ -139,6 +141,7 @@ export async function fetchGa4LiveMetrics(
   const sessions = Math.round(getValue('sessions'));
   const screenPageViews = Math.round(getValue('screenPageViews'));
   const conversions = Math.round(getValue('conversions'));
+  const eventCount = Math.round(getValue('eventCount'));
   const totalRevenue = getValue('totalRevenue');
 
   return {
@@ -148,6 +151,7 @@ export async function fetchGa4LiveMetrics(
     sessions,
     screenPageViews,
     conversions,
+    eventCount,
     totalRevenue,
     propertyId: cleanPropertyId,
     clientEmail: saEmail,

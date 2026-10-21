@@ -1,15 +1,68 @@
 {
-  "$schema": "https://digiport.neexion.com/schemas/agent-capability.v1.json",
-  "agent": "CampaignAgent",
-  "platform": "TIKTOK",
-  "supportedObjectives": ["CONVERSIONS", "TRAFFIC", "VIDEO_VIEWS", "LEAD_GENERATION"],
-  "supportedCampaignTypes": ["REGULAR_AUCTION", "SPARK_ADS", "VIDEO_SHOPPING"],
-  "supportedBiddingStrategies": ["LOWEST_COST", "BID_CAP", "COST_CAP"],
-  "supportedAssetTypes": ["VERTICAL_VIDEO_9_16", "SPARK_AUTH_CODE", "DISPLAY_IMAGE"],
-  "requiresApproval": true,
+  "id": "cap_campaign_agent_tiktok",
+  "agentName": "CampaignSpecialistAgent",
+  "supportedPlatforms": ["TIKTOK"],
+  "supportedCampaignTypes": {
+    "TIKTOK": ["SMART_PERFORMANCE_CAMPAIGN", "WEB_CONVERSIONS", "LEAD_GENERATION", "REACH"]
+  },
+  "supportedObjectives": {
+    "TIKTOK": ["CONVERSIONS", "TRAFFIC", "LEAD_GENERATION", "VIDEO_VIEWS"]
+  },
+  "supportedOperations": [
+    "LAUNCH",
+    "CREATE_CAMPAIGN",
+    "PAUSE",
+    "SET_STATUS",
+    "UPDATE_BUDGET"
+  ],
+  "supportedServices": [
+    "TikTokCampaignService",
+    "TikTokAdGroupService",
+    "TikTokAdService"
+  ],
+  "supportedAssetTypes": [
+    "VIDEO_VERTICAL_9X16",
+    "AD_TEXT_CAPTION",
+    "DISPLAY_NAME",
+    "CALL_TO_ACTION",
+    "AVATAR_IMAGE"
+  ],
+  "supportedExtensions": [
+    "INTERACTIVE_STICKERS",
+    "COUNTDOWN_STICKERS"
+  ],
+  "supportedBiddingStrategies": [
+    "LOWEST_COST",
+    "BID_CAP",
+    "TARGET_COST"
+  ],
+  "requiredInputs": [
+    "clientId",
+    "campaignName",
+    "objective",
+    "dailyBudget",
+    "videoId",
+    "pixelCode",
+    "optimizationEvent"
+  ],
+  "expectedOutputs": [
+    "campaignId",
+    "adGroupId",
+    "adId",
+    "status",
+    "summaryBangla",
+    "summaryEnglish"
+  ],
+  "requiredApprovals": true,
   "validationRules": [
-    "Advertiser ID must be numeric string",
-    "Video duration must be between 9 and 60 seconds",
-    "TikTok Pixel / Events API must be verified"
-  ]
+    "Video resolution must be at least 720x1280 (vertical 9:16 aspect ratio)",
+    "Video duration must be between 9 and 60 seconds (15-30 seconds recommended)",
+    "TikTok Pixel Code must be active and receiving web events"
+  ],
+  "failureConditions": [
+    "INVALID_VIDEO_RESOLUTION",
+    "ADVERTISER_BALANCE_DEPLETED",
+    "TIKTOK_TIER_RATE_LIMIT"
+  ],
+  "recoveryStrategy": "Retry with 15s delay on rate limit; notify CEO Agent if video asset is rejected by TikTok automated review."
 }

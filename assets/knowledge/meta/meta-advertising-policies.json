@@ -1,0 +1,55 @@
+{
+  "id": "knowledge-meta-advertising-policies",
+  "title": "Meta Advertising Standards, Special Ad Categories & Account Health",
+  "platform": "META",
+  "category": "Ad Standards & Compliance",
+  "version": "1.0.0",
+  "overview": "Meta Advertising Standards outline allowed, restricted, and prohibited ad content on Facebook, Instagram, and Messenger to maintain community safety and regulatory compliance.",
+  "coreConcepts": [
+    "Special Ad Categories (Housing, Employment, Credit, Social Issues) restricting targeting",
+    "Personal Attributes policy: ads must not imply or state personal characteristics (race, religion, health, financial status)",
+    "Non-functional landing page penalties (broken links, excessive popups, deceptive redirects)",
+    "Customer Feedback Score (0 to 5) monitoring post-purchase customer satisfaction"
+  ],
+  "features": [
+    "Account Quality dashboard showing ad rejections, policy strikes, and feedback scores",
+    "Request Review tool for manual appeal of automated rejection decisions",
+    "Ad Library providing public transparency for all active commercial advertisements",
+    "Business Asset Groups managing multi-client permission scoping safely"
+  ],
+  "bestPractices": [
+    "Never use copy asking 'Do you have diabetes?' or 'Are you in debt?' (direct personal attribute violations)",
+    "Ensure landing page displays transparent shipping times, clear returns, and contact details",
+    "If advertising housing, loans, or employment, declare the Special Ad Category upfront",
+    "Maintain customer feedback score > 3.0 to avoid delivery penalty CPM surcharges"
+  ],
+  "policies": [
+    "Prohibited: Adult content, discriminatory practices, deceptive claims, predatory financial products",
+    "Restricted: Alcohol, dating services, cosmetic procedures, subscription services",
+    "Special Ad Categories: No age, gender, zip code, or demographic targeting exclusions allowed"
+  ],
+  "limitations": [
+    "Appeals can take up to 48 hours for human review resolution",
+    "Repeated policy strikes result in ad account disablement or Business Manager restrictions",
+    "Advertisers cannot target specific postal codes within Housing or Employment categories"
+  ],
+  "commonIssues": [
+    "Ad rejection for 'Personal Attributes' when describing customer pain points too directly",
+    "Ad account disabled due to low Customer Feedback Score (< 1.5)",
+    "Disapproval for 'Sensational content' when using close-up bodily images or dramatic before/after photos"
+  ],
+  "troubleshootingGuide": [
+    {
+      "issue": "Personal attributes policy rejection",
+      "resolution": "Reframe copy from second-person ('Are you struggling with X?') to first-person or third-person storytelling ('How our customers overcome X')"
+    },
+    {
+      "issue": "Feedback score dipping below 2.0",
+      "resolution": "Audit supply chain fulfillment speeds and update shipping estimates in post-purchase confirmation emails"
+    }
+  ],
+  "references": [
+    "https://transparency.meta.com/policies/ad-standards",
+    "https://www.facebook.com/business/help/special-ad-categories"
+  ]
+}

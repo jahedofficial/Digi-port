@@ -1,0 +1,15 @@
+{
+  "id": "sched_event_roas_breach",
+  "name": "Reactive ROAS Floor Breach Emergency Audit Trigger",
+  "description": "Event-driven trigger launched whenever real-time conversion ingestion detects ROAS falling 30% below configured target floor.",
+  "clientId": "*",
+  "type": "EVENT_TRIGGER",
+  "eventPattern": "roas.floor_breach",
+  "targetWorkflowId": "workflow-daily-optimization-pipeline",
+  "targetOperation": "OPTIMIZE",
+  "parameters": {
+    "action": "PAUSE_LOW_ROAS_AD_SETS",
+    "requireHumanApproval": true
+  },
+  "status": "ACTIVE"
+}

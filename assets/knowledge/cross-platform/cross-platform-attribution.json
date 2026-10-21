@@ -1,0 +1,56 @@
+{
+  "id": "knowledge-cross-platform-attribution",
+  "title": "Cross-Platform Attribution Modeling, Incrementality & Media Mix",
+  "platform": "CROSS_PLATFORM",
+  "category": "Attribution Science & Measurement",
+  "version": "1.0.0",
+  "overview": "Cross-platform attribution reconciles overlapping conversion credit across Google Ads, Meta Ads, and TikTok Ads using multi-touch modeling, incrementality experiments, and Marketing Mix Modeling (MMM).",
+  "coreConcepts": [
+    "Attribution overlap: multiple walled gardens claiming credit for the exact same transaction",
+    "First-Click vs. Last-Click vs. Data-Driven Attribution (DDA) modeling",
+    "Incrementality testing (geo-holdouts and matched-market experiments) measuring lift over baseline",
+    "Marketing Mix Modeling (MMM / Robyn / Meridian) estimating macro media efficiency without user tracking"
+  ],
+  "features": [
+    "Unified cross-channel tracking reconciliation engine comparing self-reported vs. GA4 modeled data",
+    "Blended CAC and Blended ROAS (Marketing Efficiency Ratio - MER) calculations",
+    "Touchpoint timeline reconstruction mapping user journeys across social discovery and search capture",
+    "Post-Purchase Surveys (PPS / Fairing / Kno) providing zero-party attribution validation"
+  ],
+  "bestPractices": [
+    "Never sum self-reported conversions from Google, Meta, and TikTok directly (leads to 30-50% overcounting)",
+    "Use Marketing Efficiency Ratio (MER = Total Revenue / Total Ad Spend) as the North Star executive KPI",
+    "Assign funnel roles: TikTok & Meta for demand generation, Google Search/Shopping for demand capture",
+    "Run quarterly geo-lift holdout tests to calculate platform-specific incrementality multipliers"
+  ],
+  "policies": [
+    "Compliance with platform API usage policies regarding cross-platform user profile stitching",
+    "Adherence to GDPR and CCPA restrictions on cross-site user identification",
+    "Data aggregation thresholds to protect end-user privacy"
+  ],
+  "limitations": [
+    "Walled gardens do not share impression-level click IDs or raw user graphs with each other",
+    "iOS 14.5+ Private Click Measurement and App Tracking Transparency restricts cross-app tracking",
+    "View-through conversions have differing lookback windows (1 day on Meta vs. 1-3 days on Google/TikTok)"
+  ],
+  "commonIssues": [
+    "Meta and Google both claiming 100% credit for the same high-value purchase order",
+    "Over-allocating budget to branded search due to last-click attribution bias",
+    "Undervaluing top-of-funnel TikTok and Meta Reels due to delayed purchase conversion paths"
+  ],
+  "troubleshootingGuide": [
+    {
+      "issue": "Severe discrepancy between platform totals and actual bank revenue",
+      "resolution": "Implement GA4 Data-Driven Attribution combined with post-purchase survey zero-party validation"
+    },
+    {
+      "issue": "Brand search capturing credit for social media discoveries",
+      "resolution": "Test pausing or reducing Brand Search budget by 20% to observe if overall revenue drops (incrementality test)"
+    }
+  ],
+  "references": [
+    "https://support.google.com/analytics/answer/10596866",
+    "https://www.facebook.com/business/m/attribution-models",
+    "https://github.com/facebookexperimental/Robyn"
+  ]
+}

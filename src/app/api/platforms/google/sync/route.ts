@@ -15,14 +15,9 @@ export async function GET() {
       });
     }
 
-    let ga4Metrics = {
-      activeUsers: 20,
-      newUsers: 7,
-      sessions: 24,
-      conversions: 0,
-      totalRevenue: 0,
-      screenPageViews: 85,
-    };
+    let ga4Metrics = null;
+    let ga4Error: string | null = null;
+    let isLive = false;
 
     if (config.serviceAccountJson && config.ga4PropertyId) {
       try {
@@ -33,11 +28,14 @@ export async function GET() {
             newUsers: live.newUsers,
             sessions: live.sessions,
             conversions: live.conversions,
+            eventCount: live.eventCount,
             totalRevenue: live.totalRevenue,
             screenPageViews: live.screenPageViews,
           };
+          isLive = true;
         }
       } catch (err: any) {
+        ga4Error = err.message;
         console.warn('[GA4 GET] Live fetch notice:', err.message);
       }
     }
@@ -45,6 +43,8 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       isGa4Connected: true,
+      isLive,
+      ga4Error,
       ga4PropertyId: config.ga4PropertyId,
       serviceAccountEmail: config.serviceAccountEmail,
       ga4Metrics,
@@ -87,6 +87,7 @@ export async function POST(req: NextRequest) {
 
     // Attempt live GA4 metrics fetch if Service Account or GA4 Property is provided
     let ga4MetricsData: any = null;
+    let ga4FetchError: string | null = null;
     const effectiveSa = serviceAccountJson || (await getGoogleDirectConfig()).serviceAccountJson;
     const effectivePropId = ga4PropertyId || (await getGoogleDirectConfig()).ga4PropertyId;
 
@@ -94,25 +95,21 @@ export async function POST(req: NextRequest) {
       try {
         ga4MetricsData = await fetchGa4LiveMetrics(effectiveSa, effectivePropId);
       } catch (ga4Err: any) {
+        ga4FetchError = ga4Err.message;
         console.warn('[GA4 POST] Live fetch notice:', ga4Err.message);
       }
     }
 
-    const ga4Metrics = ga4MetricsData && ga4MetricsData.success ? {
+    const isLive = Boolean(ga4MetricsData && ga4MetricsData.success);
+    const ga4Metrics = isLive ? {
       activeUsers: ga4MetricsData.activeUsers,
       newUsers: ga4MetricsData.newUsers,
       sessions: ga4MetricsData.sessions,
       conversions: ga4MetricsData.conversions,
+      eventCount: ga4MetricsData.eventCount,
       totalRevenue: ga4MetricsData.totalRevenue,
       screenPageViews: ga4MetricsData.screenPageViews,
-    } : {
-      activeUsers: 20,
-      newUsers: 7,
-      sessions: 24,
-      conversions: 0,
-      totalRevenue: 0,
-      screenPageViews: 85,
-    };
+    } : null;
 
     // GA4 standalone property or Service Account validation
     if ((ga4PropertyId || saEmail) && !customerId) {
@@ -136,11 +133,25 @@ export async function POST(req: NextRequest) {
         console.warn('Failed to auto-save GA4 direct config on sync:', saveErr);
       }
 
+      if (ga4FetchError) {
+        return NextResponse.json({
+          success: false,
+          isGa4Connected: true,
+          isLive: false,
+          error: ga4FetchError,
+          serviceAccountEmail: saEmail,
+          serviceAccountProjectId: saProjectId,
+          ga4PropertyId,
+          message: `GA4 সংযোগ হয়েছে কিন্তু লাইভ ডাটা আনা যায়নি: ${ga4FetchError}`,
+        }, { status: 400 });
+      }
+
       return NextResponse.json({
         success: true,
+        isLive: true,
         message: saEmail
-          ? `Google Cloud Service Account (${saEmail}) ${ga4PropertyId ? `ও GA4 (${ga4PropertyId})` : ''} সফলভাবে যাচাই ও সংযুক্ত হয়েছে!`
-          : `Google Analytics 4 (GA4 ID: ${ga4PropertyId}) সফলভাবে যাচাই ও সংযুক্ত হয়েছে!`,
+          ? `Google Cloud Service Account (${saEmail}) ও GA4 (${ga4PropertyId}) সফলভাবে যাচাই ও লাইভ সিঙ্ক হয়েছে!`
+          : `Google Analytics 4 (GA4 ID: ${ga4PropertyId}) লাইভ ডাটা সফলভাবে সিঙ্ক হয়েছে!`,
         isGa4Connected: true,
         isGoogleConnected: false,
         accountName: saEmail ? `GA4 (${saEmail.split('@')[0]})` : `GA4 Property (${ga4PropertyId})`,
@@ -152,12 +163,12 @@ export async function POST(req: NextRequest) {
         ga4Metrics,
         metrics: {
           spend: 0,
-          revenue: 0,
-          conversions: 0,
+          revenue: ga4Metrics?.totalRevenue || 0,
+          conversions: ga4Metrics?.conversions || 0,
           cpa: 0,
           roas: 0,
-          impressions: 0,
-          clicks: 0,
+          impressions: ga4Metrics?.screenPageViews || 0,
+          clicks: ga4Metrics?.sessions || 0,
           ctr: 0,
           cpc: 0,
         },

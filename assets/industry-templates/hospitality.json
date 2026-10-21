@@ -1,0 +1,111 @@
+{
+  "id": "template-hospitality-travel",
+  "name": "Hospitality, Luxury Resorts, Hotels & Travel Destinations",
+  "industry": "hospitality",
+  "version": "1.0.0",
+  "businessGoals": [
+    "Drive Direct Room & Resort Bookings to Minimize OTA Commission Fees",
+    "Promote Seasonal Vacation Packages and Experience Add-ons (Spa, Dining)",
+    "Retarget Window Shoppers During Peak Holiday & Weekend Booking Cycles"
+  ],
+  "campaignStructure": {
+    "funnelStages": ["Destination Inspiration & Wanderlust", "Property Amenities & Experiences", "Direct Booking Incentive"],
+    "namingConvention": "HOSP_[RESORT]_[DESTINATION]_[CHANNEL]_[SEASON]"
+  },
+  "recommendedCampaignTypes": {
+    "google": ["Google Hotel Ads", "Destination Search Campaigns", "Performance Max for Travel Goals"],
+    "meta": ["Dynamic Travel Ads (DTA) for Hotels", "Instagram Reels Luxury Escapes", "Carousel Amenities Tours"],
+    "tiktok": ["Travel Creator Vlogs", "Scenic Resort Views Spark Ads"]
+  },
+  "budgetStrategy": {
+    "google": "Target ROAS with Seasonal Surges tied to Booking Lead Time Curves",
+    "meta": "Dynamic Travel Retargeting with Date-Specific Inventory Pricing",
+    "tiktok": "Wanderlust Video Discovery Budget Allocation"
+  },
+  "biddingStrategy": {
+    "google": "Commission-based / Target ROAS on Verified Hotel Stays",
+    "meta": "Highest Value with Minimum Booking ROAS Guardrail",
+    "tiktok": "Lowest Cost per Booking Portal Visit"
+  },
+  "conversionGoals": [
+    "Direct Room Booking Confirmed",
+    "Initiate Booking / Select Dates",
+    "Dining / Spa Reservation Made"
+  ],
+  "trackingRequirements": [
+    "Google Hotel Center / Free Booking Links integration",
+    "Meta CAPI for Travel with checkin_date, checkout_date, and num_adults",
+    "GA4 purchase event with room_type, nights, and total_value parameters",
+    "Booking Engine (SynXis / Sabre / Cloudbeds) server-side webhook integration"
+  ],
+  "assetRequirements": {
+    "formats": ["Cinematic Resort Drone Videos", "Culinary & Spa Detail Photos", "Guest Experience Reels"],
+    "aspectRatios": ["16:9", "1:1", "9:16"],
+    "maxVideoDurationSeconds": 60,
+    "headlineCharacterLimit": 30
+  },
+  "namingConventions": {
+    "campaignPattern": "HOSP_{PLATFORM}_{DESTINATION}_{SEASON}_{VERSION}",
+    "adGroupPattern": "AG_{TRAVELER_TYPE}_{FEED_TYPE}",
+    "adPattern": "AD_{EXPERIENCE_HOOK}_{PROMO_OFFER}"
+  },
+  "kpiTargets": {
+    "targetROAS": 4.5,
+    "bookingConversionRate": 3.8,
+    "targetCTR": 2.4,
+    "averageBookingValueUSD": 650.0
+  },
+  "reportingMetrics": [
+    "Spend",
+    "Impressions",
+    "Clicks",
+    "InitiateCheckouts",
+    "Bookings",
+    "GrossBookingValueUSD",
+    "ROAS",
+    "AverageDailyRateUSD"
+  ],
+  "bestPractices": [
+    "Highlight direct booking perks like 'Complimentary Breakfast' or 'Flexible Free Cancellation'",
+    "Run dynamic retargeting showing the exact dates and room type the user searched",
+    "Increase budgets on Sunday evenings and Monday mornings when leisure travel planning peaks"
+  ],
+  "platformMix": {
+    "recommendedRoles": {
+      "google": "Capturing high-intent destination hotel searches and Google Maps Hotel listings",
+      "meta": "Inspiring visual wanderlust through luxury Reels and date-driven retargeting",
+      "tiktok": "Engaging room tours, hidden travel gems, and viral aesthetic getaway videos"
+    },
+    "budgetSplitRanges": {
+      "google": { "minPercent": 30, "maxPercent": 50, "defaultPercent": 40 },
+      "meta": { "minPercent": 35, "maxPercent": 55, "defaultPercent": 45 },
+      "tiktok": { "minPercent": 10, "maxPercent": 25, "defaultPercent": 15 }
+    },
+    "perPlatformCampaignTypes": {
+      "google": ["Hotel Ads", "Search", "Performance Max"],
+      "meta": ["Sales", "Dynamic Travel Ads"],
+      "tiktok": ["Web Conversions", "Video Views"]
+    },
+    "perPlatformObjectives": {
+      "google": "SALES",
+      "meta": "OUTCOME_SALES",
+      "tiktok": "CONVERSIONS"
+    },
+    "perPlatformOptimizationEvents": {
+      "google": "PURCHASE",
+      "meta": "PURCHASE",
+      "tiktok": "COMPLETE_PAYMENT"
+    },
+    "perPlatformCreativeRequirements": {
+      "google": { "formats": ["IMAGE", "FEED", "TEXT"], "aspectRatios": ["16:9", "1:1"] },
+      "meta": { "formats": ["CAROUSEL", "VIDEO", "IMAGE"], "aspectRatios": ["1:1", "9:16"] },
+      "tiktok": { "formats": ["VIDEO"], "aspectRatios": ["9:16"], "maxDurationSeconds": 60 }
+    },
+    "policyConstraints": {
+      "specialAdCategory": "NONE",
+      "google": ["All mandatory resort fees and taxes must be clearly disclosed before checkout", "Accurate hotel star ratings"],
+      "meta": ["Transparent pricing and clear cancellation terms on all promo packages"],
+      "tiktok": ["Clear travel restrictions and visa advisories where relevant"]
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "prompt-campaign-audit",
+  "name": "Multi-Channel Campaign Health & Wasted Spend Audit Prompt Template",
+  "category": "Audit & Diagnostics",
+  "version": "1.0.0",
+  "variables": ["client_name", "date_range", "total_spend", "currency", "roas", "cpa"],
+  "systemPrompt": "You are a Senior Performance Marketing Auditor. Analyze live campaign data objectively, identify wasted spend, and diagnose structural or creative fatigue points.",
+  "userPromptTemplate": "Conduct a comprehensive performance audit for {{client_name}} over the period: {{date_range}}.\n\nAccount Snapshot:\n- Total Spend: {{total_spend}} {{currency}}\n- Blended ROAS: {{roas}}\n- Blended CPA: {{cpa}}\n\nProvide:\n1. 100-Point Account Health Evaluation\n2. Wasted Spend Diagnosis & Bleeding Segment Identification\n3. Creative Fatigue & Audience Saturation Review\n4. Immediate Remediation Action Plan"
+}

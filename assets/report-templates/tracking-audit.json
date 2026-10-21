@@ -1,0 +1,20 @@
+{
+  "id": "tpl_tracking_audit",
+  "title": "Tracking Infrastructure & Server-Side Deduplication Audit",
+  "reportType": "TRACKING_AUDIT",
+  "version": "1.0.0",
+  "platform": "CROSS_PLATFORM",
+  "sections": {
+    "executiveSummary": "Audit of conversion tracking health across GA4, GTM, Meta CAPI, and TikTok Events API.",
+    "overallScore": "Tracking Reliability Score (0-100) based on Event Match Quality, deduplication, and signal loss.",
+    "findings": "Status of client-side web pixels, server-side CAPI pipelines, and enhanced conversions setup.",
+    "issues": "Missing event ID deduplication, degraded Event Match Quality (<6.0), and unverified conversion actions.",
+    "recommendations": "Remediation plan to fix event parameter schemas, pass hashed user data, and verify tag firing.",
+    "priorityMatrix": "Signal integrity priority matrix ranking data-loss risks vs setup enhancements.",
+    "actionPlan": "Developer implementation guide for tag adjustments and server event stream verification.",
+    "supportingEvidence": "Event volume graphs, deduplication ratio logs, and server response latency metrics.",
+    "appendix": "Pixel IDs, CAPI endpoint configurations, GTM container versions, and event payload schemas."
+  },
+  "requiredMetrics": ["eventMatchQuality", "deduplicationRatio", "totalEventsReceived", "serverLatencyMs"],
+  "scoringDimensions": ["eventMatchQuality", "deduplicationAccuracy", "signalIntegrity"]
+}

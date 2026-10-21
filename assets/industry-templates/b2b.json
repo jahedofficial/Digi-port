@@ -1,0 +1,108 @@
+{
+  "id": "template-b2b-enterprise",
+  "name": "B2B Enterprise, Consulting & Industrial Services",
+  "industry": "b2b",
+  "version": "1.0.0",
+  "businessGoals": [
+    "Book High-Value Enterprise Discovery Calls with Decision Makers (VPs, Directors)",
+    "Generate Whitepaper, Benchmark & Case Study Downloads",
+    "Support Account-Based Marketing (ABM) Expansion within Target Accounts"
+  ],
+  "campaignStructure": {
+    "funnelStages": ["Problem Identification & Research", "Vendor Comparison & ROI", "Executive Demo Request"],
+    "namingConvention": "B2B_[ICP_SEGMENT]_[CHANNEL]_[CONTENT_TYPE]_[GEO]"
+  },
+  "recommendedCampaignTypes": {
+    "google": ["Exact Match Problem/Solution Search", "Competitor Alternative Search", "PMax for B2B"],
+    "meta": ["Document Ads (PDF Whitepapers)", "Thought Leadership Video Retargeting", "Custom Audience Account Lists"],
+    "tiktok": ["Founders Journey Short Videos", "Corporate Culture & Innovation Clips"]
+  },
+  "budgetStrategy": {
+    "google": "High Target CPA with Strict Negative Keywords",
+    "meta": "Target ICP Job Title Custom Audiences with Dayparting to Business Hours",
+    "tiktok": "Minimal Test Budget on Tech/Product Trends"
+  },
+  "biddingStrategy": {
+    "google": "Maximize Conversions with Target CPA (tCPA)",
+    "meta": "Cost Cap on Qualified Demo Requests",
+    "tiktok": "Lowest Cost Traffic to Whitepaper"
+  },
+  "conversionGoals": [
+    "Enterprise Demo Requested",
+    "Gated Whitepaper / Report Downloaded",
+    "Pricing Calculator Completed"
+  ],
+  "trackingRequirements": [
+    "GA4 enterprise_demo_request with deal size tiering",
+    "Google Ads Enhanced Conversions for B2B leads",
+    "Meta Conversions API with CRM Stage Update (MQL -> SQL -> Closed Won)",
+    "Reverse IP Lookup / Clearbit / Leadfeeder integration tracking"
+  ],
+  "assetRequirements": {
+    "formats": ["Analyst Report Summaries", "Executive Interview Snippets", "G2/Gartner Badge Graphics"],
+    "aspectRatios": ["1:1", "1.91:1", "16:9"],
+    "maxVideoDurationSeconds": 90,
+    "headlineCharacterLimit": 30
+  },
+  "namingConventions": {
+    "campaignPattern": "B2B_{PLATFORM}_{ICP}_{SOLUTION}_{VERSION}",
+    "adGroupPattern": "AG_{TIER}_{JOB_FUNCTION}",
+    "adPattern": "AD_{REPORT_OR_DEMO}_{HOOK}"
+  },
+  "kpiTargets": {
+    "targetCPA": 120.0,
+    "demoShowRate": 75.0,
+    "targetCTR": 2.2
+  },
+  "reportingMetrics": [
+    "Spend",
+    "Clicks",
+    "DemosBooked",
+    "WhitepaperDownloads",
+    "CostPerDemo",
+    "PipelineGeneratedUSD"
+  ],
+  "bestPractices": [
+    "Exclude consumer email domains (gmail, yahoo, hotmail) on landing page forms",
+    "Run competitor comparison campaigns highlighting unique compliance or SLA advantages",
+    "Keep ad creative restrained, authoritative, and focused on hard ROI statistics"
+  ],
+  "platformMix": {
+    "recommendedRoles": {
+      "google": "Capture active software or service replacement and vendor research queries",
+      "meta": "Retarget website visitors with customer case studies and downloadable guides",
+      "tiktok": "B2B company cultural brand building and executive thought leadership"
+    },
+    "budgetSplitRanges": {
+      "google": { "minPercent": 50, "maxPercent": 70, "defaultPercent": 60 },
+      "meta": { "minPercent": 20, "maxPercent": 40, "defaultPercent": 30 },
+      "tiktok": { "minPercent": 5, "maxPercent": 15, "defaultPercent": 10 }
+    },
+    "perPlatformCampaignTypes": {
+      "google": ["Search", "Performance Max"],
+      "meta": ["Lead Generation", "Traffic"],
+      "tiktok": ["Traffic", "Video Views"]
+    },
+    "perPlatformObjectives": {
+      "google": "LEAD_GENERATION",
+      "meta": "OUTCOME_LEADS",
+      "tiktok": "TRAFFIC"
+    },
+    "perPlatformOptimizationEvents": {
+      "google": "BOOK_APPOINTMENT",
+      "meta": "LEAD",
+      "tiktok": "VIEW_CONTENT"
+    },
+    "perPlatformCreativeRequirements": {
+      "google": { "formats": ["TEXT"], "aspectRatios": ["1.91:1"] },
+      "meta": { "formats": ["CAROUSEL", "IMAGE", "VIDEO"], "aspectRatios": ["1:1", "1.91:1"] },
+      "tiktok": { "formats": ["VIDEO"], "aspectRatios": ["9:16"], "maxDurationSeconds": 60 }
+    },
+    "policyConstraints": {
+      "specialAdCategory": "NONE",
+      "google": ["Trademark policy compliance when bidding on competitor terms", "No deceptive claims"],
+      "meta": ["No scraped business contact targeting violating privacy policies"],
+      "tiktok": ["Commercial music and audio license verification"]
+    }
+  }
+}

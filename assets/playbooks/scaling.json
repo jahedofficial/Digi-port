@@ -1,0 +1,69 @@
+{
+  "id": "playbook-scaling",
+  "name": "High-ROAS Vertical & Horizontal Campaign Scaling",
+  "version": "1.0.0",
+  "targetPlatforms": ["GOOGLE", "META", "TIKTOK"],
+  "purpose": "Scale top-performing campaigns across Google, Meta, and TikTok vertically (gradual budget increases) and horizontally (creative & audience expansion) without resetting platform machine learning.",
+  "triggerConditions": [
+    "Campaign ROAS exceeds target benchmark by > 20% over 7 consecutive days",
+    "Customer Acquisition Cost (CAC) is at least 25% below client ceiling",
+    "User prompt requesting to scale winners"
+  ],
+  "prerequisites": [
+    "Campaign has exited initial learning phase (> 50 conversions in last 7 days)",
+    "Client monthly budget cap has remaining headroom to support scale",
+    "Supply chain / client service capacity confirmed adequate to fulfill increased volume"
+  ],
+  "executionSteps": [
+    {
+      "step": 1,
+      "name": "Identify Scaling Candidates",
+      "specialistAgent": "AuditAgent",
+      "action": "Filter all active campaigns maintaining ROAS >= target + 20% with healthy impression share headroom"
+    },
+    {
+      "step": 2,
+      "name": "Execute Vertical Budget Scale (+15% to +20%)",
+      "specialistAgent": "OptimizationAgent",
+      "action": "Increase daily budget by exactly 15% to 20% on winning campaigns (strictly <= 20% every 48-72 hours to prevent learning reset)"
+    },
+    {
+      "step": 3,
+      "name": "Execute Horizontal Expansion",
+      "specialistAgent": "CampaignAgent",
+      "action": "Duplicate top-performing ad sets into new lookalike segments (1-3% LAL) or broad audiences with fresh creative angles"
+    },
+    {
+      "step": 4,
+      "name": "Deploy Budget Protection Guardrails",
+      "specialistAgent": "RiskEngine",
+      "action": "Set automated rule: if scaling campaign daily CPA spikes > 35% above baseline over 48 hours, immediately rollback budget"
+    },
+    {
+      "step": 5,
+      "name": "Human Approval Gate",
+      "specialistAgent": "CEOAgent",
+      "action": "Require explicit confirmation from marketer before scaling total daily budget past threshold",
+      "requiredApprovals": true
+    }
+  ],
+  "specialistAgents": ["AuditAgent", "OptimizationAgent", "CampaignAgent", "RiskEngine", "CEOAgent"],
+  "requiredApprovals": true,
+  "expectedOutputs": [
+    "Scaling Execution Schedule",
+    "Updated Daily Budget Allocations",
+    "Safety Guardrail Alert Triggers"
+  ],
+  "successCriteria": [
+    "Conversion volume scales proportionally with <= 15% CPA degradation",
+    "Zero campaigns reset into 'Learning Limited' status",
+    "Total spend remains strictly within client monthly budget cap"
+  ],
+  "failureHandling": {
+    "retryStrategy": "Retry budget update once on rate limit; abort if account spend cap reached",
+    "alertChannel": "Telegram Emergency Alert",
+    "maxRetries": 1,
+    "onUnrecoverable": "ROLLBACK"
+  },
+  "rollbackStrategy": "Automatically revert daily budget to pre-scaling baseline and pause horizontal duplicate ad sets if ROAS drops below break-even."
+}

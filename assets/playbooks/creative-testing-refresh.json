@@ -1,0 +1,68 @@
+{
+  "id": "playbook-creative-testing-refresh",
+  "name": "Creative Hook Testing, Iteration & Fatigue Refresh",
+  "version": "1.0.0",
+  "targetPlatforms": ["GOOGLE", "META", "TIKTOK"],
+  "purpose": "Systematically launch and isolate new creative hooks, formats, and angles into dedicated testing sandboxes before graduating winning assets into scaling campaigns.",
+  "triggerConditions": [
+    "Ad frequency reaches > 3.0 on Meta or TikTok",
+    "Click-Through Rate (CTR) decays by > 25% over 14 days",
+    "New creative batch uploaded by client or agency"
+  ],
+  "prerequisites": [
+    "At least 3 new creative variations ready (different hooks, aspect ratios, or lead-in angles)",
+    "Creative testing ad set or Sandbox campaign created",
+    "Minimum statistical significance threshold established (e.g. 1000 impressions / $25 per variant)"
+  ],
+  "executionSteps": [
+    {
+      "step": 1,
+      "name": "Audit Creative Asset Specs & Formatting",
+      "specialistAgent": "CreativeAgent",
+      "action": "Verify 9:16 vertical video formatting for TikTok & Reels, 1:1 for Feeds, and compliance with safe zones and text overlay limits"
+    },
+    {
+      "step": 2,
+      "name": "Deploy Isolated Creative Sandbox",
+      "specialistAgent": "CampaignAgent",
+      "action": "Deploy new creative variations into a dedicated dynamic creative testing ad set with equalized budget distribution"
+    },
+    {
+      "step": 3,
+      "name": "Measure Hook Retention & Engagement",
+      "specialistAgent": "CreativeAgent",
+      "action": "Analyze 3-second video hook rate, average watch time, outbound CTR, and initial conversion rate after 72 hours"
+    },
+    {
+      "step": 4,
+      "name": "Graduate Winning Creatives",
+      "specialistAgent": "CampaignAgent",
+      "action": "Promote winning creative variants with highest conversion efficiency into primary scaling campaigns (ASC / PMax)"
+    },
+    {
+      "step": 5,
+      "name": "Retire & Archive Fatigued Ads",
+      "specialistAgent": "CampaignAgent",
+      "action": "Gracefully pause old fatigued creative assets that have exceeded frequency saturation limits"
+    }
+  ],
+  "specialistAgents": ["CreativeAgent", "CampaignAgent", "AuditAgent"],
+  "requiredApprovals": false,
+  "expectedOutputs": [
+    "Creative Scorecard with 3-Second Hook Rates",
+    "List of Graduated Winning Ads",
+    "Fatigued Creative Archival Log"
+  ],
+  "successCriteria": [
+    "Identification of at least 1 winning creative variation outperforming control CTR by >= 20%",
+    "Seamless graduation into scaling campaigns without pausing active learning",
+    "Creative fatigue decay reversed within 7 days"
+  ],
+  "failureHandling": {
+    "retryStrategy": "Retry asset upload once if encoding or transcoding error occurs",
+    "alertChannel": "Telegram Notification",
+    "maxRetries": 1,
+    "onUnrecoverable": "NOTIFY"
+  },
+  "rollbackStrategy": "Immediately re-enable previous control creative if newly graduated variant fails to convert in the scaling ad set."
+}

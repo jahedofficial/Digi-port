@@ -1,15 +1,75 @@
 {
-  "$schema": "https://digiport.neexion.com/schemas/agent-capability.v1.json",
-  "agent": "CampaignAgent",
-  "platform": "GOOGLE",
-  "supportedObjectives": ["SALES", "LEADS", "WEBSITE_TRAFFIC"],
-  "supportedCampaignTypes": ["PERFORMANCE_MAX", "SEARCH", "SHOPPING", "DEMAND_GEN"],
-  "supportedBiddingStrategies": ["TARGET_ROAS", "TARGET_CPA", "MAXIMIZE_CONVERSIONS"],
-  "supportedAssetTypes": ["TEXT_HEADLINE", "TEXT_DESCRIPTION", "MARKETING_IMAGE", "SQUARE_IMAGE", "LOGO", "YOUTUBE_VIDEO"],
-  "requiresApproval": true,
+  "id": "cap_campaign_agent_google",
+  "agentName": "CampaignSpecialistAgent",
+  "supportedPlatforms": ["GOOGLE"],
+  "supportedCampaignTypes": {
+    "GOOGLE": ["PERFORMANCE_MAX", "SEARCH", "SHOPPING", "DEMAND_GEN", "YOUTUBE"]
+  },
+  "supportedObjectives": {
+    "GOOGLE": ["SALES", "LEADS", "WEBSITE_TRAFFIC"]
+  },
+  "supportedOperations": [
+    "LAUNCH",
+    "CREATE_CAMPAIGN",
+    "PAUSE",
+    "SET_STATUS",
+    "UPDATE_BUDGET"
+  ],
+  "supportedServices": [
+    "GoogleAdsCampaignService",
+    "GoogleAdsAssetGroupService",
+    "GoogleAdsAdGroupService"
+  ],
+  "supportedAssetTypes": [
+    "TEXT_HEADLINE",
+    "TEXT_DESCRIPTION",
+    "MARKETING_IMAGE",
+    "SQUARE_IMAGE",
+    "LOGO",
+    "YOUTUBE_VIDEO"
+  ],
+  "supportedExtensions": [
+    "SITELINKS",
+    "CALLOUTS",
+    "STRUCTURED_SNIPPETS",
+    "PRICE_EXTENSIONS"
+  ],
+  "supportedBiddingStrategies": [
+    "TARGET_ROAS",
+    "TARGET_CPA",
+    "MAXIMIZE_CONVERSIONS",
+    "MAXIMIZE_CLICKS"
+  ],
+  "requiredInputs": [
+    "clientId",
+    "campaignName",
+    "campaignType",
+    "dailyBudget",
+    "biddingStrategy",
+    "headlines",
+    "descriptions",
+    "finalUrl"
+  ],
+  "expectedOutputs": [
+    "campaignId",
+    "adGroupId",
+    "status",
+    "appliedBudget",
+    "summaryBangla",
+    "summaryEnglish"
+  ],
+  "requiredApprovals": true,
   "validationRules": [
-    "Customer ID must be 10 digits formatted (e.g. 123-456-7890)",
+    "Customer ID must be 10 digits formatted",
+    "Final URL must be reachable (HTTP 200)",
     "Enhanced Conversions must be enabled for tROAS",
-    "Final URL must be reachable (HTTP 200)"
-  ]
+    "Daily budget must not exceed client monthly budget cap"
+  ],
+  "failureConditions": [
+    "INSUFFICIENT_ASSETS",
+    "INVALID_FINAL_URL",
+    "CUSTOMER_NOT_FOUND",
+    "RATE_LIMIT_EXCEEDED"
+  ],
+  "recoveryStrategy": "If transient rate limit occurs, retry with 30s exponential backoff; if policy violation on text/asset, report to CEO Agent for creative refinement."
 }

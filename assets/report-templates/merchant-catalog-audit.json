@@ -1,0 +1,20 @@
+{
+  "id": "tpl_merchant_catalog_audit",
+  "title": "Merchant Center & Product Catalog Diagnostic Audit",
+  "reportType": "MERCHANT_CATALOG_AUDIT",
+  "version": "1.0.0",
+  "platform": "CROSS_PLATFORM",
+  "sections": {
+    "executiveSummary": "Feed health and product approval diagnostic across Google Merchant Center and Meta/TikTok Catalogs.",
+    "overallScore": "Catalog Health Score (0-100) reflecting percentage of approved, policy-compliant SKUs.",
+    "findings": "Product categorization accuracy, custom label distribution, and price/stock microdata synchronization.",
+    "issues": "Disapproved items due to policy flags, missing GTIN/MPN identifiers, or mismatched on-page pricing.",
+    "recommendations": "Feed enhancement proposals, supplemental feed rules, and automated inventory sync fixes.",
+    "priorityMatrix": "Catalog remediation matrix ordered by high-revenue SKU impact.",
+    "actionPlan": "Step-by-step product data cleanup and resubmission timeline.",
+    "supportingEvidence": "Item approval status tables, error code tallies, and product category breakdown charts.",
+    "appendix": "Merchant Center Account IDs, Catalog IDs, primary feed fetch URLs, and scheduled fetch frequencies."
+  },
+  "requiredMetrics": ["totalProducts", "approvedProducts", "disapprovedProducts", "itemApprovalRate"],
+  "scoringDimensions": ["catalogApprovalRate", "dataRichnessScore", "priceStockAccuracy"]
+}

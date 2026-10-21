@@ -1,0 +1,63 @@
+{
+  "id": "cap_creative_agent_cross_platform",
+  "agentName": "CreativeSpecialistAgent",
+  "supportedPlatforms": ["GOOGLE", "META", "TIKTOK"],
+  "supportedCampaignTypes": {
+    "GOOGLE": ["PERFORMANCE_MAX", "DEMAND_GEN", "YOUTUBE"],
+    "META": ["ADVANTAGE_PLUS_SHOPPING", "CONVERSIONS"],
+    "TIKTOK": ["SMART_PERFORMANCE_CAMPAIGN", "WEB_CONVERSIONS"]
+  },
+  "supportedObjectives": {
+    "GOOGLE": ["SALES", "LEADS", "BRAND_AWARENESS"],
+    "META": ["OUTCOME_SALES", "OUTCOME_TRAFFIC"],
+    "TIKTOK": ["CONVERSIONS", "VIDEO_VIEWS"]
+  },
+  "supportedOperations": [
+    "CREATIVE_ANALYSIS",
+    "ANALYZE_CREATIVE_FATIGUE",
+    "VALIDATE_ASSET_SPECS",
+    "GENERATE_TESTING_PLAN"
+  ],
+  "supportedServices": [
+    "AssetMetadataService",
+    "CreativeFatigueDetectorService",
+    "AspectFormatValidatorService"
+  ],
+  "supportedAssetTypes": [
+    "IMAGE_1X1",
+    "IMAGE_9X16",
+    "IMAGE_16X9",
+    "VIDEO_VERTICAL_9X16",
+    "VIDEO_HORIZONTAL_16X9",
+    "HEADLINE_TEXT",
+    "BODY_COPY_TEXT"
+  ],
+  "supportedExtensions": [],
+  "supportedBiddingStrategies": [],
+  "requiredInputs": [
+    "clientId",
+    "assetList",
+    "targetPlatform",
+    "frequencyThreshold"
+  ],
+  "expectedOutputs": [
+    "fatiguedAssetIds",
+    "hookRateEstimates",
+    "aspectRatioComplianceReport",
+    "creativeTestingMatrix",
+    "summaryBangla",
+    "summaryEnglish"
+  ],
+  "requiredApprovals": false,
+  "validationRules": [
+    "Creative agent evaluates asset specs and fatigue only; never makes financial decisions",
+    "Video assets must comply with platform minimum resolution (720p+ for TikTok)",
+    "Image assets must adhere to file size limits (<30MB Meta, <5MB Google)"
+  ],
+  "failureConditions": [
+    "MISSING_ASSET_METADATA",
+    "UNSUPPORTED_MEDIA_TYPE",
+    "CORRUPTED_MEDIA_FILE"
+  ],
+  "recoveryStrategy": "Skip corrupted media item and flag warning in execution result; continue evaluating remaining assets in the task queue."
+}

@@ -340,16 +340,10 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
       const savedGoogle = localStorage.getItem('dm_google_direct_settings');
       if (savedGoogle) {
         const parsed = JSON.parse(savedGoogle);
-        if (
-          parsed.ga4PropertyId === '551294668' || 
-          parsed.developerToken?.includes('sample') || 
-          parsed.customerId === '456-233-9588'
-        ) {
+        if (parsed.developerToken?.includes('sample') || parsed.customerId === '456-233-9588') {
           localStorage.removeItem('dm_google_direct_settings');
-        } else if (parsed.developerToken && !parsed.developerToken.includes('sample')) {
+        } else if (parsed.ga4PropertyId || parsed.serviceAccountEmail || parsed.serviceAccountJson || (parsed.developerToken && !parsed.developerToken.includes('sample'))) {
           setGoogleSettings((prev) => ({ ...prev, ...parsed, scope: 'READ_WRITE' }));
-        } else {
-          localStorage.removeItem('dm_google_direct_settings');
         }
       }
 

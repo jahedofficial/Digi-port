@@ -32,14 +32,18 @@ export async function POST(req: NextRequest) {
     }
 
     // Determine verification target
-    const isLocalDigiPort = baseUrl.includes(':18789') || baseUrl.includes('digiport.neexion.com');
+    const isOpenClaw = baseUrl.includes('openclaw') || baseUrl.includes(':18789') || baseUrl.includes('neexion.com');
     const isExplicitOpenRouter = baseUrl.includes('openrouter.ai');
     
     // For OpenRouter keys, verify via official auth/key endpoint
-    // For external custom gateways, verify via their /v1/models endpoint
+    // For OpenClaw / external custom gateways, verify via their /v1/models endpoint
     let verifyUrl = 'https://openrouter.ai/api/v1/auth/key';
-    if (!isLocalDigiPort && !isExplicitOpenRouter && !secretKey.startsWith('sk-or-v1-')) {
-      verifyUrl = `${baseUrl.replace(/\/+$/, '')}/v1/models`;
+    if (isOpenClaw) {
+      verifyUrl = baseUrl.includes(':18789') 
+        ? 'http://127.0.0.1:18789/v1/models'
+        : (baseUrl.endsWith('/v1') ? `${baseUrl}/models` : `${baseUrl.replace(/\/+$/, '')}/v1/models`);
+    } else if (!isExplicitOpenRouter && !secretKey.startsWith('sk-or-v1-')) {
+      verifyUrl = baseUrl.endsWith('/v1') ? `${baseUrl}/models` : `${baseUrl.replace(/\/+$/, '')}/v1/models`;
     }
 
     try {

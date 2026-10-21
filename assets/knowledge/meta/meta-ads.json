@@ -1,0 +1,55 @@
+{
+  "id": "knowledge-meta-ads",
+  "title": "Meta Ads Auction Mechanics, Advantage+ & Creative Diversity",
+  "platform": "META",
+  "category": "Social Performance Advertising",
+  "version": "1.0.0",
+  "overview": "Meta Ads delivers performance advertising across Facebook, Instagram, Messenger, and Audience Network using an automated auction model and machine-learning creative optimization.",
+  "coreConcepts": [
+    "Total Value Auction Formula: Total Value = [Advertiser Bid] x [Estimated Action Rates] + [User Value]",
+    "Learning Phase requirement: 50 optimization events per ad set within 7 days",
+    "Advantage+ Shopping Campaigns (ASC) combining prospecting and retargeting into a single machine-learning entity",
+    "Creative fatigue driven by frequency saturation and creative homogeneity"
+  ],
+  "features": [
+    "Advantage Campaign Budget (formerly CBO) dynamically shifting spend to top ad sets",
+    "Advantage+ Creative enhancements (automatic aspect ratio expansion, image brightness, 3D effects)",
+    "Meta Marketing API (v20.0) for programmatic campaign creation, budgeting, and automated rules",
+    "Flexible Ads format allowing combinations of up to 10 images/videos and 5 copy variants"
+  ],
+  "bestPractices": [
+    "Consolidate ad set structure: fewer broad ad sets perform better than fractured granular audiences",
+    "Deploy at least 3 distinct creative angles per ad set (User Generated Content, Founder Story, Product Feature, Social Proof)",
+    "Do not edit active ad sets with budget changes > 20% in a single day to avoid resetting the learning phase",
+    "Utilize 9:16 vertical video for Instagram Reels and Stories alongside 1:1 and 4:5 for Feed"
+  ],
+  "policies": [
+    "Meta Advertising Standards regarding misleading business practices and sensationalism",
+    "Mandatory Special Ad Categories for Credit, Employment, Housing, and Social Issues/Elections",
+    "Strict prohibitions on before/and after imagery in weight loss, health, and cosmetic procedures"
+  ],
+  "limitations": [
+    "Meta Graph API rate limiting tracked via X-Business-Use-Case headers (calls, CPU time, total time)",
+    "Maximum 250 active ad sets per ad account (depending on account tier)",
+    "Attribution window limited to 7-day click and 1-day view post-iOS 14.5"
+  ],
+  "commonIssues": [
+    "Ad sets stuck in 'Learning Limited' status due to fragmented budgets",
+    "Ad fatigue causing sharp CPA spikes after 14-21 days of delivery",
+    "High CPM spikes caused by severe audience overlap between competing ad sets"
+  ],
+  "troubleshootingGuide": [
+    {
+      "issue": "High audience overlap between internal ad sets",
+      "resolution": "Use Audience Overlap Tool in Audiences tab; consolidate overlapping ad sets into a single broad audience"
+    },
+    {
+      "issue": "Creative fatigue detected on top-spending ad",
+      "resolution": "Deploy new creative hook variants into the ad set and pause fatigued variants once new variants exit learning"
+    }
+  ],
+  "references": [
+    "https://www.facebook.com/business/help",
+    "https://developers.facebook.com/docs/marketing-apis"
+  ]
+}

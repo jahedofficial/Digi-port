@@ -1,0 +1,55 @@
+{
+  "id": "knowledge-google-analytics-4",
+  "title": "Google Analytics 4 (GA4) Event Architecture & Attribution",
+  "platform": "GOOGLE",
+  "category": "Web Analytics & Measurement",
+  "version": "1.0.0",
+  "overview": "Google Analytics 4 provides an event-based measurement model tracking user interactions across web and mobile platforms with machine-learning attribution modeling.",
+  "coreConcepts": [
+    "Event-based data model replacing Universal Analytics session-based model",
+    "Data-Driven Attribution (DDA) modeling assigning fractional credit",
+    "Google Signals for cross-device reporting and demographic data",
+    "Measurement Protocol for server-side offline conversion ingestion"
+  ],
+  "features": [
+    "Automatic collection of enhanced measurement events (scrolls, outbound clicks, search)",
+    "Custom dimensions and user properties up to 50 scoped variables",
+    "BigQuery raw event export with daily and streaming tables",
+    "Predictive audiences for churn risk and purchase probability"
+  ],
+  "bestPractices": [
+    "Always mark primary business goals (purchase, generate_lead) as Key Events (formerly Conversions)",
+    "Link GA4 directly with Google Ads to import conversion actions and audiences",
+    "Configure custom data retention to 14 months (default is 2 months)",
+    "Pass standardized e-commerce items array with item_id, item_name, price, and currency"
+  ],
+  "policies": [
+    "Strict prohibition against transmitting Personally Identifiable Information (PII)",
+    "Compliance with European Data Protection DMA and ePrivacy directive",
+    "Google Analytics IP anonymization is permanently enabled by default"
+  ],
+  "limitations": [
+    "Standard property event processing latency: 24 to 48 hours for standard reports",
+    "Maximum 30 conversion events per standard property",
+    "Data thresholding applied when Google Signals is enabled and traffic volume is low"
+  ],
+  "commonIssues": [
+    "High volume of '(not set)' source/medium values due to broken UTM parameters",
+    "Discrepancies between GA4 purchase count and backend e-commerce orders",
+    "Data thresholding hiding custom dimension breakdowns"
+  ],
+  "troubleshootingGuide": [
+    {
+      "issue": "Purchases undercounted compared to backend CRM",
+      "resolution": "Deploy Measurement Protocol server-side webhook to capture users with aggressive adblockers"
+    },
+    {
+      "issue": "UTM campaign traffic falling into 'Unassigned' default channel group",
+      "resolution": "Ensure utm_source, utm_medium, and utm_campaign follow Google's standardized naming conventions"
+    }
+  ],
+  "references": [
+    "https://support.google.com/analytics",
+    "https://developers.google.com/analytics/devguides/collection/protocol/ga4"
+  ]
+}

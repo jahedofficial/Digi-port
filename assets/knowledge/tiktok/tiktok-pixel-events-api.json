@@ -1,0 +1,55 @@
+{
+  "id": "knowledge-tiktok-pixel-events-api",
+  "title": "TikTok Pixel, Events API & Webhook Deduplication Architecture",
+  "platform": "TIKTOK",
+  "category": "Tracking & Server Ingestion",
+  "version": "1.0.0",
+  "overview": "TikTok Events API provides a secure server-to-server connection enabling advertisers to share website and offline conversion events directly with TikTok for resilient measurement and optimization.",
+  "coreConcepts": [
+    "Hybrid deployment: TikTok Pixel client-side tag + Server-Side Events API",
+    "Event deduplication key: matching event_id + event name between browser and server requests",
+    "Advanced Matching parameters (hashed email, phone, external ID) for higher attribution match rates",
+    "Real-time event verification inside TikTok Events Manager diagnostics dashboard"
+  ],
+  "features": [
+    "REST endpoint: https://business-api.tiktok.com/open_api/v1.3/event/track/",
+    "Batch event uploading with up to 50 events per HTTP payload",
+    "Standardized e-commerce events: ViewContent, ClickButton, AddToCart, InitiateCheckout, CompletePayment",
+    "Server-side test event mode via test_event_code parameter"
+  ],
+  "bestPractices": [
+    "Generate a unique event_id on the web application server and send it to both browser Pixel and Events API",
+    "SHA-256 hash email and phone numbers (normalized: lowercase, trim whitespace, E.164 phone format)",
+    "Always pass user context: ip, user_agent, and TikTok click identifier (ttclid) when available",
+    "Test server payload in sandbox mode using test_event_code before deploying to production"
+  ],
+  "policies": [
+    "TikTok User Privacy and Data Protection terms compliance",
+    "Prohibition against transmitting sensitive personal information (financial, medical, minors' data)",
+    "Explicit user consent compliance under regional regulations (GDPR/DMA/CCPA)"
+  ],
+  "limitations": [
+    "Events must be submitted within 7 days of occurrence (events older than 7 days are discarded)",
+    "API rate limit: 100 requests per second per advertiser account",
+    "Advanced Matching match rate typically lower than Meta due to smaller signed-in desktop web footprint"
+  ],
+  "commonIssues": [
+    "Events double-counted when event_id parameter is missing or mismatched",
+    "Low match quality when transmitting server events without user_agent or IP address",
+    "Invalid token error caused by expired TikTok developer application access token"
+  ],
+  "troubleshootingGuide": [
+    {
+      "issue": "Double reporting of purchases",
+      "resolution": "Inspect browser Network tab and server outbound payload to confirm identical event_id strings"
+    },
+    {
+      "issue": "Low match rate on TikTok Events API",
+      "resolution": "Capture and pass the ttclid query parameter from landing page URLs into server-side conversion payloads"
+    }
+  ],
+  "references": [
+    "https://business-api.tiktok.com/portal/docs?id=1739584855420930",
+    "https://ads.tiktok.com/help/article/events-api"
+  ]
+}

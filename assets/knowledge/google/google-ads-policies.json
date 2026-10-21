@@ -1,0 +1,55 @@
+{
+  "id": "knowledge-google-ads-policies",
+  "title": "Google Ads Advertising Policies & Editorial Standards",
+  "platform": "GOOGLE",
+  "category": "Ad Policy & Regulatory Compliance",
+  "version": "1.0.0",
+  "overview": "Google Ads Advertising Policies govern allowed content, editorial formatting, and sensitive advertising categories across all Google platforms to prevent misleading ads and legal violations.",
+  "coreConcepts": [
+    "Four core policy pillars: Prohibited content, Prohibited practices, Restricted content, and Editorial standards",
+    "Three-strike system for egregious policy violations leading to account suspension",
+    "Advertiser Verification Program requiring business entity identification",
+    "Automated AI ad review combined with human reviewer escalations"
+  ],
+  "features": [
+    "Policy Manager in Google Ads UI displaying account-level policy restrictions",
+    "Pre-submission policy scanning via Google Ads API validateOnly flag",
+    "Appeals center for disputing automated false-positive policy disapprovals",
+    "Certificate application portal for Healthcare, Finance, and Gambling categories"
+  ],
+  "bestPractices": [
+    "Always run pre-flight policy checks on ad copy and landing page URLs before committing campaign drafts",
+    "Ensure destination URL is directly accessible with identical business branding",
+    "Include transparent physical business address, privacy policy, and working customer support contacts",
+    "Avoid sensationalized claims, excessive capitalization (FREE), or gimmicky punctuation"
+  ],
+  "policies": [
+    "Prohibited: Counterfeit goods, dangerous products, dishonest behavior, inappropriate content",
+    "Restricted: Healthcare & medicines, financial services, legal services, alcohol, gambling",
+    "Editorial: Spelling, grammar, capitalization, punctuation, and destination match requirements"
+  ],
+  "limitations": [
+    "Policy appeals can take 24 to 72 hours for manual review resolution",
+    "Egregious violations (circumventing systems, counterfeit) result in immediate permanent suspension without warning",
+    "Automated reviewers cannot interpret nuances in medical or legal terminology without certificates"
+  ],
+  "commonIssues": [
+    "Ad disapproval for 'Destination not working' due to temporary 500 error during crawler inspection",
+    "Disapproval for 'Misleading representation' when pricing or claims lack verifiable proof",
+    "Suspension for 'Circumventing systems' caused by malware or suspicious redirect scripts"
+  ],
+  "troubleshootingGuide": [
+    {
+      "issue": "Destination not working false positive",
+      "resolution": "Check server access logs for Googlebot IP addresses (ensure firewall does not block Googlebot user agent) and submit appeal"
+    },
+    {
+      "issue": "Restricted healthcare terms disapproval",
+      "resolution": "Obtain LegitScript certification and submit verification application via Google Ads Help Center"
+    }
+  ],
+  "references": [
+    "https://support.google.com/adspolicy/answer/6008942",
+    "https://support.google.com/google-ads/answer/9702488"
+  ]
+}

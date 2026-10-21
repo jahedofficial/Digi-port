@@ -1,0 +1,108 @@
+{
+  "id": "template-finance-banking",
+  "name": "Financial Services, Consumer Credit, Wealth & Insurance",
+  "industry": "finance",
+  "version": "1.0.0",
+  "businessGoals": [
+    "Acquire Credit Card, Loan & Mortgage Pre-Approval Applications",
+    "Generate High-Net-Worth Wealth Management Consultations",
+    "Maintain Strict Regulatory Compliance with SEC, FTC, and Special Ad Category Rules"
+  ],
+  "campaignStructure": {
+    "funnelStages": ["Financial Need Awareness", "Rates & Terms Comparison", "Secure Application Initiation"],
+    "namingConvention": "FIN_[PRODUCT]_[GEO]_[CHANNEL]_[OFFER_APR]"
+  },
+  "recommendedCampaignTypes": {
+    "google": ["Exact Match Loan / Mortgage Search", "Financial Services Display", "YouTube Educational Explainer"],
+    "meta": ["Credit Special Ad Category Lead Ads", "Secure Application Landing Page Ads", "Video Customer Financial Journeys"],
+    "tiktok": ["Personal Finance Tips & Calculators", "Debt Payoff Explainer Clips"]
+  },
+  "budgetStrategy": {
+    "google": "High Bid Target CPA on Verified Credit Applications",
+    "meta": "Credit Special Ad Category CBO without Demographic Exclusions",
+    "tiktok": "Careful Educational Outreach to Adults 25+"
+  },
+  "biddingStrategy": {
+    "google": "Maximize Conversions with Strict Target CPA (tCPA)",
+    "meta": "Lowest Cost per Completed Application",
+    "tiktok": "Lowest Cost Traffic to Secure Portal"
+  },
+  "conversionGoals": [
+    "Completed Loan / Card Application",
+    "Wealth Advisory Consultation Booked",
+    "Rate Quote Calculator Completed"
+  ],
+  "trackingRequirements": [
+    "Secure Server-Side CAPI (Zero PII or Financial Account numbers exposed)",
+    "Google Financial Services Verification Token Integration",
+    "GA4 submit_application conversion event with hashed client ID",
+    "Banking Core / Loan Origination System (LOS) conversion webhooks"
+  ],
+  "assetRequirements": {
+    "formats": ["Rate Tables & Calculator Creatives", "Certified Financial Advisor Videos", "Trust & Security Badges"],
+    "aspectRatios": ["1:1", "1.91:1", "9:16"],
+    "maxVideoDurationSeconds": 45,
+    "headlineCharacterLimit": 30
+  },
+  "namingConventions": {
+    "campaignPattern": "FIN_{PLATFORM}_{PRODUCT}_{TIER}_{VERSION}",
+    "adGroupPattern": "AG_{INTENT_TYPE}_{GEO_MARKET}",
+    "adPattern": "AD_{RATE_OR_BENEFIT}_{DISCLOSURE_ID}"
+  },
+  "kpiTargets": {
+    "targetCPA": 95.0,
+    "applicationFundedRate": 30.0,
+    "targetCTR": 2.6
+  },
+  "reportingMetrics": [
+    "Spend",
+    "Clicks",
+    "ApplicationsStarted",
+    "ApplicationsCompleted",
+    "CostPerCompletedApplication",
+    "FundedVolumeUSD"
+  ],
+  "bestPractices": [
+    "Always display APR ranges, loan terms, and total cost of borrowing prominently",
+    "Include mandatory FDIC / SIPC / Equal Housing Lender logos where applicable",
+    "Ensure landing pages have bank-grade TLS encryption and visible security badges"
+  ],
+  "platformMix": {
+    "recommendedRoles": {
+      "google": "Capturing active intent for mortgages, refinancing, credit cards, and business loans",
+      "meta": "Targeting financial life milestones (new business, growing families) under Credit rules",
+      "tiktok": "Educational personal finance hooks, savings hacks, and financial literacy demystification"
+    },
+    "budgetSplitRanges": {
+      "google": { "minPercent": 45, "maxPercent": 65, "defaultPercent": 55 },
+      "meta": { "minPercent": 25, "maxPercent": 45, "defaultPercent": 35 },
+      "tiktok": { "minPercent": 5, "maxPercent": 15, "defaultPercent": 10 }
+    },
+    "perPlatformCampaignTypes": {
+      "google": ["Search", "Performance Max"],
+      "meta": ["Lead Generation", "Conversions"],
+      "tiktok": ["Traffic", "Lead Generation"]
+    },
+    "perPlatformObjectives": {
+      "google": "LEAD_GENERATION",
+      "meta": "OUTCOME_LEADS",
+      "tiktok": "LEAD_GENERATION"
+    },
+    "perPlatformOptimizationEvents": {
+      "google": "SUBMIT_LEAD_FORM",
+      "meta": "LEAD",
+      "tiktok": "SUBMIT_FORM"
+    },
+    "perPlatformCreativeRequirements": {
+      "google": { "formats": ["TEXT", "IMAGE"], "aspectRatios": ["1.91:1", "1:1"] },
+      "meta": { "formats": ["IMAGE", "VIDEO"], "aspectRatios": ["1:1", "9:16"] },
+      "tiktok": { "formats": ["VIDEO"], "aspectRatios": ["9:16"], "maxDurationSeconds": 45 }
+    },
+    "policyConstraints": {
+      "specialAdCategory": "CREDIT",
+      "google": ["Google Financial Services Verification mandatory in regulated jurisdictions", "Clear APR & fee disclosures"],
+      "meta": ["Mandatory Meta Special Ad Category (Credit): no age/gender/zip targeting exclusions"],
+      "tiktok": ["Strict financial product licensing validation and prohibition of get-rich-quick schemes"]
+    }
+  }
+}

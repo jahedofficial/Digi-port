@@ -1,0 +1,55 @@
+{
+  "id": "knowledge-google-ads",
+  "title": "Google Ads Campaign Architecture & Smart Bidding Engine",
+  "platform": "GOOGLE",
+  "category": "Paid Search & Performance Media",
+  "version": "1.0.0",
+  "overview": "Google Ads captures commercial intent across Search, Shopping, Performance Max, YouTube, Display, and Demand Gen networks using machine learning smart bidding.",
+  "coreConcepts": [
+    "Commercial intent query matching (Exact, Phrase, Broad with Smart Bidding)",
+    "Quality Score determined by expected CTR, ad relevance, and landing page experience",
+    "Performance Max asset group multi-channel inventory aggregation",
+    "First-party customer match lists for privacy-safe audience targeting"
+  ],
+  "features": [
+    "Target ROAS (tROAS) and Target CPA (tCPA) automated bidding algorithms",
+    "Enhanced Conversions with SHA-256 hashed customer identifiers",
+    "Value-based bidding with custom conversion value adjustment rules",
+    "Dynamic Search Ads (DSA) and Responsive Search Ads (RSA) auto-generation"
+  ],
+  "bestPractices": [
+    "Maintain at least 15 to 30 conversions per month per campaign for stable bidding algorithm learning",
+    "Pin maximum 1 headline only when legally required; allow Google ML to rotate combinations",
+    "Maintain centralized shared negative keyword lists across brand and non-brand campaigns",
+    "Pair Broad Match keywords strictly with Target CPA or Target ROAS to prevent query bleed"
+  ],
+  "policies": [
+    "Google Ads Misrepresentation and Deceptive Content policies",
+    "Mandatory advertiser verification with government entity documentation",
+    "Trademark bidding policies and competitor comparison guidelines"
+  ],
+  "limitations": [
+    "Standard Google Ads API rate limit: 15,000 operations per day on basic access",
+    "Learning phase duration of 7 days following any budget change > 20%",
+    "PMax search term visibility limited to high-volume aggregate queries"
+  ],
+  "commonIssues": [
+    "Campaign stuck in 'Learning Limited' status due to low conversion volume",
+    "Keyword cannibalization between PMax and Standard Search campaigns",
+    "High wasted spend on mobile gaming app display placements"
+  ],
+  "troubleshootingGuide": [
+    {
+      "issue": "Performance Max stealing traffic from Standard Search brand campaigns",
+      "resolution": "Apply Account-Level Brand Exclusion List or contact Google rep to add negative keywords to PMax campaign"
+    },
+    {
+      "issue": "Bidding algorithm stuck in Learning Limited",
+      "resolution": "Switch bid strategy temporarily to Maximize Conversions or step up the funnel to a micro-conversion event"
+    }
+  ],
+  "references": [
+    "https://support.google.com/google-ads",
+    "https://developers.google.com/google-ads/api/docs"
+  ]
+}

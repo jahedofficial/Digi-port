@@ -1,0 +1,110 @@
+{
+  "id": "template-saas-plg",
+  "name": "SaaS, Cloud Software & Product-Led Growth (PLG)",
+  "industry": "saas",
+  "version": "1.0.0",
+  "businessGoals": [
+    "Accelerate Free Trial Signups & Self-Serve Freemium Conversions",
+    "Drive Paid Subscription Upgrades at LTV/CAC Ratio > 3:1",
+    "Reduce Churn through Onboarding Feature Discovery Retargeting"
+  ],
+  "campaignStructure": {
+    "funnelStages": ["Problem Awareness & Workflow Pain", "Product Interactive Demo", "Free Trial Activation", "Paid Tier Upgrade"],
+    "namingConvention": "SAAS_[TIER]_[GEO]_[CHANNEL]_[FEATURE_FOCUS]"
+  },
+  "recommendedCampaignTypes": {
+    "google": ["High-Intent Category Search", "Competitor Comparison Search", "YouTube Video Action"],
+    "meta": ["Feature Demo Screen Recordings", "Testimonial Reels", "Retargeting Cart / Plan Selectors"],
+    "tiktok": ["Product UI Walkthroughs", "Tech Life Problem/Solution Skits"]
+  },
+  "budgetStrategy": {
+    "google": "Maximize Conversions with Target CPA tied to Trial-to-Paid Conversion Benchmark",
+    "meta": "CBO with Split Audiences: Cold Developers/Operators vs. Warm Visitors",
+    "tiktok": "Trend-Driven Budget Allocation on High-Performing Creators"
+  },
+  "biddingStrategy": {
+    "google": "Target CPA on Free Trial Creation",
+    "meta": "Lowest Cost with Bid Caps on Annual Plan Purchase Conversions",
+    "tiktok": "Lowest Cost Complete Registration"
+  },
+  "conversionGoals": [
+    "Start Free Trial / Account Created",
+    "Paid Subscription Activated",
+    "Product Demo Booked"
+  ],
+  "trackingRequirements": [
+    "Product Analytics Webhook (Segment / PostHog) to CAPI & Enhanced Conversions",
+    "GA4 sign_up and purchase events with subscription tier metadata",
+    "TikTok Events API Complete Registration with hashed user ID",
+    "Stripe / Chargebee recurring billing event tracking integration"
+  ],
+  "assetRequirements": {
+    "formats": ["Animated UI Screen Recordings", "Workflow GIF/Videos", "Before/After Speed Comparisons"],
+    "aspectRatios": ["1:1", "9:16", "16:9"],
+    "maxVideoDurationSeconds": 45,
+    "headlineCharacterLimit": 30
+  },
+  "namingConventions": {
+    "campaignPattern": "SAAS_{PLATFORM}_{FEATURE}_{GEO}_{VERSION}",
+    "adGroupPattern": "AG_{BUYER_PERSONA}_{DEVICE}",
+    "adPattern": "AD_{UI_HOOK}_{CTA_TYPE}"
+  },
+  "kpiTargets": {
+    "targetCAC": 85.0,
+    "trialToPaidConversionRate": 12.0,
+    "targetCTR": 2.5,
+    "ltvCacRatio": 3.2
+  },
+  "reportingMetrics": [
+    "Spend",
+    "Clicks",
+    "FreeTrials",
+    "PaidSubscriptions",
+    "CAC",
+    "MRR_Added",
+    "ROAS"
+  ],
+  "bestPractices": [
+    "Highlight 'No Credit Card Required' in ad copy to reduce signup friction",
+    "Use direct product UI screen recordings within the first 3 seconds of video ads",
+    "Set up retargeting sequences tailored to specific uncompleted onboarding steps"
+  ],
+  "platformMix": {
+    "recommendedRoles": {
+      "google": "Capturing active software replacement searches and integration queries",
+      "meta": "Visually showcasing slick product workflows and driving free trial adoption",
+      "tiktok": "Viral tech life hacks, product-led tutorials, and developer community virality"
+    },
+    "budgetSplitRanges": {
+      "google": { "minPercent": 35, "maxPercent": 55, "defaultPercent": 45 },
+      "meta": { "minPercent": 30, "maxPercent": 50, "defaultPercent": 40 },
+      "tiktok": { "minPercent": 10, "maxPercent": 25, "defaultPercent": 15 }
+    },
+    "perPlatformCampaignTypes": {
+      "google": ["Search", "Performance Max"],
+      "meta": ["Conversions", "App Promotion"],
+      "tiktok": ["Web Conversions", "App Installs"]
+    },
+    "perPlatformObjectives": {
+      "google": "WEBSITE_TRAFFIC",
+      "meta": "OUTCOME_SALES",
+      "tiktok": "CONVERSIONS"
+    },
+    "perPlatformOptimizationEvents": {
+      "google": "SIGN_UP",
+      "meta": "START_TRIAL",
+      "tiktok": "COMPLETE_REGISTRATION"
+    },
+    "perPlatformCreativeRequirements": {
+      "google": { "formats": ["TEXT", "IMAGE"], "aspectRatios": ["1:1", "1.91:1"] },
+      "meta": { "formats": ["VIDEO", "IMAGE"], "aspectRatios": ["1:1", "9:16"] },
+      "tiktok": { "formats": ["VIDEO"], "aspectRatios": ["9:16"], "maxDurationSeconds": 45 }
+    },
+    "policyConstraints": {
+      "specialAdCategory": "NONE",
+      "google": ["Clear recurring subscription pricing disclosures on landing page", "No deceptive software claims"],
+      "meta": ["Transparent free trial terms and automatic renewal notices"],
+      "tiktok": ["Authentic software demonstrations without fabricated speed-ups"]
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "id": "knowledge-google-merchant-center",
+  "title": "Google Merchant Center (GMC) Feeds, Policies & Diagnostics",
+  "platform": "GOOGLE",
+  "category": "E-Commerce Product Syndication",
+  "version": "1.0.0",
+  "overview": "Google Merchant Center synchronizes product catalog feeds to power Google Shopping ads, Performance Max campaigns, and Free Product Listings on Google Search.",
+  "coreConcepts": [
+    "Primary vs. Supplemental feeds for attribute enrichment",
+    "Mandatory unique product identifiers: GTIN (UPC/EAN), MPN, and brand",
+    "Item status lifecycle: Active, Expiring, Disapproved, Pending Review",
+    "Automatic item updates for price and availability synchronization"
+  ],
+  "features": [
+    "Content API for Shopping for programmatic real-time SKU updates",
+    "Feed rules for transforming titles, descriptions, and custom labels (0-4)",
+    "Free product listings across Google Images, Search, and Shopping tabs",
+    "Promotion feeds for merchant-funded sales, promo codes, and discounts"
+  ],
+  "bestPractices": [
+    "Front-load high-volume keywords into product titles (Brand + Product + Color + Size)",
+    "Use Custom Labels (0-4) to segment products by margin, seasonality, or historical ROAS",
+    "Submit high-resolution product imagery (minimum 800x800 px) on pure white backgrounds",
+    "Set up automated daily feed fetches or Content API webhooks to prevent price mismatches"
+  ],
+  "policies": [
+    "Strict price and availability parity between product feed and website landing page",
+    "Prohibition of promotional text or watermarks inside primary product images",
+    "Mandatory contact information, return policy, and terms of service on site"
+  ],
+  "limitations": [
+    "Unedited product data expires automatically after 30 days without feed refresh",
+    "Feed upload size limit: 4 GB for direct file uploads",
+    "Account suspension risk if disapproved product percentage exceeds critical threshold"
+  ],
+  "commonIssues": [
+    "Disapproval for 'Mismatched value (page crawl): [price]' due to currency or sales tax display",
+    "Missing GTIN or invalid barcode numbers for manufactured goods",
+    "Image overlay policy rejections due to promotional badges or logos"
+  ],
+  "troubleshootingGuide": [
+    {
+      "issue": "Price mismatch disapproval",
+      "resolution": "Enable Automatic Item Updates in GMC settings and ensure structured microdata (schema.org/Product) matches feed price"
+    },
+    {
+      "issue": "Missing GTIN error for custom or handmade products",
+      "resolution": "Set attribute 'identifier_exists' to 'no' in feed rules for eligible handmade SKUs"
+    }
+  ],
+  "references": [
+    "https://support.google.com/merchants",
+    "https://developers.google.com/shopping-content/v2/quickstart"
+  ]
+}

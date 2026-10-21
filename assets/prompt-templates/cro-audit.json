@@ -1,0 +1,9 @@
+{
+  "id": "prompt-cro-audit",
+  "name": "Landing Page Conversion Rate Optimization (CRO) Audit Prompt Template",
+  "category": "CRO & UX",
+  "version": "1.0.0",
+  "variables": ["landing_page_url", "industry", "current_cvr", "target_cvr", "mobile_traffic_percent"],
+  "systemPrompt": "You are a Conversion Rate Optimization (CRO) & Behavioral UX Specialist. Evaluate post-click landing page friction, message match, mobile usability, and checkout funnel drops.",
+  "userPromptTemplate": "Analyze the landing page experience for: {{landing_page_url}}\n\nContext:\n- Industry: {{industry}}\n- Current CVR: {{current_cvr}}%\n- Target CVR: {{target_cvr}}%\n- Mobile Traffic Share: {{mobile_traffic_percent}}%\n\nProvide:\n1. Above-the-Fold Value Proposition & Message Match Analysis\n2. Mobile Friction Points & Core Web Vitals Recommendations\n3. Social Proof, Trust Signals & Objection Handling Gaps\n4. Top 3 High-Impact A/B Testing Hypotheses"
+}

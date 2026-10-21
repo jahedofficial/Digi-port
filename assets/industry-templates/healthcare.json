@@ -1,0 +1,108 @@
+{
+  "id": "template-healthcare-wellness",
+  "name": "Healthcare, Medical Clinics & Wellness Centers",
+  "industry": "healthcare",
+  "version": "1.0.0",
+  "businessGoals": [
+    "Book In-Clinic Patient Appointments and Telehealth Consultations",
+    "Educate Local Community on Treatments and Preventative Care",
+    "Maintain 100% HIPAA and Advertising Standard Compliance"
+  ],
+  "campaignStructure": {
+    "funnelStages": ["Condition Education", "Doctor Credibility & Specialization", "Appointment Booking"],
+    "namingConvention": "HEALTH_[CHANNEL]_[LOCATION]_[SPECIALTY]_[OFFER]"
+  },
+  "recommendedCampaignTypes": {
+    "google": ["Local Search Ads", "Call Ads", "Google Maps Local Pack"],
+    "meta": ["Traffic to Booking Portal", "Awareness Video Views", "Messenger Inquiries"],
+    "tiktok": ["Wellness Tip Videos", "Clinic Tour Spark Ads"]
+  },
+  "budgetStrategy": {
+    "google": "Geo-targeted Maximize Conversions with CPA cap",
+    "meta": "Local Radius Ad Set Budgets",
+    "tiktok": "Brand Awareness with Broad Age Targeting"
+  },
+  "biddingStrategy": {
+    "google": "Maximize Conversions with Target CPA (tCPA)",
+    "meta": "Lowest Cost per Booking Click",
+    "tiktok": "Lowest Cost Video Views"
+  },
+  "conversionGoals": [
+    "Book Appointment Click / Confirmation",
+    "Click to Call Clinic",
+    "Get Directions to Clinic"
+  ],
+  "trackingRequirements": [
+    "Strict HIPAA-Compliant Tracking (Zero Personal Health Info passed)",
+    "Meta Pixel with Health Data Exclusions Enabled",
+    "Server-Side GTM without URL parameters containing health conditions",
+    "GA4 appointment_booked anonymized conversion event"
+  ],
+  "assetRequirements": {
+    "formats": ["Physician Profiles", "Clinic Facility Videos", "Educational Infographics"],
+    "aspectRatios": ["1:1", "16:9", "9:16"],
+    "maxVideoDurationSeconds": 60,
+    "headlineCharacterLimit": 30
+  },
+  "namingConventions": {
+    "campaignPattern": "HLTH_{PLATFORM}_{SPECIALTY}_{CITY}_{VERSION}",
+    "adGroupPattern": "AG_{SYMPTOM_OR_CONDITION}_{RADIUS_KM}",
+    "adPattern": "AD_{DOCTOR_OR_SERVICE}_{MESSAGE_TYPE}"
+  },
+  "kpiTargets": {
+    "targetCPA": 45.0,
+    "callConnectionRate": 80.0,
+    "targetCTR": 2.8
+  },
+  "reportingMetrics": [
+    "Spend",
+    "Impressions",
+    "Clicks",
+    "Calls",
+    "AppointmentsBooked",
+    "CPA"
+  ],
+  "bestPractices": [
+    "Never use retargeting audiences based on sensitive health conditions or treatments",
+    "Highlight board certifications and clinic accreditations prominently",
+    "Ensure clinic phone lines are answered immediately during operational hours"
+  ],
+  "platformMix": {
+    "recommendedRoles": {
+      "google": "Immediate medical need and local search demand capture",
+      "meta": "Clinic brand awareness, doctor trust building, and wellness education",
+      "tiktok": "Preventative health tips, doctor Q&A, and destigmatizing treatments"
+    },
+    "budgetSplitRanges": {
+      "google": { "minPercent": 45, "maxPercent": 65, "defaultPercent": 55 },
+      "meta": { "minPercent": 25, "maxPercent": 45, "defaultPercent": 35 },
+      "tiktok": { "minPercent": 5, "maxPercent": 15, "defaultPercent": 10 }
+    },
+    "perPlatformCampaignTypes": {
+      "google": ["Search", "Local"],
+      "meta": ["Traffic", "Awareness"],
+      "tiktok": ["Reach", "Traffic"]
+    },
+    "perPlatformObjectives": {
+      "google": "LEAD_GENERATION",
+      "meta": "OUTCOME_TRAFFIC",
+      "tiktok": "TRAFFIC"
+    },
+    "perPlatformOptimizationEvents": {
+      "google": "PHONE_CALL_CONVERSION",
+      "meta": "LANDING_PAGE_VIEW",
+      "tiktok": "VIEW_CONTENT"
+    },
+    "perPlatformCreativeRequirements": {
+      "google": { "formats": ["TEXT", "CALL_ASSET"], "aspectRatios": ["1.91:1"] },
+      "meta": { "formats": ["IMAGE", "VIDEO"], "aspectRatios": ["1:1", "9:16"] },
+      "tiktok": { "formats": ["VIDEO"], "aspectRatios": ["9:16"], "maxDurationSeconds": 60 }
+    },
+    "policyConstraints": {
+      "specialAdCategory": "HEALTHCARE_REGULATED",
+      "google": ["Google Healthcare Certificate required for prescription therapies", "No restricted drug names"],
+      "meta": ["Strict Meta Health Advertising Policy: no personal health attributes in ad copy or creative"],
+      "tiktok": ["No medical advice guarantees or unsupported therapeutic claims"]
+    }
+  }
+}

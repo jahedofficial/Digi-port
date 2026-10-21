@@ -1,10 +1,14 @@
 {
-  "$schema": "https://digiport.neexion.com/schemas/playbook.v1.json",
   "id": "playbook-meta-advantage-plus-sales",
   "name": "Meta Advantage+ Shopping Campaign (ASC) Launch & Scale",
   "version": "1.0.0",
   "targetPlatforms": ["META"],
   "purpose": "Deploy and scale an automated high-converting Advantage+ Shopping campaign on Meta with catalog integration and creative diversity.",
+  "triggerConditions": [
+    "Ecommerce store seeking automated Meta sales scale",
+    "Advantage+ Shopping campaign launch prompt",
+    "Existing manual campaign hitting ad fatigue"
+  ],
   "prerequisites": [
     "Meta Ad Account connected with active payment method",
     "Meta Pixel & CAPI healthy with event deduplication active",
@@ -39,9 +43,27 @@
       "step": 5,
       "name": "Human Approval Gate",
       "specialistAgent": "CEOAgent",
-      "action": "Emit ActionQueueItem with [Approve] and [Reject] controls"
+      "action": "Emit ActionQueueItem with [Approve] and [Reject] controls",
+      "requiredApprovals": true
     }
   ],
+  "specialistAgents": ["TrackingAgent", "CreativeAgent", "CampaignAgent", "RiskEngine", "CEOAgent"],
   "requiredApprovals": true,
-  "rollbackStrategy": "Set campaign status to PAUSED immediately if first 24h spend exceeds $30 with zero conversions"
+  "expectedOutputs": [
+    "Advantage+ Shopping Campaign ID",
+    "Creative Mix Roster",
+    "ROAS Guardrail Configuration"
+  ],
+  "successCriteria": [
+    "Campaign active with minimum 5 diverse creative assets",
+    "Learning phase exited with > 50 purchases in 7 days",
+    "ROAS meeting or exceeding industry template floor"
+  ],
+  "failureHandling": {
+    "retryStrategy": "Retry campaign mutation once on transient graph API error",
+    "alertChannel": "Telegram Copilot Alert",
+    "maxRetries": 1,
+    "onUnrecoverable": "ROLLBACK"
+  },
+  "rollbackStrategy": "Set campaign status to PAUSED immediately if first 24h spend exceeds $30 with zero conversions."
 }

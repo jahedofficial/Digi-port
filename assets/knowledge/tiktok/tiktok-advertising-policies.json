@@ -1,0 +1,55 @@
+{
+  "id": "knowledge-tiktok-advertising-policies",
+  "title": "TikTok Advertising Policies, Creative Restrictions & Standards",
+  "platform": "TIKTOK",
+  "category": "Ad Standards & Compliance",
+  "version": "1.0.0",
+  "overview": "TikTok Advertising Policies ensure ad creative respects the TikTok community spirit, avoids deceptive practices, and adheres to global and regional regulatory restrictions.",
+  "coreConcepts": [
+    "Three review layers: Automated text/image analysis, Audio recognition, and Human moderation",
+    "Creative consistency principle: ad text, video, audio, and landing page must tell a cohesive, honest story",
+    "Restricted age targeting for adult-themed products or regulated categories",
+    "Prohibition on third-party trademark infringement and unauthorized celebrity endorsements"
+  ],
+  "features": [
+    "TikTok Ad Review Status diagnostics (Approved, In Review, Rejected with reason codes)",
+    "Appeal submission tool directly inside TikTok Ads Manager",
+    "Creative Exchange portal connecting approved brands with verified creators",
+    "Commercial Content Disclosure toggle for creator-promoted content"
+  ],
+  "bestPractices": [
+    "Ensure video audio is clean, intelligible, and sourced from Commercial Music Library",
+    "Display authentic product functionality without false speed-ups or edited demonstrations",
+    "Ensure destination website is fully mobile-responsive and loads in under 3 seconds",
+    "Avoid shock-value hooks, flashing lights, or excessive fear-inducing problem hooks"
+  ],
+  "policies": [
+    "Prohibited: Illegal products, drugs, dangerous weapons, adult entertainment, get-rich-quick schemes",
+    "Restricted: Alcohol, financial services, dating, healthcare products, gambling",
+    "Landing page requirements: Working links, matching brand name, clear checkout terms, contact info"
+  ],
+  "limitations": [
+    "Review turnaround times typically 24 hours, but can extend to 48 hours during peak Q4 holidays",
+    "Frequent ad rejections decrease ad account health score and increase ad review latency",
+    "Advertisers cannot bid on political topics or social issue advocacy"
+  ],
+  "commonIssues": [
+    "Rejection for 'Sensational or Shocking Content' when using aggressive hook styles",
+    "Disapproval for 'Non-Functional Landing Page' due to slow mobile loading",
+    "Rejection due to commercial rights issues with background sound clips"
+  ],
+  "troubleshootingGuide": [
+    {
+      "issue": "Ad rejected for Sensational Content",
+      "resolution": "Tone down visual contrast in the opening 2 seconds and remove overly dramatic text overlays"
+    },
+    {
+      "issue": "Landing page rejected",
+      "resolution": "Test mobile landing page via Google PageSpeed Insights, remove popups that block content on mobile, and resubmit"
+    }
+  ],
+  "references": [
+    "https://ads.tiktok.com/help/article/tiktok-advertising-policies",
+    "https://ads.tiktok.com/help/article/ad-review-checklist"
+  ]
+}

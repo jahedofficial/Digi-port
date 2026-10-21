@@ -1,0 +1,66 @@
+{
+  "id": "cap_optimization_agent_cross_platform",
+  "agentName": "OptimizationSpecialistAgent",
+  "supportedPlatforms": ["GOOGLE", "META", "TIKTOK"],
+  "supportedCampaignTypes": {
+    "GOOGLE": ["SEARCH", "PERFORMANCE_MAX", "SHOPPING"],
+    "META": ["ADVANTAGE_PLUS_SHOPPING", "CONVERSIONS"],
+    "TIKTOK": ["SMART_PERFORMANCE_CAMPAIGN", "WEB_CONVERSIONS"]
+  },
+  "supportedObjectives": {
+    "GOOGLE": ["SALES", "LEADS"],
+    "META": ["OUTCOME_SALES", "OUTCOME_LEADS"],
+    "TIKTOK": ["CONVERSIONS"]
+  },
+  "supportedOperations": [
+    "OPTIMIZE",
+    "REBALANCE_BUDGET",
+    "ADJUST_BIDS",
+    "ADD_NEGATIVE_KEYWORDS",
+    "PAUSE_UNDERPERFORMING"
+  ],
+  "supportedServices": [
+    "BidOptimizationService",
+    "BudgetRebalanceService",
+    "NegativeKeywordService"
+  ],
+  "supportedAssetTypes": [
+    "KEYWORD_TARGET",
+    "NEGATIVE_KEYWORD",
+    "CAMPAIGN_BUDGET"
+  ],
+  "supportedExtensions": [],
+  "supportedBiddingStrategies": [
+    "TARGET_ROAS",
+    "TARGET_CPA",
+    "MAXIMIZE_CONVERSIONS",
+    "LOWEST_COST"
+  ],
+  "requiredInputs": [
+    "clientId",
+    "targetCampaignId",
+    "targetPlatform",
+    "actionType",
+    "suggestedBudgetDelta",
+    "minRoasFloor"
+  ],
+  "expectedOutputs": [
+    "optimizationActionTaken",
+    "appliedChanges",
+    "rollbackPayload",
+    "summaryBangla",
+    "summaryEnglish"
+  ],
+  "requiredApprovals": true,
+  "validationRules": [
+    "Single-day budget scaling is strictly capped at maximum +/- 20%",
+    "Pausing campaign with ROAS > 3.0 requires two-step CEO authorization",
+    "Every modifying action must generate a deterministic rollback step"
+  ],
+  "failureConditions": [
+    "BUDGET_CAP_EXCEEDED",
+    "RATE_LIMIT_HIT",
+    "UNAUTHORIZED_MODIFICATION"
+  ],
+  "recoveryStrategy": "If budget update fails due to rate limit, queue for retry after 60s; if policy rejected, abort and generate CEO alert."
+}

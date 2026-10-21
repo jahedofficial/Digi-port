@@ -1,0 +1,76 @@
+{
+  "id": "playbook-conversion-tracking",
+  "name": "Full-Funnel Server-Side Conversion Tracking & Event Deduplication",
+  "version": "1.0.0",
+  "targetPlatforms": ["GOOGLE", "META", "TIKTOK"],
+  "purpose": "Deploy and maintain resilient, privacy-compliant server-side tracking across GA4, GTM, Google Enhanced Conversions, Meta CAPI, and TikTok Events API with event deduplication.",
+  "triggerConditions": [
+    "New website or store launch",
+    "Tracking audit detects > 15% event loss or deduplication mismatch",
+    "User prompt requesting conversion tracking setup or audit"
+  ],
+  "prerequisites": [
+    "GTM container ID and GA4 measurement ID available",
+    "Meta Pixel ID and long-lived CAPI access token active",
+    "TikTok Pixel ID and Events API access token active",
+    "Consent Management Platform (CMP) / Cookie Banner active on site"
+  ],
+  "executionSteps": [
+    {
+      "step": 1,
+      "name": "Audit Consent & Privacy Banner Status",
+      "specialistAgent": "TrackingAgent",
+      "action": "Verify Google Consent Mode v2 (ad_storage, analytics_storage, ad_user_data, ad_personalization) implementation"
+    },
+    {
+      "step": 2,
+      "name": "Configure GTM Web & Server Containers",
+      "specialistAgent": "TrackingAgent",
+      "action": "Deploy standardized dataLayer events (view_item, add_to_cart, initiate_checkout, purchase, generate_lead) with unique event_id"
+    },
+    {
+      "step": 3,
+      "name": "Setup Google Ads Enhanced Conversions",
+      "specialistAgent": "TrackingAgent",
+      "action": "Configure first-party user data hashing (SHA-256 email, phone, address) for Google Ads conversion actions"
+    },
+    {
+      "step": 4,
+      "name": "Implement Meta CAPI Deduplication",
+      "specialistAgent": "TrackingAgent",
+      "action": "Pair client-side fbq() calls with server-side CAPI events using identical event_id and event_name for 100% deduplication"
+    },
+    {
+      "step": 5,
+      "name": "Implement TikTok Events API Ingestion",
+      "specialistAgent": "TrackingAgent",
+      "action": "Connect TikTok Events API with browser Pixel events matching event_id and client IP/User Agent"
+    },
+    {
+      "step": 6,
+      "name": "Simulate Live Test Conversions",
+      "specialistAgent": "TrackingAgent",
+      "action": "Execute test purchase through GTM preview mode and Meta Events Manager Test Events tool to verify match quality"
+    }
+  ],
+  "specialistAgents": ["TrackingAgent"],
+  "requiredApprovals": false,
+  "expectedOutputs": [
+    "Tracking Health & Event Match Quality Scorecard",
+    "Event Deduplication Diagnostic Matrix",
+    "GTM Tag and Trigger Verification Sheet"
+  ],
+  "successCriteria": [
+    "Meta Event Match Quality Score >= 8.0 out of 10",
+    "Google Enhanced Conversions status: 'Active (Recording Enhanced Conversions)'",
+    "TikTok Events API active with deduplication rate > 95%",
+    "GA4 real-time debug view recording accurate purchase values"
+  ],
+  "failureHandling": {
+    "retryStrategy": "Retry test event dispatch 3 times with 5s delay",
+    "alertChannel": "Telegram Alert to Developer / Marketer",
+    "maxRetries": 3,
+    "onUnrecoverable": "NOTIFY"
+  },
+  "rollbackStrategy": "Revert GTM container to prior published version if tags cause page latency or duplicate transaction recordings."
+}

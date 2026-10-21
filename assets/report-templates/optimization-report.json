@@ -1,0 +1,20 @@
+{
+  "id": "tpl_optimization_report",
+  "title": "Account Optimization & Performance Action Report",
+  "reportType": "OPTIMIZATION_REPORT",
+  "version": "1.0.0",
+  "platform": "CROSS_PLATFORM",
+  "sections": {
+    "executiveSummary": "Summary of active optimization actions taken, budget shifts implemented, and projected yield.",
+    "overallScore": "Optimization Impact Index (0-100) reflecting portfolio efficiency uplift and wasted spend saved.",
+    "findings": "Observed performance changes following budget scaling, bid target shifts, and underperformer pauses.",
+    "issues": "Identified bottlenecks, channel saturation, and campaigns requiring further calibration.",
+    "recommendations": "Follow-up optimization recommendations ranked by expected ROAS delta and cost savings.",
+    "priorityMatrix": "Immediate vs long-term optimization priority matrix.",
+    "actionPlan": "Schedule of upcoming bid recalibrations and creative rotation checks.",
+    "supportingEvidence": "Pre- vs post-optimization comparative metric tables and budget delta logs.",
+    "appendix": "Rollback plan references, execution audit records, and specialist agent task IDs."
+  },
+  "requiredMetrics": ["spend", "conversions", "roas", "cpa", "adjustedDailyBudget", "projectedSavings"],
+  "scoringDimensions": ["budgetEfficiencyGain", "roasImprovementDelta", "riskComplianceScore"]
+}

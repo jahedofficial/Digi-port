@@ -1,13 +1,14 @@
 {
-  "$schema": "https://digiport.neexion.com/schemas/workflow.v1.json",
   "id": "workflow-ad-launch-pipeline",
   "name": "Full-Funnel Ad Campaign Launch & Human Approval Pipeline",
   "version": "1.0.0",
+  "description": "Multi-stage campaign launch workflow with intent analysis, creative synthesis, risk audit, and human-in-the-loop approval gate.",
+  "platform": "CROSS_PLATFORM",
   "stages": [
     { "id": "INTENT_ANALYSIS", "handler": "CEOAgent", "timeoutMs": 5000 },
-    { "id": "CREATIVE_SYNTHESIS", "handler": "CreativeAgent", "timeoutMs": 10000 },
-    { "id": "RISK_AUDIT", "handler": "RiskEngine", "timeoutMs": 5000 },
-    { "id": "HUMAN_APPROVAL", "handler": "ActionQueue", "requiresHuman": true },
-    { "id": "PLATFORM_DISPATCH", "handler": "PlatformAdapter", "timeoutMs": 15000 }
+    { "id": "CREATIVE_SYNTHESIS", "handler": "CreativeSpecialistAgent", "timeoutMs": 10000, "dependencies": ["INTENT_ANALYSIS"] },
+    { "id": "RISK_AUDIT", "handler": "RiskEngine", "timeoutMs": 5000, "dependencies": ["CREATIVE_SYNTHESIS"] },
+    { "id": "HUMAN_APPROVAL", "handler": "ActionQueue", "requiresHuman": true, "dependencies": ["RISK_AUDIT"] },
+    { "id": "PLATFORM_DISPATCH", "handler": "CampaignSpecialistAgent", "timeoutMs": 15000, "dependencies": ["HUMAN_APPROVAL"] }
   ]
 }

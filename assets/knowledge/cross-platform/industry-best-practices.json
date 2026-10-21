@@ -1,0 +1,56 @@
+{
+  "id": "knowledge-industry-best-practices",
+  "title": "Universal Paid Media Operating System Industry Best Practices",
+  "platform": "CROSS_PLATFORM",
+  "category": "Enterprise Media Guidelines",
+  "version": "1.0.0",
+  "overview": "Synthesized industry-wide best practices for managing omnichannel performance marketing across Google Ads, Meta Ads, and TikTok Ads in an enterprise multi-client environment.",
+  "coreConcepts": [
+    "Clean Architecture and Separation of Concerns in marketing automation",
+    "Consolidated account structures (fewer campaigns, more algorithmic freedom)",
+    "Creative velocity as the primary driver of performance in algorithmic auctions",
+    "First-party data hygiene and server-side tracking as structural competitive advantages"
+  ],
+  "features": [
+    "Automated budget pacing algorithms preventing end-of-month budget exhaustion",
+    "Creative iteration frameworks (Hook -> Problem -> Solution -> Social Proof -> Offer -> CTA)",
+    "Multi-client isolation guardrails protecting tenant data and API quota limits",
+    "Deterministic risk engines and human-in-the-loop approval workflows"
+  ],
+  "bestPractices": [
+    "Scale winning campaigns by increasing budget <= 20% every 48-72 hours to prevent resetting learning",
+    "Never let ad frequency exceed 3.5 without deploying fresh creative hooks",
+    "Always maintain a minimum 10% exploratory budget for creative testing and new channel experiments",
+    "Enforce strict negative keyword governance on search and strict placement exclusions on social"
+  ],
+  "policies": [
+    "Zero-tolerance policy on deceptive or misleading advertising claims",
+    "Complete transparency regarding pricing, subscriptions, and cancellation terms",
+    "Respect for platform rate limits, API quotas, and terms of service"
+  ],
+  "limitations": [
+    "Algorithmic learning requires statistical conversion volume (minimum 30-50 conversions/month)",
+    "External macro factors (inflation, seasonality, platform outages) can distort short-term ROAS",
+    "Creative fatigue is inevitable and requires ongoing creative production pipelines"
+  ],
+  "commonIssues": [
+    "Over-optimizing campaigns daily, causing continuous learning phase resets",
+    "Fragmenting modest budgets across too many ad sets and keywords",
+    "Relying entirely on a single platform, creating vulnerability to sudden algorithm shifts or account bans"
+  ],
+  "troubleshootingGuide": [
+    {
+      "issue": "Performance suddenly crashes after positive multi-week run",
+      "resolution": "Check creative frequency, audit recent account changes in changelog, and verify server-side tracking health"
+    },
+    {
+      "issue": "Campaign spend pacing too slow (underspending daily budget)",
+      "resolution": "Loosen bid cap or Target CPA guardrail by 10-15%, or broaden audience targeting criteria"
+    }
+  ],
+  "references": [
+    "https://www.thinkwithgoogle.com",
+    "https://www.facebook.com/business/insights",
+    "https://www.tiktok.com/business/en/insights"
+  ]
+}

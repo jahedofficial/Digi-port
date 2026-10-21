@@ -1,0 +1,15 @@
+{
+  "id": "sched_hourly_guardrail_monitor",
+  "name": "Hourly Rapid Spend Velocity & Anomaly Guardrail Monitor",
+  "description": "Hourly rapid-response check for abnormal spend acceleration, zero conversion spend spikes, and platform API error spikes.",
+  "clientId": "*",
+  "type": "CRON",
+  "cronExpression": "0 * * * *",
+  "targetWorkflowId": "workflow-daily-optimization-pipeline",
+  "targetOperation": "OPTIMIZE",
+  "parameters": {
+    "lookbackHours": 1,
+    "maxHourlySpendDriftPercent": 25
+  },
+  "status": "ACTIVE"
+}

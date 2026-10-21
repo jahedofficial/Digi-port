@@ -1,0 +1,55 @@
+{
+  "id": "knowledge-google-search-console",
+  "title": "Google Search Console (GSC) Organic Insights & Indexation",
+  "platform": "GOOGLE",
+  "category": "Organic Search & Technical SEO",
+  "version": "1.0.0",
+  "overview": "Google Search Console monitors organic search performance, indexing health, mobile usability, and search query trends to inform paid media keyword discovery and landing page quality.",
+  "coreConcepts": [
+    "Search performance metrics: Clicks, Impressions, CTR, Average Position",
+    "Index Coverage reports: Valid, Excluded, Error, and Warning statuses",
+    "Core Web Vitals (LCP, INP, CLS) impacting landing page experience quality scores",
+    "URL Inspection tool for real-time live indexing and schema validation"
+  ],
+  "features": [
+    "Search Console API for automated daily query and page performance queries",
+    "Sitemap submission and crawl status monitoring",
+    "Rich results test for structured data (FAQ, Product, LocalBusiness schema)",
+    "Security & Manual Actions diagnostic reporting"
+  ],
+  "bestPractices": [
+    "Cross-reference high-performing organic queries with Google Ads Search negative and target lists",
+    "Identify landing pages with poor Core Web Vitals to prevent Quality Score decay in paid ads",
+    "Monitor indexing status of key promotional and campaign landing pages",
+    "Submit dynamic XML sitemaps updated in real-time as new products launch"
+  ],
+  "policies": [
+    "Google Search Essentials (formerly Webmaster Guidelines) compliance",
+    "Prohibition of cloaking, doorway pages, and keyword stuffing",
+    "Domain property verification via DNS TXT record for full root and subdomain tracking"
+  ],
+  "limitations": [
+    "Performance data retention limited to last 16 months",
+    "Anonymized queries excluded by Google to protect user privacy (high-tail volume missing)",
+    "API quota: 1,200 requests per minute and 100,000,000 queries per day"
+  ],
+  "commonIssues": [
+    "Landing pages excluded with 'Crawled - currently not indexed' status due to low content quality",
+    "Discrepancies between GSC clicks and GA4 organic session counts",
+    "Failing Core Web Vitals (INP > 200ms) on ad landing pages"
+  ],
+  "troubleshootingGuide": [
+    {
+      "issue": "High impression organic queries with poor position (> 15)",
+      "resolution": "Evaluate query commercial intent and launch targeted Exact Match Google Ads campaigns to capture demand immediately"
+    },
+    {
+      "issue": "Slow ad landing page causing poor Quality Score",
+      "resolution": "Inspect PageSpeed Insights recommendations and compress hero images or defer non-critical JS tags"
+    }
+  ],
+  "references": [
+    "https://support.google.com/webmasters",
+    "https://developers.google.com/webmaster-tools"
+  ]
+}

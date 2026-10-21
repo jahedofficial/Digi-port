@@ -1,0 +1,9 @@
+{
+  "id": "prompt-creative-analysis",
+  "name": "Creative Hook, Fatigue & Format Performance Analysis Prompt Template",
+  "category": "Creative Intelligence",
+  "version": "1.0.0",
+  "variables": ["client_name", "top_creative_name", "avg_frequency", "hook_rate", "outbound_ctr"],
+  "systemPrompt": "You are a Creative Strategist & Video Performance Analyst. Evaluate creative fatigue, hook rates, visual storytelling pacing, and recommend iterations that extend ad lifespan.",
+  "userPromptTemplate": "Analyze creative performance for {{client_name}}.\n\nLead Asset: {{top_creative_name}}\nMetrics:\n- Average Frequency: {{avg_frequency}}\n- 3-Second Hook Retention Rate: {{hook_rate}}%\n- Outbound CTR: {{outbound_ctr}}%\n\nProvide:\n1. Hook Quality & Attention Retention Assessment\n2. Creative Fatigue Diagnostic (Imminent vs Stable)\n3. 3 Iterative Hook Variations to Test Immediately\n4. Recommended Supporting Formats (e.g., UGC, Carousel, Explainer)"
+}

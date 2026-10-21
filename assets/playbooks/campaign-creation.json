@@ -1,0 +1,81 @@
+{
+  "id": "playbook-campaign-creation",
+  "name": "Omni-Channel Campaign Creation & Launch Blueprint",
+  "version": "1.0.0",
+  "targetPlatforms": ["GOOGLE", "META", "TIKTOK"],
+  "purpose": "Deploy high-converting campaigns across Google, Meta, and TikTok using industry template guidelines, validated tracking, and human approval gates.",
+  "triggerConditions": [
+    "User prompt requesting campaign creation or launch",
+    "Scheduled seasonal promo rollout",
+    "New product line launch execution plan"
+  ],
+  "prerequisites": [
+    "Target ad account verified and active",
+    "Conversion goals and tracking active",
+    "Creative assets adhering to platform format specifications ready",
+    "Campaign budget defined and within client monthly budget cap"
+  ],
+  "supportedCampaignTypes": {
+    "google": ["Search", "Performance Max", "Shopping", "Display", "Demand Gen", "Video"],
+    "meta": ["Sales (Advantage+ Shopping)", "Leads (Instant Forms & Website)", "Traffic", "Engagement", "Awareness", "App Promotion", "Catalog Sales"],
+    "tiktok": ["Traffic", "Website Conversions", "Lead Generation", "Video Views", "Reach", "Catalog Sales (Video Shopping Ads)", "Spark Ads"]
+  },
+  "executionSteps": [
+    {
+      "step": 1,
+      "name": "Audit Tracking Readiness",
+      "specialistAgent": "TrackingAgent",
+      "action": "Ensure target optimization events (Purchase/Lead) are firing and deduplicated before committing ad spend"
+    },
+    {
+      "step": 2,
+      "name": "Synthesize Creative & Ad Copy Structure",
+      "specialistAgent": "CreativeAgent",
+      "action": "Match creative assets to aspect ratio guidelines (9:16 for Reels/TikTok, 1:1 for Feeds, 16:9 for YouTube) and generate compliant copy"
+    },
+    {
+      "step": 3,
+      "name": "Construct Draft Campaign Hierarchy",
+      "specialistAgent": "CampaignAgent",
+      "action": "Build Campaign, AdSets/AdGroups, and Ad units in PAUSED state using naming conventions and bidding guardrails"
+    },
+    {
+      "step": 4,
+      "name": "Risk & Policy Compliance Check",
+      "specialistAgent": "RiskEngine",
+      "action": "Scan ad copy against platform policies (Healthcare, Housing, Credit, Trademarks) and verify budget cap"
+    },
+    {
+      "step": 5,
+      "name": "Human Approval Gate",
+      "specialistAgent": "CEOAgent",
+      "action": "Submit plan to ActionQueue for explicit user sign-off before activating spend",
+      "requiredApprovals": true
+    },
+    {
+      "step": 6,
+      "name": "Activate & Confirm Delivery",
+      "specialistAgent": "CampaignAgent",
+      "action": "Set campaign status to ACTIVE via platform adapter upon user approval and verify initial impression delivery"
+    }
+  ],
+  "specialistAgents": ["TrackingAgent", "CreativeAgent", "CampaignAgent", "RiskEngine", "CEOAgent"],
+  "requiredApprovals": true,
+  "expectedOutputs": [
+    "Live Campaign IDs across Google, Meta, and TikTok",
+    "Budget Distribution Matrix",
+    "Targeting & Creative Specification Sheet"
+  ],
+  "successCriteria": [
+    "Campaign successfully mounted in ACTIVE status",
+    "First impressions registered within 2 hours of launch",
+    "Zero policy disprovals or ad rejections by platform automated reviewers"
+  ],
+  "failureHandling": {
+    "retryStrategy": "Retry API mutation once if transient network fault; abort immediately if platform returns policy disapproval",
+    "alertChannel": "Telegram Emergency Copilot Channel",
+    "maxRetries": 1,
+    "onUnrecoverable": "ROLLBACK"
+  },
+  "rollbackStrategy": "Immediately pause all newly created campaigns, ad sets, and ads across all platforms to prevent budget depletion."
+}

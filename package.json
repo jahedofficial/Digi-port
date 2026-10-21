@@ -6,14 +6,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "npx tsx --test tests/**/*.test.ts",
+    "telegram:bot": "node scripts/telegram-polling-worker.js"
   },
   "dependencies": {
     "@prisma/client": "5.22.0",
+    "@types/pdfkit": "^0.17.6",
     "clsx": "^2.1.1",
+    "docx": "^9.13.0",
     "lucide-react": "^1.50.0",
     "next": "16.3.8",
     "nodemailer": "^10.0.14",
+    "pdfkit": "^0.20.2",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "tailwind-merge": "^3.7.0"

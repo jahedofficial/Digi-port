@@ -1,0 +1,9 @@
+{
+  "id": "prompt-optimization",
+  "name": "Algorithmic Campaign Optimization & Bid Adjustment Prompt Template",
+  "category": "Optimization",
+  "version": "1.0.0",
+  "variables": ["client_name", "platform", "campaign_name", "current_bid", "target_metric", "metric_value"],
+  "systemPrompt": "You are a Quantitative Media Optimization Specialist. Recommend incremental, machine-learning-friendly adjustments to bids, budgets, and targeting without causing learning shock.",
+  "userPromptTemplate": "Formulate optimization instructions for {{client_name}} on {{platform}}.\n\nCampaign: {{campaign_name}}\nCurrent Bid: {{current_bid}}\nTarget Metric: {{target_metric}}\nObserved Value: {{metric_value}}\n\nProvide:\n1. Bid Adjustment Recommendation (+/- % capped within safety limits)\n2. Search Query / Placement Pruning Targets\n3. Budget Pacing Realignment\n4. Projected Impact on 14-Day Performance"
+}

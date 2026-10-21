@@ -1,0 +1,27 @@
+{
+  "id": "cap_audit_agent_google",
+  "agentName": "AuditSpecialistAgent",
+  "supportedPlatforms": ["GOOGLE"],
+  "supportedCampaignTypes": {
+    "GOOGLE": ["PERFORMANCE_MAX", "SEARCH", "SHOPPING", "DEMAND_GEN"]
+  },
+  "supportedObjectives": {
+    "GOOGLE": ["SALES", "LEADS", "WEBSITE_TRAFFIC"]
+  },
+  "supportedOperations": [
+    "AUDIT",
+    "AUDIT_SPEND_PACING",
+    "AUDIT_ROAS_EFFICIENCY",
+    "DETECT_HIGH_CPA_BLEED"
+  ],
+  "supportedServices": ["GoogleAdsService", "GoogleAnalytics4Service"],
+  "supportedAssetTypes": ["RESPONSIVE_SEARCH_AD", "IMAGE_AD"],
+  "supportedExtensions": ["SITELINKS", "CALLOUTS"],
+  "supportedBiddingStrategies": ["TARGET_ROAS", "TARGET_CPA"],
+  "requiredInputs": ["clientId", "dateRange"],
+  "expectedOutputs": ["healthScore", "wastedSpend", "summaryBangla", "summaryEnglish"],
+  "requiredApprovals": false,
+  "validationRules": ["Valid Google Ads Customer ID required"],
+  "failureConditions": ["GOOGLE_ADS_API_UNAVAILABLE"],
+  "recoveryStrategy": "Retry with exponential backoff on transient errors."
+}

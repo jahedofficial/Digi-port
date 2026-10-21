@@ -1,0 +1,15 @@
+{
+  "id": "sched_daily_spend_pacing",
+  "name": "Daily Omnichannel Spend Pacing & Budget Drift Audit",
+  "description": "Daily audit checking cross-platform spend pacing, identifying budget bleeders, and ensuring pacing adheres to monthly budget caps.",
+  "clientId": "*",
+  "type": "CRON",
+  "cronExpression": "0 8 * * *",
+  "targetWorkflowId": "workflow-daily-optimization-pipeline",
+  "targetOperation": "AUDIT",
+  "parameters": {
+    "scope": "DAILY_PACING",
+    "alertOnSpike": true
+  },
+  "status": "ACTIVE"
+}

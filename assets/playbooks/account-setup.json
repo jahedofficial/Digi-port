@@ -1,0 +1,62 @@
+{
+  "id": "playbook-account-setup",
+  "name": "Account Baseline Setup & Connection Health Verification",
+  "version": "1.0.0",
+  "targetPlatforms": ["GOOGLE", "META", "TIKTOK"],
+  "purpose": "Verify OAuth tokens, system permissions, account currency, timezones, and conversion baseline tracking across all platforms before launching campaigns.",
+  "triggerConditions": [
+    "New client onboarding",
+    "New platform connection added in Connection Hub",
+    "Periodic monthly account health verification check"
+  ],
+  "prerequisites": [
+    "Valid direct platform credentials present in environment or encrypted store",
+    "Client workspace created with target currency and operational timezone",
+    "Billing profile active on target platform ad accounts"
+  ],
+  "executionSteps": [
+    {
+      "step": 1,
+      "name": "Verify Platform API Credentials",
+      "specialistAgent": "AuditAgent",
+      "action": "Verify OAuth tokens, token scopes, and test API ping to Google Ads, Meta Graph, and TikTok Business APIs"
+    },
+    {
+      "step": 2,
+      "name": "Validate Currency & Timezone Alignment",
+      "specialistAgent": "AuditAgent",
+      "action": "Ensure ad account currency matches workspace currency and ad delivery timezones match client operational hours"
+    },
+    {
+      "step": 3,
+      "name": "Verify Base Tracking Pixels & Webhooks",
+      "specialistAgent": "TrackingAgent",
+      "action": "Verify Meta Pixel, Google Tag Manager container, and TikTok Pixel base scripts are receiving pageviews"
+    },
+    {
+      "step": 4,
+      "name": "Verify Billing & Spend Limits",
+      "specialistAgent": "AuditAgent",
+      "action": "Confirm account status is ACTIVE with no outstanding balance suspensions or restrictive account-level spend caps"
+    }
+  ],
+  "specialistAgents": ["AuditAgent", "TrackingAgent"],
+  "requiredApprovals": false,
+  "expectedOutputs": [
+    "Account Baseline Health Report",
+    "Platform Connection Status Matrix",
+    "Currency & Timezone Verification Certificate"
+  ],
+  "successCriteria": [
+    "100% of target platforms return HTTP 200 on health probes",
+    "Currency parity confirmed between client workspace and ad accounts",
+    "Tracking base signals active within last 24 hours"
+  ],
+  "failureHandling": {
+    "retryStrategy": "Retry failed connection probe 3 times with 5s exponential backoff",
+    "alertChannel": "Telegram Alert to Workspace Admin",
+    "maxRetries": 3,
+    "onUnrecoverable": "NOTIFY"
+  },
+  "rollbackStrategy": "Mark failing platform connection as DEGRADED; isolate unaffected platforms and send immediate token refresh link to user."
+}

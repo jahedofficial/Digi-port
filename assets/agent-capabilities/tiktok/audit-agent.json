@@ -1,0 +1,22 @@
+{
+  "id": "cap_audit_agent_tiktok",
+  "agentName": "AuditSpecialistAgent",
+  "supportedPlatforms": ["TIKTOK"],
+  "supportedCampaignTypes": {
+    "TIKTOK": ["SMART_PERFORMANCE_CAMPAIGN", "WEB_CONVERSIONS"]
+  },
+  "supportedObjectives": {
+    "TIKTOK": ["CONVERSIONS", "TRAFFIC"]
+  },
+  "supportedOperations": ["AUDIT", "AUDIT_ROAS_EFFICIENCY", "DETECT_CREATIVE_FATIGUE"],
+  "supportedServices": ["TikTokBusinessApiService", "TikTokEventsApiService"],
+  "supportedAssetTypes": ["VIDEO_VERTICAL_9X16"],
+  "supportedExtensions": ["INTERACTIVE_STICKERS"],
+  "supportedBiddingStrategies": ["LOWEST_COST", "BID_CAP"],
+  "requiredInputs": ["clientId", "dateRange"],
+  "expectedOutputs": ["healthScore", "fatiguedVideos", "summaryBangla", "summaryEnglish"],
+  "requiredApprovals": false,
+  "validationRules": ["Valid TikTok Advertiser ID required"],
+  "failureConditions": ["TIKTOK_API_RATE_LIMIT"],
+  "recoveryStrategy": "Retry with backoff on rate limits."
+}

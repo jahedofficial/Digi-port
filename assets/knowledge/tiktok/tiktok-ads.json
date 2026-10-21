@@ -1,0 +1,55 @@
+{
+  "id": "knowledge-tiktok-ads",
+  "title": "TikTok Ads Manager, Creative Formats & Spark Ads Architecture",
+  "platform": "TIKTOK",
+  "category": "Short-Form Video Advertising",
+  "version": "1.0.0",
+  "overview": "TikTok Ads Manager enables brands to reach engaged audiences through full-screen, sound-on short-form vertical video formats leveraging the 'Don't Make Ads, Make TikToks' philosophy.",
+  "coreConcepts": [
+    "Full-screen 9:16 vertical video format with sound as an essential creative component",
+    "Spark Ads leveraging native organic creator posts with authentic social engagement",
+    "TikTok Video Shopping Ads connected with TikTok Shop product catalogs",
+    "Smart Performance Campaign (SPC) automated machine-learning optimization"
+  ],
+  "features": [
+    "Commercial Music Library with pre-cleared tracks for business advertising",
+    "Interactive Add-Ons (Display Cards, Gift Codes, Countdown Stickers, Pop-out Showcases)",
+    "TikTok Open API (v1.3) for campaign creation, ad set budgeting, and report querying",
+    "Automated Creative Optimization (ACO) dynamically pairing video hooks with text headlines"
+  ],
+  "bestPractices": [
+    "Capture viewer attention within the first 2 seconds using high-energy visual or narrative hooks",
+    "Keep video duration between 15 and 30 seconds for optimal completion rate",
+    "Respect TikTok safe zones: avoid placing essential text or logos under UI buttons on right and bottom",
+    "Refresh creative variants every 7 to 10 days due to rapid short-form video creative decay"
+  ],
+  "policies": [
+    "TikTok Advertising Policies regarding authentic community guidelines and commercial rights",
+    "Mandatory commercial music licensing; personal copyrighted audio strictly prohibited in ads",
+    "No exaggerated claims regarding weight loss, quick wealth, or guaranteed earnings"
+  ],
+  "limitations": [
+    "Creative fatigue occurs faster on TikTok (typically 5 to 10 days) than on Meta or Google",
+    "TikTok Business API rate limits: standard tier limits ad creation mutations to 10 calls per second",
+    "Minimum daily budget requirements ($50 per campaign, $20 per ad group)"
+  ],
+  "commonIssues": [
+    "Ad rejected due to 'Commercial Music Rights' when using popular trending organic audio",
+    "Creative text obscured behind user UI icons (share, like, comment, sound tag)",
+    "Sharp CPA inflation after 7 days due to creative saturation"
+  ],
+  "troubleshootingGuide": [
+    {
+      "issue": "Commercial music rejection",
+      "resolution": "Replace audio track using approved tracks from the TikTok Commercial Music Library"
+    },
+    {
+      "issue": "Text overlay blocked by TikTok interface",
+      "resolution": "Review creative against TikTok's official safe zone overlay template (keep text within central 80% box)"
+    }
+  ],
+  "references": [
+    "https://ads.tiktok.com/help",
+    "https://business-api.tiktok.com/portal/docs"
+  ]
+}

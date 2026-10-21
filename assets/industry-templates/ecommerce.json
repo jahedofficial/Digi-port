@@ -1,12 +1,77 @@
 {
-  "$schema": "https://digiport.neexion.com/schemas/industry-template.v1.json",
   "id": "template-ecommerce-growth",
-  "name": "E-commerce & Direct-to-Consumer (D2C)",
+  "name": "E-Commerce & Direct-to-Consumer (D2C)",
+  "industry": "ecommerce",
   "version": "1.0.0",
   "businessGoals": [
-    "Maximize Blended ROAS (> 3.5x)",
-    "Acquire New Customers at Target CPA",
-    "Reduce Cart Abandonment via Multi-Touch Retargeting"
+    "Maximize Blended Return on Ad Spend (ROAS > 3.5x)",
+    "Acquire High-Value First-Time Customers at Target CPA",
+    "Reduce Abandoned Carts via Dynamic Multi-Touch Retargeting",
+    "Scale Customer Lifetime Value (LTV) through Repeat Purchases"
+  ],
+  "campaignStructure": {
+    "funnelStages": ["Top-of-Funnel Discovery", "Middle-of-Funnel Consideration", "Bottom-of-Funnel Purchase", "Loyalty & Retention"],
+    "namingConvention": "[Channel]_[Country]_[Objective]_[ProductCategory]_[Targeting]_[Date]"
+  },
+  "recommendedCampaignTypes": {
+    "google": ["Performance Max (PMax)", "Google Shopping", "Search (Brand + Non-Brand)", "Demand Gen"],
+    "meta": ["Advantage+ Shopping Campaigns (ASC)", "Manual Sales Dynamic Ads", "Catalog Sales"],
+    "tiktok": ["Video Shopping Ads", "Web Conversions", "Spark Ads"]
+  },
+  "budgetStrategy": {
+    "google": "Target ROAS with Campaign-Level Shared Budget",
+    "meta": "Advantage Campaign Budget (CBO) with 80% Prospecting / 20% Retargeting",
+    "tiktok": "Ad Set Budget Allocation with Weekly Dayparting"
+  },
+  "biddingStrategy": {
+    "google": "Maximize Conversion Value with Target ROAS (tROAS)",
+    "meta": "Highest Volume with Minimum ROAS Bid Guardrail",
+    "tiktok": "Lowest Cost with Bid Cap for High-Value SKU Ad Groups"
+  },
+  "conversionGoals": [
+    "Purchase (Primary Conversion)",
+    "Initiate Checkout",
+    "Add to Cart",
+    "View Content (Product Detail Page)"
+  ],
+  "trackingRequirements": [
+    "Meta Conversions API (CAPI) with Server-Side Deduplication (event_id)",
+    "Google Enhanced Conversions via GTM Server-Side Container",
+    "TikTok Events API (Browser + Webhook Server Events)",
+    "GA4 E-commerce Purchase Events with currency and items array"
+  ],
+  "assetRequirements": {
+    "formats": ["MP4 Video", "High-Res Static JPG/PNG", "Product Catalog Feed"],
+    "aspectRatios": ["9:16 (Stories/Reels/TikTok)", "1:1 (Feed/PMax)", "16:9 (YouTube)"],
+    "maxVideoDurationSeconds": 30,
+    "headlineCharacterLimit": 30
+  },
+  "namingConventions": {
+    "campaignPattern": "ECOM_{PLATFORM}_{OBJECTIVE}_{REGION}_{VERSION}",
+    "adGroupPattern": "AG_{AUDIENCE}_{TARGETING_TYPE}",
+    "adPattern": "AD_{CREATIVE_TYPE}_{HOOK_TYPE}_{VARIANT}"
+  },
+  "kpiTargets": {
+    "targetROAS": 3.5,
+    "targetCTR": 2.1,
+    "maxCPAUSD": 18.0,
+    "targetEventMatchQuality": 8.5
+  },
+  "reportingMetrics": [
+    "Spend",
+    "Impressions",
+    "Clicks",
+    "CTR",
+    "Purchases",
+    "ConversionValue",
+    "CPA",
+    "ROAS",
+    "AOV"
+  ],
+  "bestPractices": [
+    "Refresh creative variants every 14 days to prevent audience fatigue",
+    "Maintain synchronized Google Merchant Center feed with high-resolution imagery",
+    "Use real user-generated content (UGC) for TikTok and Meta Reels"
   ],
   "platformMix": {
     "recommendedRoles": {
@@ -18,23 +83,32 @@
       "google": { "minPercent": 30, "maxPercent": 50, "defaultPercent": 40 },
       "meta": { "minPercent": 40, "maxPercent": 60, "defaultPercent": 50 },
       "tiktok": { "minPercent": 10, "maxPercent": 25, "defaultPercent": 10 }
+    },
+    "perPlatformCampaignTypes": {
+      "google": ["Performance Max", "Shopping", "Search"],
+      "meta": ["Advantage+ Shopping", "Sales"],
+      "tiktok": ["Video Shopping Ads", "Web Conversions"]
+    },
+    "perPlatformObjectives": {
+      "google": "SALES",
+      "meta": "OUTCOME_SALES",
+      "tiktok": "CONVERSIONS"
+    },
+    "perPlatformOptimizationEvents": {
+      "google": "PURCHASE",
+      "meta": "PURCHASE",
+      "tiktok": "COMPLETE_PAYMENT"
+    },
+    "perPlatformCreativeRequirements": {
+      "google": { "formats": ["IMAGE", "VIDEO", "FEED"], "aspectRatios": ["1:1", "1.91:1", "4:5"] },
+      "meta": { "formats": ["VIDEO", "CAROUSEL", "IMAGE"], "aspectRatios": ["1:1", "9:16", "4:5"] },
+      "tiktok": { "formats": ["VIDEO"], "aspectRatios": ["9:16"], "maxDurationSeconds": 30 }
+    },
+    "policyConstraints": {
+      "specialAdCategory": "NONE",
+      "google": ["Strict Google Merchant Center product feed compliance", "Accurate pricing & tax disclosure"],
+      "meta": ["No misleading discounts or before/after weight claims"],
+      "tiktok": ["Authentic sound licensing and commercial rights clearing"]
     }
-  },
-  "biddingStrategy": {
-    "google": "Maximize Conversion Value with Target ROAS (tROAS)",
-    "meta": "Highest Volume / Cost Cap with Minimum ROAS Guardrail",
-    "tiktok": "Lowest Cost with Bid Cap on Scaling Ad Groups"
-  },
-  "trackingRequirements": [
-    "Meta Conversions API (CAPI) with Server-Side Deduplication (event_id)",
-    "Google Enhanced Conversions via GTM Server-Side Container",
-    "TikTok Events API (Browser + Webhook Server Events)",
-    "GA4 E-commerce Purchase Events with currency and items array"
-  ],
-  "kpiTargets": {
-    "targetROAS": 3.5,
-    "targetCTR": 1.8,
-    "maxCPAUSD": 18.0,
-    "targetEventMatchQuality": 8.5
   }
 }

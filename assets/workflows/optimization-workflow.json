@@ -1,0 +1,15 @@
+{
+  "id": "workflow-daily-optimization-pipeline",
+  "name": "Daily Algorithmic Bid & Budget Optimization Pipeline",
+  "version": "1.0.0",
+  "description": "Continuous algorithmic optimization pipeline evaluating ROAS pacing, CPA drift, and executing approved budget shifts within guardrails.",
+  "platform": "CROSS_PLATFORM",
+  "stages": [
+    { "id": "METRIC_INGESTION", "handler": "AuditSpecialistAgent", "timeoutMs": 15000 },
+    { "id": "DECISION_EVALUATION", "handler": "DecisionEngine", "timeoutMs": 10000, "dependencies": ["METRIC_INGESTION"] },
+    { "id": "RISK_VALIDATION", "handler": "RiskEngine", "timeoutMs": 5000, "dependencies": ["DECISION_EVALUATION"] },
+    { "id": "ACTION_APPROVAL_GATE", "handler": "ActionQueue", "requiresHuman": false, "dependencies": ["RISK_VALIDATION"] },
+    { "id": "OPTIMIZATION_EXECUTION", "handler": "OptimizationSpecialistAgent", "timeoutMs": 20000, "dependencies": ["ACTION_APPROVAL_GATE"] },
+    { "id": "OUTCOME_VERIFICATION", "handler": "ReportingSpecialistAgent", "timeoutMs": 10000, "dependencies": ["OPTIMIZATION_EXECUTION"] }
+  ]
+}

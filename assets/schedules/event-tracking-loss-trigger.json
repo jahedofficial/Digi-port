@@ -1,0 +1,15 @@
+{
+  "id": "sched_event_tracking_loss",
+  "name": "Reactive Conversion Signal Loss Diagnostics Trigger",
+  "description": "Event-driven trigger activated when CAPI or Pixel event ingestion drops to zero or match quality falls below 6.0.",
+  "clientId": "*",
+  "type": "EVENT_TRIGGER",
+  "eventPattern": "tracking.signal_loss",
+  "targetWorkflowId": "workflow-tracking-setup-pipeline",
+  "targetOperation": "VERIFY_TRACKING",
+  "parameters": {
+    "scope": "ALL_PIXELS",
+    "sendTelegramAlert": true
+  },
+  "status": "ACTIVE"
+}

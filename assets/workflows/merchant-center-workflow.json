@@ -1,0 +1,14 @@
+{
+  "id": "workflow-merchant-center-pipeline",
+  "name": "Google Merchant Center & E-commerce Catalog Health Workflow",
+  "version": "1.0.0",
+  "description": "Catalog ingestion, feed attribute validation, price and inventory synchronization, and disapproval diagnostic pipeline.",
+  "platform": "GOOGLE",
+  "stages": [
+    { "id": "FEED_STATUS_INSPECTION", "handler": "MerchantCatalogSpecialistAgent", "timeoutMs": 15000 },
+    { "id": "DISAPPROVAL_DIAGNOSTIC", "handler": "MerchantCatalogSpecialistAgent", "timeoutMs": 15000, "dependencies": ["FEED_STATUS_INSPECTION"] },
+    { "id": "SUPPLEMENTAL_FEED_RULE_APPLY", "handler": "MerchantCatalogSpecialistAgent", "timeoutMs": 15000, "dependencies": ["DISAPPROVAL_DIAGNOSTIC"] },
+    { "id": "CATALOG_RE_CRAWL_TRIGGER", "handler": "MerchantCatalogSpecialistAgent", "timeoutMs": 10000, "dependencies": ["SUPPLEMENTAL_FEED_RULE_APPLY"] },
+    { "id": "MERCHANT_HEALTH_REPORTING", "handler": "ReportingSpecialistAgent", "timeoutMs": 10000, "dependencies": ["CATALOG_RE_CRAWL_TRIGGER"] }
+  ]
+}

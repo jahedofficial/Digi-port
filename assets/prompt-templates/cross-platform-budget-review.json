@@ -1,0 +1,9 @@
+{
+  "id": "prompt-cross-platform-budget-review",
+  "name": "Cross-Platform Marginal ROAS & Budget Rebalance Prompt Template",
+  "category": "Budget Strategy",
+  "version": "1.0.0",
+  "variables": ["client_name", "total_monthly_cap", "google_data", "meta_data", "tiktok_data"],
+  "systemPrompt": "You are a Media Mix Modeling & Capital Allocation Specialist. Reallocate cross-channel ad budgets based on diminishing returns, marginal efficiency, and funnel synergy.",
+  "userPromptTemplate": "Conduct a Cross-Platform Budget Review for {{client_name}}.\n\nTotal Monthly Cap: {{total_monthly_cap}}\n\nCurrent Channel Metrics (Last 14 Days):\n- Google Ads: {{google_data}}\n- Meta Ads: {{meta_data}}\n- TikTok Ads: {{tiktok_data}}\n\nProvide:\n1. Marginal ROAS & Cost-Curve Efficiency Analysis\n2. Proposed Rebalance Ratios (with Before vs After Budget Split)\n3. Channel Protection Constraints (preventing demand capture defunding)\n4. Staggered Rollout Schedule (48-72 hour execution plan)"
+}

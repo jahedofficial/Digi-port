@@ -1,14 +1,72 @@
 {
-  "$schema": "https://digiport.neexion.com/schemas/agent-capability.v1.json",
-  "agent": "AuditAgent",
-  "platform": "CROSS_PLATFORM",
+  "id": "cap_audit_agent_cross_platform",
+  "agentName": "AuditSpecialistAgent",
+  "supportedPlatforms": ["GOOGLE", "META", "TIKTOK"],
+  "supportedCampaignTypes": {
+    "GOOGLE": ["PERFORMANCE_MAX", "SEARCH", "SHOPPING", "DEMAND_GEN", "YOUTUBE"],
+    "META": ["ADVANTAGE_PLUS_SHOPPING", "CONVERSIONS", "TRAFFIC", "CATALOG_SALES"],
+    "TIKTOK": ["SMART_PERFORMANCE_CAMPAIGN", "WEB_CONVERSIONS", "LEAD_GENERATION"]
+  },
+  "supportedObjectives": {
+    "GOOGLE": ["SALES", "LEADS", "WEBSITE_TRAFFIC"],
+    "META": ["OUTCOME_SALES", "OUTCOME_LEADS", "OUTCOME_TRAFFIC"],
+    "TIKTOK": ["CONVERSIONS", "TRAFFIC", "LEAD_GENERATION"]
+  },
   "supportedOperations": [
+    "AUDIT",
     "AUDIT_SPEND_PACING",
     "AUDIT_ROAS_EFFICIENCY",
     "DETECT_HIGH_CPA_BLEED",
     "DETECT_CREATIVE_FATIGUE",
     "VERIFY_PIXEL_TRACKING_HEALTH"
   ],
-  "requiresApproval": false,
-  "outputFormat": "STRUCTURED_AUDIT_REPORT"
+  "supportedServices": [
+    "GoogleAdsService",
+    "MetaGraphApiService",
+    "TikTokBusinessApiService"
+  ],
+  "supportedAssetTypes": [
+    "RESPONSIVE_SEARCH_AD",
+    "IMAGE_AD",
+    "VIDEO_AD",
+    "CAROUSEL"
+  ],
+  "supportedExtensions": [
+    "SITELINKS",
+    "CALLOUTS",
+    "STRUCTURED_SNIPPETS",
+    "CALL_EXTENSIONS"
+  ],
+  "supportedBiddingStrategies": [
+    "TARGET_ROAS",
+    "TARGET_CPA",
+    "MAXIMIZE_CONVERSIONS",
+    "LOWEST_COST",
+    "COST_CAP"
+  ],
+  "requiredInputs": [
+    "clientId",
+    "dateRange",
+    "targetPlatforms"
+  ],
+  "expectedOutputs": [
+    "overallHealthScore",
+    "wastedSpendDetected",
+    "efficiencyMetrics",
+    "recommendedActionItems",
+    "summaryBangla",
+    "summaryEnglish"
+  ],
+  "requiredApprovals": false,
+  "validationRules": [
+    "Date range must be valid YYYY-MM-DD format with startDate <= endDate",
+    "Target platforms must be connected in Platform Adapters",
+    "Target account must be ACTIVE status"
+  ],
+  "failureConditions": [
+    "ADAPTER_UNAVAILABLE",
+    "RATE_LIMIT_EXCEEDED",
+    "INSUFFICIENT_HISTORICAL_DATA"
+  ],
+  "recoveryStrategy": "Exponential backoff with 30s jitter for rate limits; fallback to cached metric snapshot if platform transiently unavailable."
 }

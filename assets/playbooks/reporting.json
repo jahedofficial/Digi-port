@@ -1,0 +1,62 @@
+{
+  "id": "playbook-reporting",
+  "name": "Automated Multi-Channel Performance Reporting & Executive Digest",
+  "version": "1.0.0",
+  "targetPlatforms": ["GOOGLE", "META", "TIKTOK"],
+  "purpose": "Aggregate live performance data across Google, Meta, and TikTok into verified, deterministic executive summaries, PDF/Markdown digests, and Telegram briefings.",
+  "triggerConditions": [
+    "Weekly Monday morning report schedule",
+    "Monthly executive performance review schedule",
+    "On-demand user request for performance report"
+  ],
+  "prerequisites": [
+    "Platform adapters connected with live read access",
+    "Client target CPA and ROAS goals configured",
+    "Reporting date range specified (e.g. Last 7 Days, Month-to-Date)"
+  ],
+  "executionSteps": [
+    {
+      "step": 1,
+      "name": "Query Validated Multi-Platform Metrics",
+      "specialistAgent": "ReportingAgent",
+      "action": "Query Spend, Impressions, Clicks, Conversions, Revenue, CPA, and ROAS across all connected platform adapters"
+    },
+    {
+      "step": 2,
+      "name": "Calculate Blended Metrics & Attribution Comparison",
+      "specialistAgent": "ReportingAgent",
+      "action": "Compute blended CAC, blended ROAS, platform contribution percentages, and cross-reference with GA4 source/medium"
+    },
+    {
+      "step": 3,
+      "name": "Generate Executive Insights & Trends",
+      "specialistAgent": "ReportingAgent",
+      "action": "Identify top 3 winning campaigns, biggest efficiency gainers, and key channels for upcoming budget shift"
+    },
+    {
+      "step": 4,
+      "name": "Format Multi-Channel Deliverables",
+      "specialistAgent": "ReportingAgent",
+      "action": "Render bilingual Telegram chat digest (Bangla/English) and generate comprehensive Markdown/PDF audit document"
+    }
+  ],
+  "specialistAgents": ["ReportingAgent"],
+  "requiredApprovals": false,
+  "expectedOutputs": [
+    "Executive Performance Summary (Markdown)",
+    "Telegram Mobile Alert Digest",
+    "Channel-by-Channel Breakdown Table"
+  ],
+  "successCriteria": [
+    "100% of reported numbers sourced from official platform APIs (zero fabricated metrics)",
+    "Bilingual readability with actionable key takeaways",
+    "Report generation completes in under 15 seconds"
+  ],
+  "failureHandling": {
+    "retryStrategy": "Retry metric fetch up to 2 times with 5s delay on rate limit",
+    "alertChannel": "Telegram Channel",
+    "maxRetries": 2,
+    "onUnrecoverable": "NOTIFY"
+  },
+  "rollbackStrategy": "Read-only operation; in the event of partial API failure, output report with explicit 'DATA_UNAVAILABLE' indicator for the failing channel."
+}

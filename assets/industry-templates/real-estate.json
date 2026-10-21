@@ -1,0 +1,108 @@
+{
+  "id": "template-real-estate",
+  "name": "Real Estate Developers, Brokerages & Luxury Properties",
+  "industry": "real-estate",
+  "version": "1.0.0",
+  "businessGoals": [
+    "Generate Qualified Home Buyer & Investor Site Visit Bookings",
+    "Distribute High-Resolution Project Brochures & Floor Plans",
+    "Strictly Comply with Housing Special Ad Category Regulations"
+  ],
+  "campaignStructure": {
+    "funnelStages": ["Project Launch & Architectural Grandeur", "Virtual Tour / Floor Plans", "Private VIP Viewing Registration"],
+    "namingConvention": "RE_[DEVELOPMENT]_[LOCATION]_[CHANNEL]_[FORMAT]"
+  },
+  "recommendedCampaignTypes": {
+    "google": ["Geo-Targeted Luxury Real Estate Search", "Display Property Banners", "PMax for Real Estate"],
+    "meta": ["Housing Special Ad Category Lead Ads", "Dynamic Real Estate Catalog", "Virtual Walkthrough Carousel"],
+    "tiktok": ["Cinematic Drone Tours", "Interior Design Aesthetic Clips"]
+  },
+  "budgetStrategy": {
+    "google": "Maximize Conversions with CPA cap on verified phone numbers",
+    "meta": "Broad Geographic CBO (housing compliance mandated minimum radius)",
+    "tiktok": "Video Views and Instant Form Lead Capture"
+  },
+  "biddingStrategy": {
+    "google": "Target CPA on Site Tour Booking",
+    "meta": "Lowest Cost per Qualified Real Estate Lead",
+    "tiktok": "Lowest Cost Lead Generation"
+  },
+  "conversionGoals": [
+    "Schedule Private Site Visit",
+    "Download Project Floor Plan",
+    "Phone Inquiry to Sales Gallery"
+  ],
+  "trackingRequirements": [
+    "GA4 book_viewing and download_brochure conversion events",
+    "Meta CAPI with verified lead phone number and email hashing",
+    "Google Ads Enhanced Conversions for Offline Real Estate Contracts",
+    "CRM Integration (Salesforce / Yardi / Zoho) for deal progression tracking"
+  ],
+  "assetRequirements": {
+    "formats": ["4K Drone Aerial Footage", "Architectural 3D Renders", "Floor Plan PDFs"],
+    "aspectRatios": ["16:9", "1:1", "9:16"],
+    "maxVideoDurationSeconds": 60,
+    "headlineCharacterLimit": 30
+  },
+  "namingConventions": {
+    "campaignPattern": "RE_{PLATFORM}_{PROJECT}_{CITY}_{VERSION}",
+    "adGroupPattern": "AG_{PRICE_TIER}_{RADIUS_MILES}",
+    "adPattern": "AD_{RENDER_OR_TOUR}_{CALL_TO_ACTION}"
+  },
+  "kpiTargets": {
+    "targetCPA": 55.0,
+    "siteVisitShowRate": 60.0,
+    "targetCTR": 2.2
+  },
+  "reportingMetrics": [
+    "Spend",
+    "Clicks",
+    "Leads",
+    "BrochureDownloads",
+    "SiteVisitsScheduled",
+    "CostPerScheduledVisit"
+  ],
+  "bestPractices": [
+    "Showcase starting prices clearly to filter out unqualified inquiries",
+    "Use drone shots highlighting proximity to key transit, schools, and business districts",
+    "Follow up within 15 minutes while the prospect is actively browsing property specs"
+  ],
+  "platformMix": {
+    "recommendedRoles": {
+      "google": "Capturing active property seekers searching specific neighborhoods and project names",
+      "meta": "Visual luxury aspiration, dynamic carousel floor plans, and lead form bookings",
+      "tiktok": "Engaging architectural tours, interior design reveals, and luxury lifestyle showcases"
+    },
+    "budgetSplitRanges": {
+      "google": { "minPercent": 35, "maxPercent": 55, "defaultPercent": 45 },
+      "meta": { "minPercent": 35, "maxPercent": 55, "defaultPercent": 45 },
+      "tiktok": { "minPercent": 5, "maxPercent": 20, "defaultPercent": 10 }
+    },
+    "perPlatformCampaignTypes": {
+      "google": ["Search", "Performance Max"],
+      "meta": ["Lead Generation", "Catalog Sales"],
+      "tiktok": ["Lead Generation", "Video Views"]
+    },
+    "perPlatformObjectives": {
+      "google": "LEAD_GENERATION",
+      "meta": "OUTCOME_LEADS",
+      "tiktok": "LEAD_GENERATION"
+    },
+    "perPlatformOptimizationEvents": {
+      "google": "SUBMIT_LEAD_FORM",
+      "meta": "LEAD",
+      "tiktok": "SUBMIT_FORM"
+    },
+    "perPlatformCreativeRequirements": {
+      "google": { "formats": ["IMAGE", "TEXT"], "aspectRatios": ["1.91:1", "1:1"] },
+      "meta": { "formats": ["CAROUSEL", "VIDEO", "IMAGE"], "aspectRatios": ["1:1", "9:16"] },
+      "tiktok": { "formats": ["VIDEO"], "aspectRatios": ["9:16"], "maxDurationSeconds": 60 }
+    },
+    "policyConstraints": {
+      "specialAdCategory": "HOUSING",
+      "google": ["Strict Google Non-Discrimination Housing Policy: no age/gender/zip targeting"],
+      "meta": ["Mandatory Meta Special Ad Category (Housing): minimum 15-mile radius, no demographic exclusions"],
+      "tiktok": ["No discriminatory targeting or false occupancy/yield guarantees"]
+    }
+  }
+}

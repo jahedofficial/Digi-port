@@ -1,0 +1,62 @@
+{
+  "id": "playbook-campaign-optimization",
+  "name": "Algorithmic Bid, Budget & Negative Keyword Optimization",
+  "version": "1.0.0",
+  "targetPlatforms": ["GOOGLE", "META", "TIKTOK"],
+  "purpose": "Apply deterministic optimization heuristics to reduce wasted spend, optimize target bids, add negative keywords, and rebalance daily pacing.",
+  "triggerConditions": [
+    "Daily automated pacing check",
+    "Audit recommendations approved by user",
+    "User prompt requesting campaign optimization"
+  ],
+  "prerequisites": [
+    "Recent audit data available (< 24 hours old)",
+    "Campaign has accumulated at least 30 conversions for algorithmic stability",
+    "Clear CPA and ROAS thresholds defined in client context"
+  ],
+  "executionSteps": [
+    {
+      "step": 1,
+      "name": "Add Negative Keywords on Google Search",
+      "specialistAgent": "OptimizationAgent",
+      "action": "Extract search terms with spend > 1.5x CPA and 0 conversions over past 14 days and append to campaign negative list"
+    },
+    {
+      "step": 2,
+      "name": "Prune Underperforming Ads & Ad Sets",
+      "specialistAgent": "OptimizationAgent",
+      "action": "Pause ads with CTR < 50% of campaign average and 0 conversions after exceeding $30 spend"
+    },
+    {
+      "step": 3,
+      "name": "Adjust Bid Targets & Cost Caps",
+      "specialistAgent": "OptimizationAgent",
+      "action": "Adjust tROAS or tCPA targets by +/- 5% to 15% maximum (never exceeding 20% in a single adjustment cycle to avoid reset of learning phase)"
+    },
+    {
+      "step": 4,
+      "name": "Verify Learning Phase Stability",
+      "specialistAgent": "OptimizationAgent",
+      "action": "Confirm changes did not push Meta or Google campaigns into 'Learning Limited' status"
+    }
+  ],
+  "specialistAgents": ["OptimizationAgent", "RiskEngine"],
+  "requiredApprovals": true,
+  "expectedOutputs": [
+    "Optimization Execution Log",
+    "List of Paused Entities & Added Negative Keywords",
+    "Bid Adjustment Before/After Table"
+  ],
+  "successCriteria": [
+    "All bid adjustments within +/- 15% safety boundary",
+    "Zero active campaigns unintentionally stopped or thrown into bid shock",
+    "Projected 10-25% reduction in wasted spend within 7 days"
+  ],
+  "failureHandling": {
+    "retryStrategy": "Retry API update once on rate limit; abort and rollback if platform rejects bid mutation",
+    "alertChannel": "Telegram Copilot Alert",
+    "maxRetries": 1,
+    "onUnrecoverable": "ROLLBACK"
+  },
+  "rollbackStrategy": "Revert all modified bid values and reactivate paused ads to their exact pre-optimization state from snapshot."
+}

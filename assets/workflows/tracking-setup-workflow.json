@@ -1,0 +1,15 @@
+{
+  "id": "workflow-tracking-setup-pipeline",
+  "name": "Full-Stack Conversion Tracking & CAPI Synchronization Workflow",
+  "version": "1.0.0",
+  "description": "Deterministic validation and setup workflow for Google Tag Manager, GA4 Enhanced Measurement, Meta Conversions API (CAPI), and TikTok Events API.",
+  "platform": "CROSS_PLATFORM",
+  "stages": [
+    { "id": "TRACKING_DISCOVERY", "handler": "TrackingSpecialistAgent", "timeoutMs": 10000 },
+    { "id": "GOOGLE_GTM_GA4_SETUP", "handler": "TrackingSpecialistAgent", "timeoutMs": 15000, "dependencies": ["TRACKING_DISCOVERY"] },
+    { "id": "META_CAPI_SETUP", "handler": "TrackingSpecialistAgent", "timeoutMs": 15000, "dependencies": ["TRACKING_DISCOVERY"] },
+    { "id": "TIKTOK_EVENTS_API_SETUP", "handler": "TrackingSpecialistAgent", "timeoutMs": 15000, "dependencies": ["TRACKING_DISCOVERY"] },
+    { "id": "CONVERSION_DEDUPLICATION_AUDIT", "handler": "TrackingSpecialistAgent", "timeoutMs": 15000, "dependencies": ["GOOGLE_GTM_GA4_SETUP", "META_CAPI_SETUP", "TIKTOK_EVENTS_API_SETUP"] },
+    { "id": "TRACKING_COMPLIANCE_SIGN_OFF", "handler": "ReportingSpecialistAgent", "timeoutMs": 10000, "dependencies": ["CONVERSION_DEDUPLICATION_AUDIT"] }
+  ]
+}

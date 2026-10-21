@@ -1,0 +1,20 @@
+{
+  "id": "tpl_campaign_performance",
+  "title": "Platform Campaign Performance Scorecard",
+  "reportType": "CAMPAIGN_PERFORMANCE",
+  "version": "1.0.0",
+  "platform": "CROSS_PLATFORM",
+  "sections": {
+    "executiveSummary": "Periodic overview of active campaigns, spend distribution, and conversion achievements.",
+    "overallScore": "Aggregated campaign health score (0-100) combining target CPA alignment and ROAS achievement.",
+    "findings": "Performance highlights across top campaigns, winning creative variations, and audience groups.",
+    "issues": "Campaigns with rising cost-per-acquisition, high frequency, or budget under-delivery.",
+    "recommendations": "Tactical actions to rebalance budget across campaign ad sets and refine bidding parameters.",
+    "priorityMatrix": "Immediate budget scaling vs campaign pausing priority matrix.",
+    "actionPlan": "Day-by-day budget scaling and bid adjustment roadmap.",
+    "supportingEvidence": "Daily metric pacing tables (spend, CTR, CPC, CPA, ROAS) over selected date range.",
+    "appendix": "Campaign parameter reference, targeting settings, and platform campaign IDs."
+  },
+  "requiredMetrics": ["spend", "impressions", "clicks", "conversions", "roas", "cpa", "ctr", "cpc"],
+  "scoringDimensions": ["roasHealth", "cpaEfficiency", "budgetPacingAccuracy"]
+}
