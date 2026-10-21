@@ -59,6 +59,7 @@ export default function Home() {
     conversions?: number;
     totalRevenue?: number;
     screenPageViews?: number;
+    eventCount?: number;
   } | null>(null);
 
   // Load persisted authentication state from localStorage
