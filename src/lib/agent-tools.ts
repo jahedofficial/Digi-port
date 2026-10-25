@@ -116,4 +116,39 @@ export const AGENT_TOOLS: ToolDefinition[] = [
       { name: 'currency', type: 'string', description: 'BDT or USD', required: false },
     ],
   },
+  {
+    name: 'ga4_get_overview',
+    type: 'READ',
+    requiresApproval: false,
+    description: 'Fetches verified GA4 web sessions, active users, purchases, revenue, conversion rate, AOV, and fashion funnel drop-offs.',
+    parameters: [
+      { name: 'timeframe', type: 'string', description: 'today | yesterday | last_7d | last_30d | this_month', required: false },
+    ],
+  },
+  {
+    name: 'ga4_get_realtime',
+    type: 'READ',
+    requiresApproval: false,
+    description: 'Fetches real-time active visitors right now in the last 30 minutes, device category split, and top active cities.',
+    parameters: [],
+  },
+  {
+    name: 'ga4_get_channel_attribution',
+    type: 'READ',
+    requiresApproval: false,
+    description: 'Compares omnichannel traffic & revenue attribution: Meta Ads vs Google Ads vs TikTok Ads vs Organic Search vs Direct Traffic.',
+    parameters: [
+      { name: 'timeframe', type: 'string', description: 'today | yesterday | last_7d | last_30d | this_month', required: false },
+    ],
+  },
+  {
+    name: 'ga4_get_ecommerce_funnel',
+    type: 'READ',
+    requiresApproval: false,
+    description: 'Analyzes fashion e-commerce funnel metrics: Add-to-cart %, Cart Abandonment %, View-to-Buy %, and Customer LTV.',
+    parameters: [
+      { name: 'timeframe', type: 'string', description: 'today | yesterday | last_7d | last_30d | this_month', required: false },
+    ],
+  },
 ];
+

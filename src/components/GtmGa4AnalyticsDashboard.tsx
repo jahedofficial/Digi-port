@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   CheckCircle2, 
   TrendingUp, 
@@ -34,9 +34,14 @@ import {
   ShieldCheck,
   Percent,
   Filter,
-  Check
+  Check,
+  X,
+  Key,
+  Loader2
 } from 'lucide-react';
 import { CampaignData, CreativeData, MetricSummary } from '@/types';
+import { GA4UnifiedReport, Ga4RealtimeReport } from '@/lib/ga4-api';
+
 
 interface GtmGa4AnalyticsDashboardProps {
   metrics: MetricSummary;
@@ -88,10 +93,151 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
   const [ecommerceSearch, setEcommerceSearch] = useState('');
   const [realtimeFilter, setRealtimeFilter] = useState<'ALL' | 'PURCHASES' | 'CART'>('ALL');
 
-  const handleManualRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 800);
+  // GA4 Unified Omnichannel & Realtime State
+  const [ga4UnifiedReport, setGa4UnifiedReport] = useState<GA4UnifiedReport | null>(null);
+  const [ga4RealtimeReport, setGa4RealtimeReport] = useState<Ga4RealtimeReport | null>(null);
+  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+  const [ga4PropertyId, setGa4PropertyId] = useState('551294668');
+  const [ga4ServiceAccountJson, setGa4ServiceAccountJson] = useState('');
+  const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'connected' | 'error'>('idle');
+  const [testMsg, setTestMsg] = useState('');
+
+  // Fetch GA4 report and realtime active users from /api/analytics/ga4
+  const fetchGa4Data = useCallback(async (preset = timeFilter) => {
+    try {
+      setIsRefreshing(true);
+      const datePresetMap: Record<string, string> = {
+        today: 'today',
+        yesterday: 'yesterday',
+        '7d': 'last_7d',
+        '30d': 'last_30d',
+        month: 'this_month',
+      };
+      const mappedPreset = datePresetMap[preset] || 'last_7d';
+
+      const [reportRes, rtRes] = await Promise.all([
+        fetch('/api/analytics/ga4', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'fetch_report', datePreset: mappedPreset })
+        }),
+        fetch('/api/analytics/ga4', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'fetch_realtime' })
+        })
+      ]);
+
+      const reportData = await reportRes.json();
+      if (reportData.success && reportData.report) {
+        setGa4UnifiedReport(reportData.report);
+      }
+
+      const rtData = await rtRes.json();
+      if (rtData.success && rtData.data) {
+        setGa4RealtimeReport(rtData.data);
+      }
+    } catch (err) {
+      console.warn('[GA4 Dashboard Fetch Notice]:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [timeFilter]);
+
+  // Initial load & Polling
+  useEffect(() => {
+    fetch('/api/analytics/ga4', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'get_config' })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.propertyId) {
+          setGa4PropertyId(data.propertyId);
+          if (data.isConfigured) {
+            setTestStatus('connected');
+          }
+        }
+      })
+      .catch(() => {});
+
+    fetchGa4Data(timeFilter);
+
+    const timer = setInterval(() => {
+      fetch('/api/analytics/ga4', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'fetch_realtime' })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.data) {
+            setGa4RealtimeReport(data.data);
+          }
+        })
+        .catch(() => {});
+    }, 30000);
+
+    return () => clearInterval(timer);
+  }, [fetchGa4Data, timeFilter]);
+
+  const handleTestAndSaveGa4 = async () => {
+    if (!ga4PropertyId.trim()) {
+      setTestStatus('error');
+      setTestMsg('অনুগ্রহ করে সঠিক GA4 Property ID প্রদান করুন (যেমন: 551294668)।');
+      return;
+    }
+    if (!ga4ServiceAccountJson.trim()) {
+      setTestStatus('error');
+      setTestMsg('অনুগ্রহ করে Google Cloud Service Account JSON কি পেস্ট করুন।');
+      return;
+    }
+
+    let parsedSa = null;
+    try {
+      parsedSa = JSON.parse(ga4ServiceAccountJson.trim());
+    } catch {
+      setTestStatus('error');
+      setTestMsg('অকার্যকর JSON ফরম্যাট। গুগল ক্লাউড থেকে ডাউনলোড করা সঠিক JSON পেস্ট করুন।');
+      return;
+    }
+
+    setTestStatus('testing');
+    setTestMsg('');
+    try {
+      const res = await fetch('/api/analytics/ga4', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'test_connection',
+          propertyId: ga4PropertyId.trim(),
+          serviceAccount: parsedSa,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setTestStatus('connected');
+        setTestMsg(data.message || 'সফলভাবে GA4 প্রোপার্টি সংযুক্ত ও ভেরিফাই হয়েছে!');
+        fetchGa4Data(timeFilter);
+        setTimeout(() => {
+          setIsConfigModalOpen(false);
+        }, 1500);
+      } else {
+        setTestStatus('error');
+        setTestMsg(data.error || 'GA4 সংযোগ ব্যর্থ হয়েছে।');
+      }
+    } catch (err: any) {
+      setTestStatus('error');
+      setTestMsg(err.message || 'Connection test failed.');
+    }
   };
+
+  const handleManualRefresh = () => {
+    fetchGa4Data(timeFilter);
+  };
+
 
   // Currency multiplier: 1 USD = 120 BDT
   const currSymbol = currency === 'BDT' ? '৳' : '$';
@@ -165,44 +311,78 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
   const totalSpend = metrics.spend;
 
   const hasLiveGa4 = Boolean(
-    ga4Metrics && (
+    ga4UnifiedReport?.isLiveConnection ||
+    (ga4RealtimeReport && ga4RealtimeReport.activeUsersLast30Min > 0) ||
+    (ga4Metrics && (
       (ga4Metrics.activeUsers != null && ga4Metrics.activeUsers > 0) ||
       (ga4Metrics.conversions != null && ga4Metrics.conversions > 0) ||
       (ga4Metrics.totalRevenue != null && ga4Metrics.totalRevenue > 0) ||
       (ga4Metrics.sessions != null && ga4Metrics.sessions > 0)
-    )
+    ))
   );
 
   // If GA4 totalRevenue is in BDT (e.g. 120,945), convert to USD base so formatMoney(usd) works seamlessly in both BDT & USD modes
-  const ga4RevenueUsd = ga4Metrics?.totalRevenue != null
-    ? (ga4Metrics.totalRevenue > 5000 ? ga4Metrics.totalRevenue / 120 : ga4Metrics.totalRevenue)
-    : 0;
+  const ga4RevenueUsd = ga4UnifiedReport
+    ? (currency === 'BDT' ? ga4UnifiedReport.totalRevenue / 120 : ga4UnifiedReport.totalRevenue)
+    : ga4Metrics?.totalRevenue != null
+      ? (ga4Metrics.totalRevenue > 5000 ? ga4Metrics.totalRevenue / 120 : ga4Metrics.totalRevenue)
+      : 0;
 
   // Single Source of Truth (SSOT): GA4 Verified Conversions & Revenue take precedence if present
-  const totalConversions = (hasLiveGa4 && ga4Metrics?.conversions != null && ga4Metrics.conversions > 0)
-    ? ga4Metrics.conversions
-    : (metrics.conversions > 0 ? metrics.conversions : (metaConversions > 0 ? metaConversions : 0));
+  const totalConversions = ga4UnifiedReport
+    ? ga4UnifiedReport.totalPurchases
+    : (hasLiveGa4 && ga4Metrics?.conversions != null && ga4Metrics.conversions > 0)
+      ? ga4Metrics.conversions
+      : (metrics.conversions > 0 ? metrics.conversions : (metaConversions > 0 ? metaConversions : 0));
 
-  const totalRevenue = (hasLiveGa4 && ga4RevenueUsd > 0)
-    ? ga4RevenueUsd
-    : (metrics.revenue > 0 ? metrics.revenue : totalRevAll);
+  const totalRevenue = ga4UnifiedReport
+    ? (ga4UnifiedReport.totalRevenue / rate)
+    : (hasLiveGa4 && ga4RevenueUsd > 0)
+      ? ga4RevenueUsd
+      : (metrics.revenue > 0 ? metrics.revenue : totalRevAll);
 
-  const totalSessions = (hasLiveGa4 && ga4Metrics?.sessions != null && ga4Metrics.sessions > 0)
-    ? ga4Metrics.sessions
-    : (totalClicks > 0 ? totalClicks : (ga4Metrics?.activeUsers || 0));
+  const totalSessions = ga4UnifiedReport
+    ? ga4UnifiedReport.totalSessions
+    : (hasLiveGa4 && ga4Metrics?.sessions != null && ga4Metrics.sessions > 0)
+      ? ga4Metrics.sessions
+      : (totalClicks > 0 ? totalClicks : (ga4Metrics?.activeUsers || 0));
 
-  const totalRoas = totalSpend > 0 ? (totalRevenue / totalSpend) : metrics.roas;
+  const totalRoas = ga4UnifiedReport
+    ? ga4UnifiedReport.blendedRoas
+    : totalSpend > 0 ? (totalRevenue / totalSpend) : metrics.roas;
+
   const totalCpa = totalConversions > 0 ? (totalSpend / totalConversions) : metrics.cpa;
   const totalCvr = totalSessions > 0
     ? (totalConversions / totalSessions) * 100
     : (totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0);
 
-  const rtUsers = ga4Metrics?.realtimeUsers !== undefined
-    ? ga4Metrics.realtimeUsers
-    : (hasLiveGa4 ? Math.max(1, Math.round((ga4Metrics?.activeUsers || 9) * 0.44)) : 0);
-  const rtCountry = ga4Metrics?.realtimeCountry || 'Bangladesh';
+  const rtUsers = ga4RealtimeReport?.activeUsersLast30Min !== undefined
+    ? ga4RealtimeReport.activeUsersLast30Min
+    : (ga4Metrics?.realtimeUsers !== undefined
+      ? ga4Metrics.realtimeUsers
+      : (hasLiveGa4 ? Math.max(1, Math.round((ga4Metrics?.activeUsers || 9) * 0.44)) : 0));
 
-  const channelData = [
+  const rtCountry = ga4RealtimeReport?.topCities?.[0]?.city || ga4Metrics?.realtimeCountry || 'Bangladesh';
+
+
+  const channelData = (ga4UnifiedReport?.channels && ga4UnifiedReport.channels.length > 0)
+    ? ga4UnifiedReport.channels.map(c => ({
+        id: c.channelKey,
+        name: c.channelName,
+        shortName: c.channelKey === 'meta' ? 'Meta Ads' : c.channelKey === 'google' ? 'Google Ads' : c.channelKey === 'tiktok' ? 'TikTok Ads' : c.channelKey === 'organic' ? 'Organic Search' : 'Direct',
+        sub: c.sourceMedium,
+        sessions: c.sessions,
+        engagedUsers: c.activeUsers,
+        spendUsd: c.spend / rate,
+        purchases: c.purchases,
+        revenueUsd: c.revenue / rate,
+        roas: c.roas,
+        cpaUsd: c.cpa / rate,
+        cvr: c.conversionRate,
+        color: c.color,
+        sharePct: totalRevenue > 0 ? Math.round(((c.revenue / rate) / totalRevenue) * 100) : 0,
+      }))
+    : [
     {
       id: 'meta',
       name: 'Meta Ads (Facebook & IG)',
@@ -533,15 +713,23 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
                 <span className="text-slate-300 dark:text-slate-700 shrink-0">•</span>
                 <span className="font-mono text-slate-500 dark:text-slate-400 hidden sm:inline shrink-0">G-SSSERVER89</span>
                 <span className="text-slate-300 dark:text-slate-700 hidden sm:inline shrink-0">•</span>
-                <span className="text-emerald-500 text-[10px] sm:text-[11px] font-semibold flex items-center gap-1 shrink-0">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  API Active
-                </span>
+                <button
+                  onClick={() => setIsConfigModalOpen(true)}
+                  className={`text-[10px] sm:text-[11px] font-semibold flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-md border transition-all cursor-pointer ${
+                    testStatus === 'connected' || hasLiveGa4
+                      ? 'text-emerald-500 bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/20'
+                      : 'text-amber-500 bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20'
+                  }`}
+                  title="Configure GA4 Credentials"
+                >
+                  <span className={`h-1.5 w-1.5 rounded-full ${testStatus === 'connected' || hasLiveGa4 ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
+                  <span>{testStatus === 'connected' || hasLiveGa4 ? 'GA4 Active' : 'Setup GA4'}</span>
+                </button>
               </div>
             </div>
           </div>
 
-          {/* Right: Currency Toggle + Manual Refresh */}
+          {/* Right: Currency Toggle + Time Filter + GA4 Key Modal Button + Manual Refresh */}
           <div className="flex items-center justify-between sm:justify-start gap-2 w-full lg:w-auto">
             {/* Currency Pill */}
             <div className={`flex items-center rounded-lg border p-0.5 text-[11px] sm:text-xs font-semibold ${
@@ -569,13 +757,36 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
               </button>
             </div>
 
-            {/* Time Filter Dropdown / Pill */}
+            {/* Time Filter Dropdown */}
             <div className={`flex items-center gap-1 rounded-lg border px-2 sm:px-2.5 py-1 text-[11px] sm:text-xs font-medium ${
               isLight ? 'bg-white border-slate-200 text-slate-700' : 'border-[#1e2638] bg-[#0a0d14] text-slate-300'
             }`}>
-              <Calendar className="h-3 w-3 text-slate-400" />
-              <span>Last 7 Days</span>
+              <Calendar className="h-3 w-3 text-slate-400 shrink-0" />
+              <select
+                value={timeFilter}
+                onChange={(e) => setTimeFilter(e.target.value as any)}
+                className="bg-transparent text-xs font-semibold focus:outline-none cursor-pointer pr-1"
+              >
+                <option value="today" className="text-slate-900 dark:text-slate-100 dark:bg-slate-900">Today (Live)</option>
+                <option value="yesterday" className="text-slate-900 dark:text-slate-100 dark:bg-slate-900">Yesterday</option>
+                <option value="7d" className="text-slate-900 dark:text-slate-100 dark:bg-slate-900">Last 7 Days</option>
+                <option value="30d" className="text-slate-900 dark:text-slate-100 dark:bg-slate-900">Last 30 Days</option>
+                <option value="month" className="text-slate-900 dark:text-slate-100 dark:bg-slate-900">This Month</option>
+              </select>
             </div>
+
+            {/* GA4 Setup Button */}
+            <button
+              onClick={() => setIsConfigModalOpen(true)}
+              className={`flex items-center gap-1.5 rounded-lg border p-1.5 sm:px-2.5 sm:py-1 text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+                isLight ? 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50' : 'border-[#1e2638] bg-[#0a0d14] text-slate-300 hover:bg-slate-800'
+              }`}
+              title="Configure Google Cloud Service Account JSON"
+            >
+              <Key className="h-3.5 w-3.5 text-amber-500" />
+              <span className="hidden sm:inline">GA4 Key</span>
+            </button>
+
 
             {/* Refresh Button */}
             <button
@@ -2328,6 +2539,114 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
                   Deduplication ID: <code className="text-cyan-400 font-mono">fbc.1.172802.ev91</code> | Match 100%
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          GA4 CONFIGURATION & SERVICE ACCOUNT CONNECTION MODAL
+         ========================================================================= */}
+      {isConfigModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className={`w-full max-w-xl rounded-2xl border p-6 shadow-2xl space-y-4 ${cardBg}`}>
+            <div className="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/15 text-amber-500 flex items-center justify-center">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className={`text-sm font-bold ${textTitle}`}>Google Analytics 4 (GA4) Configuration</h3>
+                  <p className="text-[11px] text-slate-400">Google Cloud Service Account &amp; Property Connection</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsConfigModalOpen(false)}
+                className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3.5 text-xs">
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-[11px] space-y-1">
+                <div className="font-bold flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>How to connect Google Analytics 4 (100% Free):</span>
+                </div>
+                <ol className="list-decimal list-inside space-y-0.5 opacity-90 pl-1">
+                  <li>Create a <strong>Service Account</strong> in Google Cloud Console.</li>
+                  <li>Go to <strong>Keys &gt; Create New Key (JSON)</strong> and download the key file.</li>
+                  <li>In <strong>GA4 Admin &gt; Property Access Management</strong>, add the service account email as <strong>Viewer / Analyst</strong>.</li>
+                  <li>Paste your 9-digit Property ID and the JSON key contents below.</li>
+                </ol>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
+                  GA4 Property ID *
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 551294668"
+                  value={ga4PropertyId}
+                  onChange={(e) => setGa4PropertyId(e.target.value)}
+                  className={`w-full px-3.5 py-2.5 rounded-xl border text-xs font-mono font-bold focus:outline-none focus:ring-1 focus:ring-amber-500 ${inputBg}`}
+                />
+                <p className="text-[10px] text-slate-400 mt-1">Found in Google Analytics &gt; Admin &gt; Property Settings.</p>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
+                  Google Cloud Service Account JSON Key *
+                </label>
+                <textarea
+                  rows={5}
+                  placeholder={`{\n  "type": "service_account",\n  "project_id": "...",\n  "private_key_id": "...",\n  "private_key": "-----BEGIN PRIVATE KEY-----...",\n  "client_email": "...@...iam.gserviceaccount.com"\n}`}
+                  value={ga4ServiceAccountJson}
+                  onChange={(e) => setGa4ServiceAccountJson(e.target.value)}
+                  className={`w-full p-3 rounded-xl border text-xs font-mono focus:outline-none focus:ring-1 focus:ring-amber-500 ${inputBg}`}
+                />
+              </div>
+
+              {testMsg && (
+                <div className={`p-3 rounded-xl text-xs font-medium border flex items-center gap-2 ${
+                  testStatus === 'connected' 
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400' 
+                    : 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400'
+                }`}>
+                  {testStatus === 'connected' ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertTriangle className="w-4 h-4 shrink-0" />}
+                  <span>{testMsg}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-200 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setIsConfigModalOpen(false)}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={testStatus === 'testing'}
+                onClick={handleTestAndSaveGa4}
+                className="px-5 py-2 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white shadow-md flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                {testStatus === 'testing' ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Verifying with Google...</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>Test &amp; Connect GA4</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
