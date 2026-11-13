@@ -476,6 +476,95 @@ export default function Home() {
     });
   };
 
+  // 1-Hour Auto-Logout Timer: Automatically logs out 1 hour after login on any device
+  React.useEffect(() => {
+    if (!currentUser) return;
+
+    const checkSession = () => {
+      const user = getStoredAuthUser();
+      if (!user) {
+        // Session expired (1 hour elapsed)
+        handleLogout();
+        alert('⚠️ নিরাপত্তার স্বার্থে আপনার ১ ঘণ্টার লগইন সেশনের মেয়াদ শেষ হয়েছে। অনুগ্রহ করে আবার লগইন করুন।');
+      }
+    };
+
+    // Check session every 10 seconds
+    const interval = setInterval(checkSession, 10000);
+    return () => clearInterval(interval);
+  }, [currentUser]);
+
+  // Multi-Device Database Vault Sync: Automatically populates connected accounts & credentials on any device (phone, laptop, etc.)
+  React.useEffect(() => {
+    fetch('/api/settings')
+      .then((res) => res.json())
+      .then((resData) => {
+        if (!resData.success || !resData.data) return;
+        const { metaDirect, googleDirect, tiktokDirect } = resData.data;
+
+        const hasServerMeta = Boolean(metaDirect?.token && metaDirect?.adAccountId);
+        const hasServerGoogle = Boolean(googleDirect?.ga4PropertyId || googleDirect?.customerId || googleDirect?.hasServiceAccount);
+        const hasServerTiktok = Boolean(tiktokDirect?.accessToken && tiktokDirect?.advertiserId);
+
+        if (hasServerMeta || hasServerGoogle || hasServerTiktok) {
+          setWorkspaces((prevWs) =>
+            prevWs.map((ws, i) => {
+              if (i === 0) {
+                const updatedConnected = { ...ws.connectedAccounts };
+                if (hasServerMeta) {
+                  const cleanId = (metaDirect.adAccountId || '').replace(/^act_?/i, '');
+                  updatedConnected.meta = { id: `act_${cleanId}`, name: 'Meta Ads', status: 'CONNECTED' };
+                }
+                if (hasServerGoogle) {
+                  const propId = googleDirect.ga4PropertyId || googleDirect.customerId;
+                  updatedConnected.google = { id: propId, name: `Google Ads & GA4 (#${propId})`, status: 'CONNECTED' };
+                }
+                if (hasServerTiktok) {
+                  updatedConnected.tiktok = { id: tiktokDirect.advertiserId, name: `TikTok Ads (${tiktokDirect.advertiserId})`, status: 'CONNECTED' };
+                }
+                return {
+                  ...ws,
+                  clientName: hasServerMeta ? 'Fakeit' : ws.clientName,
+                  connectedAccounts: updatedConnected,
+                };
+              }
+              return ws;
+            })
+          );
+        }
+
+        // Trigger background sync for Meta if token exists on server
+        if (hasServerMeta) {
+          fetch('/api/platforms/meta/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              token: metaDirect.token,
+              adAccountId: metaDirect.adAccountId,
+            }),
+          })
+            .then((r) => r.json())
+            .then((syncData) => {
+              if (syncData.success) {
+                handlePlatformSync({
+                  campaigns: syncData.campaigns || [],
+                  creatives: syncData.creatives || [],
+                  metrics: syncData.metrics || {},
+                  platform: 'META',
+                  accountName: syncData.accountName,
+                  accountId: metaDirect.adAccountId,
+                  currency: syncData.currency,
+                });
+              }
+            })
+            .catch(() => {});
+        }
+      })
+      .catch((err) => {
+        console.warn('[Multi-Device Vault Sync Notice]:', err);
+      });
+  }, []);
+
   const handleToggleCampaignStatus = (campaignId: string) => {
     setCampaigns((prev) =>
       prev.map((c) =>
