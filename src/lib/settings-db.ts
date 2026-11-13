@@ -429,6 +429,7 @@ export interface StoredGoogleDirectSettings {
   clientId: string;
   clientSecret: string;
   ga4PropertyId: string;
+  ga4MeasurementId?: string;
   scope?: 'READ_ONLY' | 'READ_WRITE';
   isConnected: boolean;
   isGa4Connected: boolean;
@@ -480,6 +481,7 @@ export async function getGoogleDirectConfig(): Promise<StoredGoogleDirectSetting
     clientId?: string;
     encryptedSecret?: string;
     ga4PropertyId?: string;
+    ga4MeasurementId?: string;
     scope?: 'READ_ONLY' | 'READ_WRITE';
     isConnected?: boolean;
     isGa4Connected?: boolean;
@@ -512,6 +514,7 @@ export async function getGoogleDirectConfig(): Promise<StoredGoogleDirectSetting
       clientId: dbData.clientId || process.env.GOOGLE_CLIENT_ID || '',
       clientSecret: plainSecret || process.env.GOOGLE_CLIENT_SECRET || '',
       ga4PropertyId: dbData.ga4PropertyId || '',
+      ga4MeasurementId: dbData.ga4MeasurementId || '',
       scope: dbData.scope || 'READ_WRITE',
       isConnected: Boolean(dbData.isConnected),
       isGa4Connected: Boolean(dbData.isGa4Connected || hasSa || dbData.ga4PropertyId),
@@ -569,6 +572,7 @@ export async function saveGoogleDirectConfig(settings: {
   clientId?: string;
   clientSecret?: string;
   ga4PropertyId?: string;
+  ga4MeasurementId?: string;
   scope?: 'READ_ONLY' | 'READ_WRITE';
   isConnected?: boolean;
   isGa4Connected?: boolean;
@@ -615,6 +619,7 @@ export async function saveGoogleDirectConfig(settings: {
     clientId: settings.clientId?.trim() || '',
     encryptedSecret: secretToEncrypt ? encryptToken(secretToEncrypt) : '',
     ga4PropertyId: settings.ga4PropertyId?.trim() || '',
+    ga4MeasurementId: settings.ga4MeasurementId?.trim() || '',
     scope: settings.scope || 'READ_WRITE',
     isConnected: Boolean(settings.isConnected),
     isGa4Connected: Boolean(settings.isGa4Connected || hasSa || settings.ga4PropertyId),

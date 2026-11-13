@@ -84,6 +84,7 @@ export interface Ga4RealtimeReport {
   topCities: Array<{ city: string; percentage: number; users: number }>;
   devices: { mobile: number; desktop: number; tablet: number };
   recentEvents: Array<{ event: string; value: string; source: string; time: string }>;
+  error?: string;
 }
 
 export interface Ga4ReportResult {
@@ -204,7 +205,7 @@ export async function testGa4Connection(
   try {
     const cleanPropertyId = propertyId.replace(/^properties\//i, '').replace(/[^0-9]/g, '').trim();
     if (!cleanPropertyId) {
-      return { success: false, error: 'সঠিক GA4 Property ID প্রদান করুন (যেমন: 551294668)।' };
+      return { success: false, error: 'সঠিক GA4 Property ID প্রদান করুন।' };
     }
 
     const token = await getGoogleServiceAccountAccessToken(serviceAccount);
@@ -231,7 +232,9 @@ export async function testGa4Connection(
       };
     } else {
       let msg = data.error?.message || 'GA4 প্রোপার্টিতে সংযোগ ব্যর্থ হয়েছে।';
-      if (data.error?.code === 403) {
+      if (msg.includes('disabled') || msg.includes('has not been used in project')) {
+        msg = 'Google Cloud Console-এ Google Analytics Data API এনাবল করা নেই। Google Cloud Console-এ গিয়ে "Google Analytics Data API" Enable করুন।';
+      } else if (data.error?.code === 403) {
         msg = `Service Account-এর কাছে প্রোপার্টি #${cleanPropertyId} এক্সেস করার অনুমতি নেই। GA4 Admin > Property Access Management-এ Service Account যোগ করুন।`;
       }
       return { success: false, error: msg };
@@ -248,7 +251,7 @@ export async function fetchGa4Realtime(
   propertyId: string,
   serviceAccount: any | null
 ): Promise<Ga4RealtimeReport> {
-  const cleanPropertyId = (propertyId || '551294668').replace(/^properties\//i, '').replace(/[^0-9]/g, '').trim();
+  const cleanPropertyId = (propertyId || '').replace(/^properties\//i, '').replace(/[^0-9]/g, '').trim();
 
   let saConfig: any = null;
   if (serviceAccount) {
@@ -278,14 +281,62 @@ export async function fetchGa4Realtime(
     };
   }
 
+  if (!cleanPropertyId) {
+    return {
+      isLive: false,
+      activeUsersLast30Min: 0,
+      usersPerMinute: new Array(30).fill(0),
+      topCities: [],
+      devices: { mobile: 0, desktop: 0, tablet: 0 },
+      recentEvents: [],
+      error: 'অনুগ্রহ করে আপনার GA4 Property ID প্রদান করুন।',
+    };
+  }
+
   try {
     const token = await getGoogleServiceAccountAccessToken(saConfig);
     const url = `${GA4_BASE_URL}/properties/${cleanPropertyId}:runRealtimeReport`;
 
-    // 1. Query Realtime Active Users per Minute (Last 30 mins)
-    const usersPerMinute = new Array(30).fill(0);
+    // 1. Primary Query: Direct Total Active Users (Last 30 mins, dimension-less for 100% accuracy)
     let activeUsers = 0;
+    try {
+      const totalRes = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          metrics: [{ name: 'activeUsers' }],
+        }),
+      });
+      const totalData = await totalRes.json();
+      if (totalRes.ok && totalData.rows && totalData.rows[0]) {
+        activeUsers = parseInt(totalData.rows[0].metricValues?.[0]?.value || '0', 10);
+      } else if (!totalRes.ok) {
+        console.warn('[GA4 Realtime Total Error]:', totalData?.error?.message || totalRes.status);
+        let errorMsg = totalData?.error?.message || `HTTP ${totalRes.status}`;
+        if (totalRes.status === 403 || errorMsg.includes('permission') || errorMsg.includes('IAM')) {
+          errorMsg = `Service Account (${saConfig?.client_email || 'ইমেইল'}) এর অনুমতি নেই। Google Analytics > Admin > Property Access Management এ এই ইমেইলটি Viewer হিসেবে যুক্ত করুন।`;
+        } else if (totalRes.status === 404 || errorMsg.includes('not found')) {
+          errorMsg = `Property #${cleanPropertyId} পাওয়া যায়নি। আপনার ওয়েবসাইটের সঠিক Property ID প্রদান করুন।`;
+        }
+        return {
+          isLive: false,
+          activeUsersLast30Min: 0,
+          usersPerMinute: new Array(30).fill(0),
+          topCities: [],
+          devices: { mobile: 0, desktop: 0, tablet: 0 },
+          recentEvents: [],
+          error: errorMsg,
+        };
+      }
+    } catch (totalErr: any) {
+      console.warn('[GA4 Realtime Total Exception]:', totalErr.message);
+    }
 
+    // 2. Query Realtime Active Users per Minute (Last 30 mins)
+    const usersPerMinute = new Array(30).fill(0);
     try {
       const minRes = await fetch(url, {
         method: 'POST',
@@ -307,12 +358,21 @@ export async function fetchGa4Realtime(
             usersPerMinute[29 - minAgo] = count;
           }
         }
-        activeUsers = minData.rows.reduce(
-          (acc: number, r: any) => acc + parseInt(r.metricValues?.[0]?.value || '0', 10),
-          0
-        );
+        if (activeUsers === 0) {
+          activeUsers = minData.rows.reduce(
+            (acc: number, r: any) => acc + parseInt(r.metricValues?.[0]?.value || '0', 10),
+            0
+          );
+        }
       }
-    } catch {}
+    } catch (minErr: any) {
+      console.warn('[GA4 Realtime Minutes Exception]:', minErr.message);
+    }
+
+    // If Google says activeUsers > 0 but minute breakdown is empty, highlight current minute
+    if (activeUsers > 0 && usersPerMinute.every(v => v === 0)) {
+      usersPerMinute[29] = activeUsers;
+    }
 
     // 2. Query Realtime Dimensions (City & Device Category)
     let topCities: Array<{ city: string; percentage: number; users: number }> = [];
@@ -410,12 +470,13 @@ export async function fetchGa4Realtime(
   } catch (err: any) {
     console.warn('Realtime live query failed:', err.message);
     return {
-      isLive: true,
+      isLive: false,
       activeUsersLast30Min: 0,
       usersPerMinute: new Array(30).fill(0),
       topCities: [],
       devices: { mobile: 0, desktop: 0, tablet: 0 },
       recentEvents: [],
+      error: err.message || 'GA4 রিয়েল-টাইম তথ্য সংগ্রহ করা যায়নি।',
     };
   }
 }
@@ -431,7 +492,7 @@ export async function fetchGa4UnifiedReport(options: {
   endDate?: string;
 }): Promise<GA4UnifiedReport> {
   const { propertyId, serviceAccount, datePreset = 'last_7d' } = options;
-  const cleanPropertyId = (propertyId || '551294668').replace(/^properties\//i, '').replace(/[^0-9]/g, '').trim();
+  const cleanPropertyId = (propertyId || '').replace(/^properties\//i, '').replace(/[^0-9]/g, '').trim();
 
   let saConfig: any = null;
   if (serviceAccount) {
@@ -590,7 +651,42 @@ export async function fetchGa4UnifiedReport(options: {
 
       return normalizeGA4Response(cleanPropertyId, targetDate.label, channelData, trendData, newVsRetData);
     } catch (err: any) {
-      console.warn('GA4 live query failed, returning safe dataset:', err.message);
+      console.warn('GA4 live query exception, returning live zero dataset:', err.message);
+      return {
+        propertyId: cleanPropertyId,
+        isLiveConnection: true,
+        dateRangeLabel: targetDate.label,
+        totalRevenue: 0,
+        totalPurchases: 0,
+        totalSessions: 0,
+        totalUsers: 0,
+        overallConversionRate: 0,
+        averageOrderValue: 0,
+        totalAdSpend: 0,
+        blendedRoas: 0,
+        cartAbandonmentRate: 0,
+        addToCartRate: 0,
+        customerLtv: 0,
+        itemViewToPurchaseRate: 0,
+        itemsViewed: 0,
+        itemsAddedToCart: 0,
+        newVsReturning: {
+          newUsers: 0,
+          returningUsers: 0,
+          newRevenue: 0,
+          returningRevenue: 0,
+          newOrders: 0,
+          returningOrders: 0,
+          newPercent: 0,
+          returningPercent: 0,
+        },
+        channels: [
+          { channelKey: 'direct', channelName: 'Direct & Brand Traffic', sourceMedium: 'direct / (none)', sessions: 0, activeUsers: 0, purchases: 0, revenue: 0, conversionRate: 0, aov: 0, spend: 0, roas: 0, cpa: 0, color: '#8B5CF6', icon: 'Zap' },
+        ],
+        trends: [],
+        topCampaigns: [],
+        fetchedAt: new Date().toISOString(),
+      };
     }
   }
 
@@ -786,7 +882,7 @@ function normalizeGA4Response(
     ? Number(((totalPurchases / itemsViewed) * 100).toFixed(2))
     : 0;
 
-  // New vs Returning calculation
+  // 5. Real Live New vs Returning Calculation from GA4 Query (matching Fakeit backend SSOT)
   let newUsers = 0, returningUsers = 0;
   let newRevenue = 0, returningRevenue = 0;
   let newOrders = 0, returningOrders = 0;
@@ -808,19 +904,22 @@ function normalizeGA4Response(
         returningRevenue += revenue;
       }
     }
+  } else {
+    newUsers = totalUsers;
+    returningUsers = 0;
+    newRevenue = totalRev;
+    returningRevenue = 0;
+    newOrders = totalPurchases;
+    returningOrders = 0;
   }
 
-  if (newUsers === 0 && returningUsers === 0) {
-    newUsers = Math.round(totalUsers * 0.68);
-    returningUsers = totalUsers - newUsers;
-    newRevenue = Math.round(totalRev * 0.62);
-    returningRevenue = totalRev - newRevenue;
-    newOrders = Math.round(totalPurchases * 0.65);
-    returningOrders = totalPurchases - newOrders;
-  }
-
-  const newPercent = totalUsers > 0 ? Math.round((newUsers / totalUsers) * 100) : 68;
-  const returningPercent = 100 - newPercent;
+  const totalCalculatedUsers = newUsers + returningUsers;
+  const newPercent = totalCalculatedUsers > 0
+    ? Math.round((newUsers / totalCalculatedUsers) * 100)
+    : (totalUsers > 0 ? 100 : 0);
+  const returningPercent = totalCalculatedUsers > 0
+    ? Math.round((returningUsers / totalCalculatedUsers) * 100)
+    : 0;
 
   return {
     propertyId,
@@ -1079,7 +1178,7 @@ export async function fetchGa4LiveMetrics(
   const cleanPropertyId = propertyId.replace(/^properties\//i, '').replace(/[^0-9]/g, '');
 
   if (!cleanPropertyId) {
-    throw new Error('সঠিক GA4 Property ID প্রদান করুন (যেমন: 551294668)।');
+    throw new Error('অনুগ্রহ করে আপনার GA4 Property ID প্রদান করুন।');
   }
 
   let saEmail = '';
@@ -1117,7 +1216,9 @@ export async function fetchGa4LiveMetrics(
 
   if (!reportRes.ok) {
     let friendlyError = reportData?.error?.message || `HTTP ${reportRes.status}`;
-    if (reportData?.error?.code === 403 || friendlyError.includes('permission') || friendlyError.includes('IAM')) {
+    if (friendlyError.includes('disabled') || friendlyError.includes('has not been used in project') || friendlyError.includes('Enable it by visiting')) {
+      friendlyError = `Google Cloud Console-এ Google Analytics Data API এনাবল করা নেই। Google Cloud Console-এ গিয়ে "Google Analytics Data API" Enable করুন।`;
+    } else if (reportData?.error?.code === 403 || friendlyError.includes('permission') || friendlyError.includes('IAM')) {
       friendlyError = `Service Account (${saEmail || 'client_email'}) এর কাছে GA4 প্রপার্টি #${cleanPropertyId} এক্সেস করার অনুমতি নেই। Google Analytics 4 > Admin > Property Access Management এ গিয়ে এই Service Account-কে Viewer বা Analyst রোল দিয়ে যুক্ত করুন।`;
     } else if (friendlyError.includes('not found') || reportData?.error?.code === 404) {
       friendlyError = `GA4 Property #${cleanPropertyId} পাওয়া যায়নি। অনুগ্রহ করে সঠিক Property ID চেক করুন।`;

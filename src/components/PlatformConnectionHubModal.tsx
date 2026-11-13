@@ -142,6 +142,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
     clientSecret: '',
     scope: 'READ_WRITE' as 'READ_ONLY' | 'READ_WRITE',
     ga4PropertyId: '',
+    ga4MeasurementId: '',
     isGa4Connected: false,
     isConnected: false,
     serviceAccountJson: '',
@@ -275,10 +276,11 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
             clientId: googleDirect.clientId || prev.clientId,
             clientSecret: googleDirect.clientSecret || prev.clientSecret,
             ga4PropertyId: googleDirect.ga4PropertyId || prev.ga4PropertyId,
+            ga4MeasurementId: googleDirect.ga4MeasurementId || prev.ga4MeasurementId || '',
             serviceAccountEmail: googleDirect.serviceAccountEmail || prev.serviceAccountEmail,
             serviceAccountProjectId: googleDirect.serviceAccountProjectId || prev.serviceAccountProjectId,
             isConnected: Boolean(googleDirect.isConnected),
-            isGa4Connected: Boolean(googleDirect.isGa4Connected || googleDirect.hasServiceAccount),
+            isGa4Connected: Boolean(googleDirect.isGa4Connected),
           }));
         }
 
@@ -410,7 +412,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
             ga4PropertyId,
             scope: googleSettings.scope,
             isConnected: googleSettings.isConnected,
-            isGa4Connected: googleSettings.isGa4Connected || Boolean(serviceAccountEmail || serviceAccountJson),
+            isGa4Connected: googleSettings.isGa4Connected,
             serviceAccountJson,
             serviceAccountEmail,
             serviceAccountProjectId: googleSettings.serviceAccountProjectId,
@@ -724,7 +726,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
         serviceAccountJson: jsonString,
         serviceAccountEmail: email,
         serviceAccountProjectId: projectId,
-        isGa4Connected: true,
+        isGa4Connected: false,
       }));
       setServiceAccountRawInput(jsonString);
       setShowServiceAccountPaste(false);
@@ -736,12 +738,12 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
         ga4PropertyId: googleSettings.ga4PropertyId.trim(),
         scope: googleSettings.scope,
         isConnected: googleSettings.isConnected,
-        isGa4Connected: true,
+        isGa4Connected: false,
         serviceAccountJson: jsonString,
         serviceAccountEmail: email,
         serviceAccountProjectId: projectId,
       });
-      showNotification(`✓ Google Service Account JSON (${sourceName || email || projectId}) লোড ও ডাটাবেসে অটো-সেভ হয়েছে!`);
+      showNotification(`✓ Service Account JSON (${sourceName || email || projectId}) লোড হয়েছে। 'Sync Live Data' বাটনে ক্লিক করে ভেরিফাই করুন।`);
     } catch {
       showNotification('⚠️ অবৈধ JSON ফরম্যাট! দয়া করে সঠিক Google Cloud Service Account JSON ফাইল আপলোড বা পেস্ট করুন।');
     }
@@ -784,6 +786,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
           clientId: googleSettings.clientId.trim(),
           clientSecret: googleSettings.clientSecret.trim(),
           ga4PropertyId,
+          ga4MeasurementId: googleSettings.ga4MeasurementId.trim(),
           serviceAccountJson,
         }),
       });
@@ -817,6 +820,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                 clientId: googleSettings.clientId.trim(),
                 clientSecret: googleSettings.clientSecret.trim(),
                 ga4PropertyId,
+                ga4MeasurementId: googleSettings.ga4MeasurementId.trim(),
                 scope: googleSettings.scope,
                 isConnected: Boolean(data.isGoogleConnected),
                 isGa4Connected: Boolean(data.isGa4Connected),
@@ -883,7 +887,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
             ga4PropertyId: googleSettings.ga4PropertyId.trim(),
             scope: googleSettings.scope,
             isConnected: googleSettings.isConnected,
-            isGa4Connected: googleSettings.isGa4Connected || Boolean(googleSettings.serviceAccountEmail || googleSettings.serviceAccountJson),
+            isGa4Connected: googleSettings.isGa4Connected,
             serviceAccountJson: googleSettings.serviceAccountJson,
             serviceAccountEmail: googleSettings.serviceAccountEmail,
             serviceAccountProjectId: googleSettings.serviceAccountProjectId,
@@ -923,6 +927,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
         clientSecret: '',
         scope: 'READ_WRITE',
         ga4PropertyId: '',
+        ga4MeasurementId: '',
         isGa4Connected: false,
         isConnected: false,
         serviceAccountJson: '',
@@ -1286,35 +1291,35 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-amber-500 opacity-90" />
 
         {/* Header Bar */}
-        <div className={`px-6 py-4.5 border-b flex items-center justify-between ${
+        <div className={`px-6 py-4 border-b flex items-center justify-between ${
           isLight ? 'bg-white border-slate-200/90' : 'bg-[#0a0e1a] border-slate-800/90'
         }`}>
-          <div className="flex items-center gap-3.5">
-            <div className="h-11 w-11 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-amber-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-amber-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
               <Shield className="h-5 w-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2.5">
-                <h2 className={`text-base font-black tracking-tight ${textTitle}`}>
-                  Platform Connection &amp; Multi-Account Hub
+              <div className="flex items-center gap-2">
+                <h2 className={`text-base font-bold tracking-tight ${textTitle}`}>
+                  Platform Connections
                 </h2>
-                <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   <Lock className="h-2.5 w-2.5" />
-                  AES-256-GCM Secure
+                  AES-256 Encrypted
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-0.5 font-medium">
-                Official OAuth 2.0 Integration &amp; Direct API Credentials for Meta, Google, TikTok &amp; OpenClaw
+              <p className="text-xs text-slate-400 mt-0.5">
+                Direct API credentials and multi-account integrations
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className={`h-8.5 w-8.5 rounded-xl border flex items-center justify-center transition-all cursor-pointer ${
+            className={`h-8 w-8 rounded-lg border flex items-center justify-center transition-all cursor-pointer ${
               isLight 
-                ? 'bg-slate-100/80 border-slate-200 text-slate-500 hover:bg-slate-200 hover:text-slate-800' 
+                ? 'bg-slate-100 border-slate-200 text-slate-500 hover:bg-slate-200 hover:text-slate-800' 
                 : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
@@ -1324,7 +1329,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
 
         {/* Notification Toast */}
         {notification && (
-          <div className={`text-white text-xs font-bold px-4 py-3 text-center animate-in slide-in-from-top flex items-center justify-center gap-2 shadow-lg ${
+          <div className={`text-white text-xs font-bold px-4 py-2.5 text-center animate-in slide-in-from-top flex items-center justify-center gap-2 shadow-lg ${
             notification.includes('⚠️') ? 'bg-rose-600' : 'bg-emerald-600'
           }`}>
             {notification.includes('⚠️') ? <AlertCircle className="h-4 w-4 shrink-0 text-white" /> : <CheckCircle2 className="h-4 w-4 shrink-0 text-white" />}
@@ -1332,24 +1337,24 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
           </div>
         )}
 
-        {/* Modern Segmented Pill Tab Bar (Stripe/Linear Style) */}
-        <div className={`px-6 py-3 border-b flex items-center justify-between overflow-x-auto no-scrollbar gap-4 ${
+        {/* Modern Segmented Pill Tab Bar */}
+        <div className={`px-6 py-2.5 border-b flex items-center justify-between overflow-x-auto no-scrollbar gap-4 ${
           isLight ? 'bg-slate-50 border-slate-200/90' : 'bg-[#080c16] border-slate-800/80'
         }`}>
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-200/60 dark:bg-[#0d1322] border border-slate-300/40 dark:border-slate-800 text-xs font-bold shrink-0">
-            {/* Tab 1: Image 1 Accounts & Sync */}
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-200/50 dark:bg-[#0d1322] border border-slate-300/40 dark:border-slate-800 text-xs font-semibold shrink-0">
+            {/* Tab 1: Accounts */}
             <button
               onClick={() => setActiveTab('SELECTION')}
               className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
                 activeTab === 'SELECTION'
                   ? isLight
-                    ? 'bg-white text-blue-600 shadow-xs border border-slate-200/80 font-black'
-                    : 'bg-[#151d30] text-blue-400 shadow-xs border border-blue-500/30 font-black'
+                    ? 'bg-white text-blue-600 shadow-xs border border-slate-200/80 font-bold'
+                    : 'bg-[#151d30] text-blue-400 shadow-xs border border-blue-500/30 font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               <Building className="h-3.5 w-3.5 text-blue-500" />
-              <span>Accounts &amp; Sync</span>
+              <span>Accounts</span>
               <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
                 activeTab === 'SELECTION'
                   ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300'
@@ -1359,79 +1364,79 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
               </span>
             </button>
 
-            {/* Tab 2: Image 5 Meta System Token */}
+            {/* Tab 2: Meta Ads */}
             <button
               onClick={() => setActiveTab('META_DIRECT')}
               className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
                 activeTab === 'META_DIRECT'
                   ? isLight
-                    ? 'bg-white text-blue-600 shadow-xs border border-slate-200/80 font-black'
-                    : 'bg-[#151d30] text-blue-400 shadow-xs border border-blue-500/30 font-black'
+                    ? 'bg-white text-blue-600 shadow-xs border border-slate-200/80 font-bold'
+                    : 'bg-[#151d30] text-blue-400 shadow-xs border border-blue-500/30 font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               <Share2 className="h-3.5 w-3.5 text-blue-500" />
-              <span>Meta Token</span>
+              <span>Meta Ads</span>
             </button>
 
-            {/* Tab 3: Image 4 Google Ads & GA4 */}
+            {/* Tab 3: Google Ads & GA4 */}
             <button
               onClick={() => setActiveTab('GOOGLE_DIRECT')}
               className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
                 activeTab === 'GOOGLE_DIRECT'
                   ? isLight
-                    ? 'bg-white text-amber-600 shadow-xs border border-slate-200/80 font-black'
-                    : 'bg-[#151d30] text-amber-400 shadow-xs border border-amber-500/30 font-black'
+                    ? 'bg-white text-amber-600 shadow-xs border border-slate-200/80 font-bold'
+                    : 'bg-[#151d30] text-amber-400 shadow-xs border border-amber-500/30 font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               <Search className="h-3.5 w-3.5 text-amber-500" />
-              <span>Google Ads &amp; GA4</span>
+              <span>Google &amp; GA4</span>
             </button>
 
-            {/* Tab 4: Image 2 TikTok API */}
+            {/* Tab 4: TikTok API */}
             <button
               onClick={() => setActiveTab('TIKTOK_DIRECT')}
               className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
                 activeTab === 'TIKTOK_DIRECT'
                   ? isLight
-                    ? 'bg-white text-rose-600 shadow-xs border border-slate-200/80 font-black'
-                    : 'bg-[#151d30] text-rose-400 shadow-xs border border-rose-500/30 font-black'
+                    ? 'bg-white text-rose-600 shadow-xs border border-slate-200/80 font-bold'
+                    : 'bg-[#151d30] text-rose-400 shadow-xs border border-rose-500/30 font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               <Radio className="h-3.5 w-3.5 text-rose-500" />
-              <span>TikTok API</span>
+              <span>TikTok Ads</span>
             </button>
 
-            {/* Tab 5: Image 3 OpenClaw AI Gateway */}
+            {/* Tab 5: OpenClaw AI Gateway */}
             <button
               onClick={() => setActiveTab('AI_GATEWAY')}
               className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
                 activeTab === 'AI_GATEWAY'
                   ? isLight
-                    ? 'bg-white text-indigo-600 shadow-xs border border-slate-200/80 font-black'
-                    : 'bg-[#151d30] text-indigo-400 shadow-xs border border-indigo-500/30 font-black'
+                    ? 'bg-white text-indigo-600 shadow-xs border border-slate-200/80 font-bold'
+                    : 'bg-[#151d30] text-indigo-400 shadow-xs border border-indigo-500/30 font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               <Bot className="h-3.5 w-3.5 text-indigo-500" />
-              <span>OpenClaw Gateway</span>
+              <span>AI Gateway</span>
             </button>
 
-            {/* Tab 6: Gmail SMTP 2FA OTP Service */}
+            {/* Tab 6: Gmail SMTP */}
             <button
               onClick={() => setActiveTab('SMTP_CONFIG')}
               className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
                 activeTab === 'SMTP_CONFIG'
                   ? isLight
-                    ? 'bg-white text-emerald-600 shadow-xs border border-slate-200/80 font-black'
-                    : 'bg-[#151d30] text-emerald-400 shadow-xs border border-emerald-500/30 font-black'
+                    ? 'bg-white text-emerald-600 shadow-xs border border-slate-200/80 font-bold'
+                    : 'bg-[#151d30] text-emerald-400 shadow-xs border border-emerald-500/30 font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               <Mail className="h-3.5 w-3.5 text-emerald-500" />
-              <span>Gmail SMTP</span>
+              <span>Email SMTP</span>
               {serverSmtpConfig?.isConfigured && (
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               )}
@@ -1743,84 +1748,62 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
           )}
 
           {/* ======================================================== */}
-          {/* TAB 2: META BUSINESS SUITE & SYSTEM USER TOKEN (Image 5)   */}
+          {/* TAB 2: META MARKETING API                                 */}
           {/* ======================================================== */}
           {activeTab === 'META_DIRECT' && (
             <div className="space-y-6">
-              <div className={`rounded-2xl border p-6 ${cardBg} space-y-6 relative overflow-hidden`}>
-                {/* Brand Header Line */}
+              <div className={`rounded-2xl border p-5 sm:p-6 ${cardBg} space-y-5 relative overflow-hidden`}>
+                {/* Brand Line */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500" />
 
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800/80">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="h-11 w-11 rounded-xl bg-gradient-to-tr from-blue-600 via-blue-600 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-500/25 border border-white/10">
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-blue-500/25">
                       <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24">
                         <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                       </svg>
                     </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className={`text-base font-black tracking-tight ${textTitle} whitespace-nowrap`}>
-                          Meta System User Token
-                        </h3>
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 whitespace-nowrap">
-                          Graph API v20.0
-                        </span>
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 whitespace-nowrap">
-                          <Check className="h-3 w-3" />
-                          Read + Write
-                        </span>
-                        {serverMetaConfig?.hasToken && (
-                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 whitespace-nowrap">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            {serverMetaConfig.source === 'database' ? '✓ ডাটাবেসে সেভ আছে' : '✓ .env.local এ সেভ আছে'}
-                          </span>
-                        )}
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className={`text-sm font-bold ${textTitle}`}>Meta Marketing API</h3>
+                        <span className="text-[10px] font-semibold text-slate-400 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800">v20.0</span>
                       </div>
-                      <p className="text-xs text-slate-400 mt-1 font-medium line-clamp-1">
-                        Meta Business Suite Graph API token with Full Read &amp; Write autopilot permissions.
-                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Automated campaigns &amp; insights telemetry</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0 self-start md:self-auto">
-                    <button
-                      onClick={handleVerifyMeta}
-                      disabled={isVerifyingMeta}
-                      className="h-9 px-4 rounded-xl text-xs font-bold whitespace-nowrap bg-blue-600 hover:bg-blue-500 text-white shadow-sm shadow-blue-500/25 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-60"
-                      title="ক্রেডেনশিয়াল সেভ ও লাইভ সিঙ্ক করুন"
-                    >
-                      {isVerifyingMeta ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5 fill-current" />}
-                      <span>{serverMetaConfig?.hasToken ? 'Sync Live Data' : 'Save & Connect'}</span>
-                    </button>
-                    {(serverMetaConfig?.hasToken || metaSettings.token) && (
-                      <button
-                        onClick={handleDeleteMeta}
-                        className="h-9 w-9 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-rose-500 hover:border-rose-500/30 hover:bg-rose-500/10 flex items-center justify-center transition-all cursor-pointer"
-                        title="মুছে ফেলুন / Disconnect"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                  <div className="flex items-center gap-2">
+                    {serverMetaConfig?.hasToken ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Connected
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700">
+                        <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                        Not connected
+                      </span>
                     )}
                   </div>
                 </div>
 
                 {/* Form Fields */}
-                <div className="space-y-5">
+                <div className="space-y-4">
                   {/* System User Token */}
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                         <KeyRound className="h-3.5 w-3.5 text-blue-500" />
-                        <span>META SYSTEM USER LONG-LIVED ACCESS TOKEN (META_ACCESS_TOKEN) *</span>
+                        <span>System User Access Token</span>
+                        <span className="text-rose-500 font-bold">*</span>
                       </label>
                       <div className="flex items-center gap-2">
                         {metaSettings.token && (
                           <button
                             type="button"
                             onClick={() => copyToClipboard(metaSettings.token, 'metaToken')}
-                            className="text-[11px] text-slate-400 hover:text-blue-500 flex items-center gap-1 cursor-pointer transition-colors"
+                            className="text-[11px] text-slate-400 hover:text-blue-500 flex items-center gap-1 transition-colors cursor-pointer"
                           >
                             {copiedKey === 'metaToken' ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
                             <span>{copiedKey === 'metaToken' ? 'Copied' : 'Copy'}</span>
@@ -1829,7 +1812,7 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                         <button
                           type="button"
                           onClick={() => setShowMetaToken(!showMetaToken)}
-                          className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 cursor-pointer transition-colors"
+                          className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 transition-colors cursor-pointer"
                         >
                           {showMetaToken ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
                           <span>{showMetaToken ? 'Hide' : 'Show'}</span>
@@ -1837,41 +1820,41 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                       </div>
                     </div>
 
-                    <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2.5 ${inputContainerBg}`}>
-                      <Key className="h-4 w-4 text-slate-400 shrink-0" />
+                    <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2.5 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 ${inputContainerBg}`}>
                       <input
                         type={showMetaToken ? 'text' : 'password'}
                         value={metaSettings.token}
                         onChange={(e) => setMetaSettings({ ...metaSettings, token: e.target.value })}
-                        placeholder="EAABwzL1... paste system user token here"
+                        placeholder="EAABwzL1... (Permanent system user token)"
                         className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
                       />
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-1.5 font-medium">
-                      Generated from Meta Business Suite &gt; Settings &gt; Users &gt; System Users with <code className="text-blue-500 font-bold">ads_read</code> &amp; <code className="text-blue-500 font-bold">read_insights</code>.
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      Needs <code className="text-blue-500 font-mono text-[10px]">ads_read</code> and <code className="text-blue-500 font-mono text-[10px]">ads_management</code> permissions.
                     </p>
                   </div>
 
-                  {/* Target Ad Account ID with Automatic act_ prefix */}
+                  {/* Target Ad Account ID */}
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                         <Hash className="h-3.5 w-3.5 text-blue-500" />
-                        <span>TARGET META AD ACCOUNT ID (META_AD_ACCOUNT_ID) *</span>
+                        <span>Ad Account ID</span>
+                        <span className="text-rose-500 font-bold">*</span>
                       </label>
                       {metaSettings.adAccountId && (
                         <button
                           type="button"
                           onClick={() => copyToClipboard(`act_${metaSettings.adAccountId}`, 'metaAdAcc')}
-                          className="text-[11px] text-slate-400 hover:text-blue-500 flex items-center gap-1 cursor-pointer transition-colors"
+                          className="text-[11px] text-slate-400 hover:text-blue-500 flex items-center gap-1 transition-colors cursor-pointer"
                         >
                           {copiedKey === 'metaAdAcc' ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
                           <span>{copiedKey === 'metaAdAcc' ? 'Copied' : 'Copy'}</span>
                         </button>
                       )}
                     </div>
-                    <div className={`rounded-xl border transition-all flex items-stretch max-w-md overflow-hidden ${inputContainerBg}`}>
-                      <span className={`px-3 py-2.5 text-xs font-mono font-bold flex items-center border-r select-none shrink-0 ${
+                    <div className={`rounded-xl border transition-all flex items-stretch max-w-md overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 ${inputContainerBg}`}>
+                      <span className={`px-3 py-2 text-xs font-mono font-bold flex items-center border-r select-none shrink-0 ${
                         isLight ? 'bg-slate-100 text-blue-600 border-slate-200' : 'bg-slate-800/90 text-blue-400 border-slate-700'
                       }`}>
                         act_
@@ -1884,36 +1867,24 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                           setMetaSettings({ ...metaSettings, adAccountId: cleaned });
                         }}
                         placeholder="942386384851346"
-                        className="w-full px-3 py-2.5 bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
+                        className="w-full px-3 py-2 bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
                       />
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-1.5 font-medium flex items-center gap-1.5 flex-wrap">
-                      <span>শুধুমাত্র আপনার Ads Manager-এর সংখ্যাটি লিখুন (যেমন: <code className="text-blue-500 font-bold">942386384851346</code>)। <strong>act_</strong> আমরা আগে স্বয়ংক্রিয়ভাবে যুক্ত করে নেব।</span>
-                      <span className="text-emerald-500 font-semibold">• Full Read + Write Access (<code className="text-emerald-500">ads_read</code> &amp; <code className="text-emerald-500">ads_management</code>) enabled.</span>
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      Account number only. The <code className="text-blue-500 font-mono text-[10px]">act_</code> prefix is added automatically.
                     </p>
                   </div>
 
                   {/* App ID & Secret Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Meta App ID */}
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
-                          <Hash className="h-3.5 w-3.5 text-blue-500" />
-                          <span>META APP ID (META_APP_ID)</span>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                          <span>App ID</span>
+                          <span className="text-[10px] text-slate-400 font-normal">(Optional)</span>
                         </label>
-                        {metaSettings.appId && (
-                          <button
-                            type="button"
-                            onClick={() => copyToClipboard(metaSettings.appId, 'metaAppId')}
-                            className="text-[11px] text-slate-400 hover:text-blue-500 flex items-center gap-1 cursor-pointer transition-colors"
-                          >
-                            {copiedKey === 'metaAppId' ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-                            <span>{copiedKey === 'metaAppId' ? 'Copied' : 'Copy'}</span>
-                          </button>
-                        )}
                       </div>
-                      <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2.5 ${inputContainerBg}`}>
+                      <div className={`rounded-xl border px-3.5 py-2 transition-all flex items-center gap-2 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 ${inputContainerBg}`}>
                         <Hash className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                         <input
                           type="text"
@@ -1925,29 +1896,28 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                       </div>
                     </div>
 
-                    {/* Meta App Secret */}
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
-                          <Lock className="h-3.5 w-3.5 text-blue-500" />
-                          <span>META APP SECRET (META_APP_SECRET)</span>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                          <span>App Secret</span>
+                          <span className="text-[10px] text-slate-400 font-normal">(Optional)</span>
                         </label>
                         <button
                           type="button"
                           onClick={() => setShowMetaSecret(!showMetaSecret)}
-                          className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 cursor-pointer transition-colors"
+                          className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 transition-colors cursor-pointer"
                         >
                           {showMetaSecret ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
                           <span>{showMetaSecret ? 'Hide' : 'Show'}</span>
                         </button>
                       </div>
-                      <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2.5 ${inputContainerBg}`}>
+                      <div className={`rounded-xl border px-3.5 py-2 transition-all flex items-center gap-2 focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 ${inputContainerBg}`}>
                         <Lock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                         <input
                           type={showMetaSecret ? 'text' : 'password'}
                           value={metaSettings.appSecret}
                           onChange={(e) => setMetaSettings({ ...metaSettings, appSecret: e.target.value })}
-                          placeholder="••••••••••••••••••••••••••••••••"
+                          placeholder="••••••••••••••••"
                           className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
                         />
                       </div>
@@ -1955,65 +1925,74 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                   </div>
 
                   {/* Setup Guide Accordion */}
-                  <div className={`rounded-xl border overflow-hidden ${
-                    isLight ? 'bg-slate-50/80 border-slate-200/90' : 'bg-[#060911] border-slate-800/80'
+                  <div className={`rounded-xl border overflow-hidden transition-all ${
+                    isLight ? 'bg-slate-50/70 border-slate-200' : 'bg-[#080d1a] border-slate-800'
                   }`}>
                     <button
                       type="button"
                       onClick={() => setIsMetaGuideOpen(!isMetaGuideOpen)}
-                      className="w-full px-4.5 py-3.5 text-left flex items-center justify-between text-xs font-bold cursor-pointer"
+                      className="w-full px-4 py-2.5 text-left flex items-center justify-between text-xs font-semibold cursor-pointer text-slate-600 dark:text-slate-300 hover:text-blue-500"
                     >
-                      <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
-                        <BookOpen className="h-4 w-4" />
-                        <span>Meta Ads Setup Guide (Step-by-Step Instructions)</span>
+                      <div className="flex items-center gap-2">
+                        <BookOpen className="h-3.5 w-3.5 text-blue-500" />
+                        <span>Setup Guide</span>
                       </div>
-                      {isMetaGuideOpen ? <ChevronUp className="h-4 w-4 text-slate-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />}
+                      {isMetaGuideOpen ? <ChevronUp className="h-3.5 w-3.5 text-slate-400" /> : <ChevronDown className="h-3.5 w-3.5 text-slate-400" />}
                     </button>
 
                     {isMetaGuideOpen && (
-                      <div className="px-5 pb-4 pt-1 border-t border-slate-200 dark:border-slate-800 text-xs space-y-2 text-slate-600 dark:text-slate-300 leading-relaxed">
-                        <ol className="list-decimal pl-5 space-y-1.5">
-                          <li>Meta Business Suite-এ যান &gt; Business Settings &gt; Users &gt; System Users।</li>
-                          <li>Add System User-এ ক্লিক করে নাম দিন <code className="text-blue-500 font-bold">OpenClaw-Ads-Agent</code> এবং Role দিন Employee।</li>
-                          <li>Assign Assets-এ গিয়ে আপনার Ad Account নির্বাচন করুন এবং View Performance পারমিশন দিন।</li>
-                          <li>Generate New Token-এ ক্লিক করুন &gt; Token Expiration দিন Never &gt; Scope সিলেক্ট করুন <code className="text-blue-500 font-bold">ads_read</code> এবং <code className="text-blue-500 font-bold">read_insights</code>।</li>
-                          <li>প্রাপ্ত টোকেনটি কপি করে উপরের META_ACCESS_TOKEN বক্সে পেস্ট করে Connect &amp; Verify Meta চাপুন।</li>
-                        </ol>
+                      <div className="px-4 pb-3.5 pt-1 border-t border-slate-200 dark:border-slate-800 text-xs space-y-1.5 text-slate-500 dark:text-slate-400">
+                        <div className="flex items-start gap-2">
+                          <span className="font-bold text-blue-500">1.</span>
+                          <span>Meta Business Suite &gt; Settings &gt; Users &gt; <strong>System Users</strong>-এ যান।</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="font-bold text-blue-500">2.</span>
+                          <span>Add System User তৈরি করে আপনার Ad Account-এ <strong>View Performance</strong> পারমিশন অ্যাসাইন করুন।</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="font-bold text-blue-500">3.</span>
+                          <span><strong>Generate Token</strong> ক্লিক করে <code className="text-blue-500">ads_read</code> ও <code className="text-blue-500">ads_management</code> সিলেক্ট করুন।</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="font-bold text-blue-500">4.</span>
+                          <span>প্রাপ্ত টোকেনটি এখানে পেস্ট করে <strong>Save &amp; Sync</strong> বাটনে ক্লিক করুন।</span>
+                        </div>
                       </div>
                     )}
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex items-center justify-between pt-2">
-                    {serverMetaConfig?.hasToken || metaSettings.token || metaSettings.adAccountId ? (
+                  {/* Action Bar */}
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                    {(serverMetaConfig?.hasToken || metaSettings.token || metaSettings.adAccountId) ? (
                       <button
                         type="button"
                         onClick={handleDeleteMeta}
-                        className="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-500/10 border border-rose-500/30 flex items-center gap-1.5 transition-all cursor-pointer"
-                        title="ডাটাবেস ও স্টোরেজ থেকে Meta ক্রেডেনশিয়াল মুছে ফেলুন"
+                        className="px-3 py-2 rounded-xl text-xs font-semibold text-rose-500 hover:bg-rose-500/10 transition-all flex items-center gap-1.5 cursor-pointer"
+                        title="মুছে ফেলুন / Disconnect"
                       >
-                        <Trash2 className="h-4 w-4" />
-                        <span>মুছে ফেলুন (Delete)</span>
+                        <Trash2 className="h-3.5 w-3.5" />
+                        <span>Disconnect</span>
                       </button>
                     ) : (
                       <div />
                     )}
 
                     <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1.5 text-xs font-medium">
+                      <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-medium">
                         {autoSaveStatus === 'saving' && (
                           <span className="text-amber-500 flex items-center gap-1">
-                            <RefreshCw className="h-3 w-3 animate-spin" /> ডাটাবেসে সেভ হচ্ছে...
+                            <RefreshCw className="h-3 w-3 animate-spin" /> Saving...
                           </span>
                         )}
                         {autoSaveStatus === 'saved' && (
                           <span className="text-emerald-500 flex items-center gap-1">
-                            <CheckCircle2 className="h-3.5 w-3.5" /> ডাটাবেসে অটো-সেভ হয়েছে
+                            <Check className="h-3 w-3" /> Auto-saved
                           </span>
                         )}
                         {autoSaveStatus === 'idle' && (
-                          <span className="text-slate-400 flex items-center gap-1">
-                            <Database className="h-3.5 w-3.5" /> অটো-সেভ সক্রিয়
+                          <span className="flex items-center gap-1 text-slate-400">
+                            <Database className="h-3 w-3" /> Auto-save active
                           </span>
                         )}
                       </div>
@@ -2021,10 +2000,10 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                       <button
                         onClick={handleVerifyMeta}
                         disabled={isVerifyingMeta}
-                        className="px-6 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white shadow-md flex items-center gap-2 transition-all cursor-pointer"
+                        className="h-9 px-5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white shadow-sm shadow-blue-500/25 flex items-center gap-2 transition-all cursor-pointer"
                       >
-                        {isVerifyingMeta ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4 fill-current" />}
-                        <span>{isVerifyingMeta ? 'সিঙ্ক হচ্ছে...' : 'সেভ ও সিঙ্ক করুন (Save & Sync Live Data)'}</span>
+                        {isVerifyingMeta ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5 fill-current" />}
+                        <span>{isVerifyingMeta ? 'Syncing...' : 'Save & Sync Data'}</span>
                       </button>
                     </div>
                   </div>
@@ -2034,18 +2013,18 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
           )}
 
           {/* ======================================================== */}
-          {/* TAB 3: GOOGLE ADS API v17 & GA4 (Image 4)                 */}
+          {/* TAB 3: GOOGLE ADS & GA4                                   */}
           {/* ======================================================== */}
           {activeTab === 'GOOGLE_DIRECT' && (
             <div className="space-y-6">
-              <div className={`rounded-2xl border p-6 ${cardBg} space-y-6 relative overflow-hidden`}>
-                {/* Brand Header Line */}
+              <div className={`rounded-2xl border p-5 sm:p-6 ${cardBg} space-y-5 relative overflow-hidden`}>
+                {/* Brand Line */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-rose-500 to-blue-500" />
 
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800/80">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="h-11 w-11 rounded-xl bg-white dark:bg-[#0c121e] border border-slate-200 dark:border-slate-700/80 flex items-center justify-center shrink-0 shadow-md shadow-amber-500/10">
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-white dark:bg-[#0c121e] border border-slate-200 dark:border-slate-700/80 flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/10">
                       <svg className="h-5 w-5" viewBox="0 0 24 24">
                         <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.65v3.03h3.88c2.27-2.09 3.665-5.17 3.665-9.12z" />
                         <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.03c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.27v3.13C3.25 21.3 7.31 24 12 24z" />
@@ -2053,75 +2032,53 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                         <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.7 1.27 6.58l4.01 3.13c.95-2.83 3.6-4.96 6.72-4.96z" />
                       </svg>
                     </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className={`text-base font-black tracking-tight ${textTitle} whitespace-nowrap`}>
-                          Google Ads API v17 &amp; GA4
-                        </h3>
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 whitespace-nowrap">
-                          API v17
-                        </span>
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 whitespace-nowrap">
-                          <Check className="h-3 w-3" />
-                          Read + Write
-                        </span>
-                        {serverGoogleConfig?.hasDevToken && (
-                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 whitespace-nowrap">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            {serverGoogleConfig.source === 'database' ? '✓ ডাটাবেসে সেভ আছে' : '✓ .env.local এ সেভ আছে'}
-                          </span>
-                        )}
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className={`text-sm font-bold ${textTitle}`}>Google Ads &amp; GA4</h3>
+                        <span className="text-[10px] font-semibold text-slate-400 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800">v17</span>
                       </div>
-                      <p className="text-xs text-slate-400 mt-1 font-medium line-clamp-1">
-                        Direct Developer Token with GA4 SSOT data sync and keyword bid automation.
-                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Campaign bids &amp; GA4 conversion telemetry</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0 self-start md:self-auto">
-                    <button
-                      onClick={handleVerifyGoogle}
-                      disabled={isVerifyingGoogle}
-                      className="h-9 px-4 rounded-xl text-xs font-bold whitespace-nowrap bg-gradient-to-r from-amber-500 via-rose-500 to-pink-500 hover:from-amber-400 hover:to-pink-400 text-white shadow-sm shadow-amber-500/25 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-60"
-                      title="ক্রেডেনশিয়াল সেভ ও লাইভ সিঙ্ক করুন"
-                    >
-                      {isVerifyingGoogle ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5 fill-current" />}
-                      <span>{serverGoogleConfig?.hasDevToken || serverGoogleConfig?.hasServiceAccount ? 'Sync Live Data' : 'Save & Connect'}</span>
-                    </button>
-                    {(serverGoogleConfig?.hasDevToken || serverGoogleConfig?.hasServiceAccount || googleSettings.customerId || googleSettings.developerToken || googleSettings.serviceAccountEmail) && (
-                      <button
-                        onClick={handleDeleteGoogle}
-                        className="h-9 w-9 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-rose-500 hover:border-rose-500/30 hover:bg-rose-500/10 flex items-center justify-center transition-all cursor-pointer"
-                        title="মুছে ফেলুন / Disconnect"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                  <div className="flex items-center gap-2">
+                    {(serverGoogleConfig?.hasDevToken || serverGoogleConfig?.hasServiceAccount || googleSettings.isGa4Connected) ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Connected
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700">
+                        <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                        Not connected
+                      </span>
                     )}
                   </div>
                 </div>
 
                 {/* Form Fields: 2-column grid */}
-                <div className="space-y-5">
+                <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Google Ads Customer ID */}
+                    {/* Customer ID */}
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                           <Hash className="h-3.5 w-3.5 text-amber-500" />
-                          <span>GOOGLE ADS 10-DIGIT CUSTOMER ID *</span>
+                          <span>Google Ads Customer ID</span>
+                          <span className="text-rose-500 font-bold">*</span>
                         </label>
                         {googleSettings.customerId && (
                           <button
                             type="button"
                             onClick={() => copyToClipboard(googleSettings.customerId, 'googleCID')}
-                            className="text-[11px] text-slate-400 hover:text-amber-500 flex items-center gap-1 cursor-pointer transition-colors"
+                            className="text-[11px] text-slate-400 hover:text-amber-500 flex items-center gap-1 transition-colors cursor-pointer"
                           >
                             {copiedKey === 'googleCID' ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
                             <span>{copiedKey === 'googleCID' ? 'Copied' : 'Copy'}</span>
                           </button>
                         )}
                       </div>
-                      <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2.5 ${inputContainerBg}`}>
+                      <div className={`rounded-xl border px-3.5 py-2 transition-all flex items-center gap-2.5 focus-within:ring-2 focus-within:ring-amber-500/20 focus-within:border-amber-500 ${inputContainerBg}`}>
                         <span className="text-slate-400 text-xs font-mono font-bold">#</span>
                         <input
                           type="text"
@@ -2135,21 +2092,22 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
 
                     {/* Developer Token */}
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                           <KeyRound className="h-3.5 w-3.5 text-amber-500" />
-                          <span>DEVELOPER TOKEN (GOOGLE_ADS_DEVELOPER_TOKEN) *</span>
+                          <span>Developer Token</span>
+                          <span className="text-rose-500 font-bold">*</span>
                         </label>
                         <button
                           type="button"
                           onClick={() => setShowGoogleDevToken(!showGoogleDevToken)}
-                          className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 cursor-pointer transition-colors"
+                          className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 transition-colors cursor-pointer"
                         >
                           {showGoogleDevToken ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
                           <span>{showGoogleDevToken ? 'Hide' : 'Show'}</span>
                         </button>
                       </div>
-                      <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2.5 ${inputContainerBg}`}>
+                      <div className={`rounded-xl border px-3.5 py-2 transition-all flex items-center gap-2.5 focus-within:ring-2 focus-within:ring-amber-500/20 focus-within:border-amber-500 ${inputContainerBg}`}>
                         <Lock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                         <input
                           type={showGoogleDevToken ? 'text' : 'password'}
@@ -2161,53 +2119,45 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                       </div>
                     </div>
 
-                    {/* OAuth2 Client ID */}
+                    {/* Client ID */}
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                           <Globe className="h-3.5 w-3.5 text-amber-500" />
-                          <span>OAUTH2 CLIENT ID (GOOGLE_ADS_CLIENT_ID) *</span>
+                          <span>OAuth2 Client ID</span>
+                          <span className="text-rose-500 font-bold">*</span>
                         </label>
-                        {googleSettings.clientId && (
-                          <button
-                            type="button"
-                            onClick={() => copyToClipboard(googleSettings.clientId, 'googleClientID')}
-                            className="text-[11px] text-slate-400 hover:text-amber-500 flex items-center gap-1 cursor-pointer transition-colors"
-                          >
-                            {copiedKey === 'googleClientID' ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-                            <span>{copiedKey === 'googleClientID' ? 'Copied' : 'Copy'}</span>
-                          </button>
-                        )}
                       </div>
-                      <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2.5 ${inputContainerBg}`}>
+                      <div className={`rounded-xl border px-3.5 py-2 transition-all flex items-center gap-2.5 focus-within:ring-2 focus-within:ring-amber-500/20 focus-within:border-amber-500 ${inputContainerBg}`}>
                         <Key className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                         <input
                           type="text"
                           value={googleSettings.clientId}
                           onChange={(e) => setGoogleSettings({ ...googleSettings, clientId: e.target.value })}
-                          placeholder="62186636535-...apps.googleusercontent.com"
+                          placeholder="621866...apps.googleusercontent.com"
                           className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400 truncate"
                         />
                       </div>
                     </div>
 
-                    {/* OAuth2 Client Secret */}
+                    {/* Client Secret */}
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                           <Lock className="h-3.5 w-3.5 text-amber-500" />
-                          <span>OAUTH2 CLIENT SECRET (GOOGLE_ADS_CLIENT_SECRET) *</span>
+                          <span>OAuth2 Client Secret</span>
+                          <span className="text-rose-500 font-bold">*</span>
                         </label>
                         <button
                           type="button"
                           onClick={() => setShowGoogleSecret(!showGoogleSecret)}
-                          className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 cursor-pointer transition-colors"
+                          className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 transition-colors cursor-pointer"
                         >
                           {showGoogleSecret ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
                           <span>{showGoogleSecret ? 'Hide' : 'Show'}</span>
                         </button>
                       </div>
-                      <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2.5 ${inputContainerBg}`}>
+                      <div className={`rounded-xl border px-3.5 py-2 transition-all flex items-center gap-2.5 focus-within:ring-2 focus-within:ring-amber-500/20 focus-within:border-amber-500 ${inputContainerBg}`}>
                         <Lock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                         <input
                           type={showGoogleSecret ? 'text' : 'password'}
@@ -2221,128 +2171,143 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                   </div>
 
                   {/* GA4 SSOT Connection */}
-                  <div className={`rounded-xl border p-5 ${
-                    isLight ? 'bg-gradient-to-r from-emerald-50/70 via-teal-50/40 to-slate-50 border-emerald-200/80' : 'bg-gradient-to-r from-emerald-950/20 via-teal-950/10 to-[#060911] border-emerald-900/40'
-                  } space-y-4 shadow-2xs`}>
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <TrendingUp className="h-4.5 w-4.5 text-emerald-500" />
-                          <h4 className={`text-xs font-black ${textTitle}`}>
-                            Google Analytics 4 (GA4) SSOT &amp; Service Account
-                          </h4>
-                        </div>
-                        <p className="text-[11px] text-slate-400 mt-0.5 font-medium">
-                          Google Cloud Service Account JSON Key আপলোড করে GA4 কনভার্সন ও রিয়েল-টাইম রেভিনিউ ট্র্যাকিং কানেক্ট করুন।
-                        </p>
+                  <div className={`rounded-xl border p-4.5 ${
+                    isLight ? 'bg-slate-50/80 border-slate-200' : 'bg-[#080d1a] border-slate-800'
+                  } space-y-3.5`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4 text-emerald-500" />
+                        <h4 className={`text-xs font-bold ${textTitle}`}>
+                          Google Analytics 4 (GA4) SSOT
+                        </h4>
                       </div>
 
-                      {googleSettings.isGa4Connected && (googleSettings.ga4PropertyId || googleSettings.serviceAccountEmail || serverGoogleConfig?.hasServiceAccount) ? (
-                        <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
-                          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                          <span>GA4 Connected {googleSettings.ga4PropertyId ? `(#${googleSettings.ga4PropertyId})` : ''}</span>
+                      {googleSettings.isGa4Connected && googleSettings.ga4PropertyId ? (
+                        <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          <span>GA4 Connected (#{googleSettings.ga4PropertyId})</span>
                         </span>
                       ) : (
-                        <span className="flex items-center gap-1.5 rounded-full bg-slate-500/10 px-3 py-1 text-[11px] font-medium text-slate-400 border border-slate-500/20 shrink-0">
+                        <span className="flex items-center gap-1.5 rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] text-slate-400 border border-slate-200 dark:border-slate-700">
                           <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                          <span>Not Connected</span>
+                          <span>Optional</span>
                         </span>
                       )}
                     </div>
 
-                    {/* GA4 Property ID */}
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1.5">
-                        GA4 PROPERTY ID (ঐচ্ছিক / OPTIONAL)
-                      </label>
-                      <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2 ${inputContainerBg}`}>
-                        <Hash className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                        <input
-                          type="text"
-                          value={googleSettings.ga4PropertyId}
-                          onChange={(e) => setGoogleSettings({ ...googleSettings, ga4PropertyId: e.target.value })}
-                          placeholder="যেমন: 551294668"
-                          className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
-                        />
+                    {/* GA4 Property & Measurement IDs */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                          Property ID
+                        </label>
+                        <div className={`rounded-xl border px-3 py-2 transition-all flex items-center gap-2 ${inputContainerBg}`}>
+                          <Hash className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                          <input
+                            type="text"
+                            value={googleSettings.ga4PropertyId}
+                            onChange={(e) => setGoogleSettings({ ...googleSettings, ga4PropertyId: e.target.value })}
+                            placeholder="e.g. 482910541"
+                            className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                          Measurement ID
+                        </label>
+                        <div className={`rounded-xl border px-3 py-2 transition-all flex items-center gap-2 ${inputContainerBg}`}>
+                          <Globe className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                          <input
+                            type="text"
+                            value={googleSettings.ga4MeasurementId}
+                            onChange={(e) => setGoogleSettings({ ...googleSettings, ga4MeasurementId: e.target.value })}
+                            placeholder="e.g. G-XXXXXXXXXX"
+                            className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
+                          />
+                        </div>
                       </div>
                     </div>
 
                     {/* Google Cloud Service Account JSON Key Upload / Status Card */}
-                    <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 space-y-3">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <KeyRound className="h-4 w-4 text-amber-500 shrink-0" />
-                          <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
-                            Google Cloud Service Account JSON Key *
-                          </span>
-                        </div>
+                    <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-700/80 p-3.5 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                          <KeyRound className="h-3.5 w-3.5 text-amber-500" />
+                          <span>Service Account JSON Key</span>
+                        </span>
                         {(googleSettings.serviceAccountEmail || serverGoogleConfig?.serviceAccountEmail) && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-                            <Check className="h-3 w-3" />
-                            {serverGoogleConfig?.source === 'database' ? 'ডাটাবেসে এনক্রিপ্টেড' : 'সংযুক্ত'}
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
+                            <Check className="h-2.5 w-2.5" />
+                            Loaded
                           </span>
                         )}
                       </div>
 
-                      {/* If Service Account is already loaded / stored */}
                       {(googleSettings.serviceAccountEmail || serverGoogleConfig?.serviceAccountEmail) ? (
-                        <div className="rounded-lg bg-black/20 border border-emerald-500/30 p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-slate-400 text-[11px] font-medium">Service Account Email:</span>
-                              <span className="font-mono text-emerald-500 font-semibold select-all">
+                        <div className="space-y-2">
+                          <div className="rounded-lg bg-black/10 dark:bg-black/30 border border-emerald-500/20 p-2.5 flex items-center justify-between gap-3 text-xs">
+                            <div className="min-w-0">
+                              <div className="font-mono text-emerald-500 font-medium text-[11px] truncate">
                                 {googleSettings.serviceAccountEmail || serverGoogleConfig?.serviceAccountEmail}
-                              </span>
-                            </div>
-                            {(googleSettings.serviceAccountProjectId || serverGoogleConfig?.serviceAccountProjectId) && (
-                              <div className="text-[11px] text-slate-400 font-medium">
-                                Project ID: <span className="font-mono text-slate-300">{googleSettings.serviceAccountProjectId || serverGoogleConfig?.serviceAccountProjectId}</span>
                               </div>
-                            )}
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => copyToClipboard(googleSettings.serviceAccountEmail || serverGoogleConfig?.serviceAccountEmail || '', 'saEmail')}
+                                className="px-2 py-1 rounded-lg text-[10px] font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-all flex items-center gap-1 cursor-pointer"
+                                title="ইমেইল কপি করুন"
+                              >
+                                <Copy className="h-2.5 w-2.5" />
+                                <span>{copiedKey === 'saEmail' ? 'কপি হয়েছে' : 'Copy'}</span>
+                              </button>
+                              <label
+                                htmlFor="ga4-sa-file-input"
+                                className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 cursor-pointer transition-all"
+                              >
+                                Replace
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setGoogleSettings(prev => ({
+                                    ...prev,
+                                    serviceAccountJson: '',
+                                    serviceAccountEmail: '',
+                                    serviceAccountProjectId: '',
+                                  }));
+                                  showNotification('Service Account Key নির্বাচন বাতিল করা হয়েছে।');
+                                }}
+                                className="p-1 rounded-lg text-rose-500 hover:bg-rose-500/10 cursor-pointer"
+                                title="Key রিমুভ করুন"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <label
-                              htmlFor="ga4-sa-file-input"
-                              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 cursor-pointer flex items-center gap-1.5 transition-all"
-                            >
-                              <Upload className="h-3 w-3" />
-                              <span>নতুন Key আপলোড</span>
-                            </label>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setGoogleSettings(prev => ({
-                                  ...prev,
-                                  serviceAccountJson: '',
-                                  serviceAccountEmail: '',
-                                  serviceAccountProjectId: '',
-                                }));
-                                showNotification('Service Account Key নির্বাচন বাতিল করা হয়েছে। পরিবর্তন সংরক্ষণ করতে Save ক্লিক করুন।');
-                              }}
-                              className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-500 hover:bg-rose-500/10 border border-rose-500/20 cursor-pointer"
-                              title="Key রিমুভ করুন"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
+                          <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-2 text-[10px] text-amber-700 dark:text-amber-300 leading-relaxed">
+                            💡 <strong>প্রয়োজনীয় ধাপ:</strong> Google Analytics &gt; Admin &gt; <strong>Property Access Management</strong> এ গিয়ে এই ইমেইলটি <strong>Viewer</strong> হিসেবে যোগ করুন। তারপর সঠিক Property ID দিয়ে নিচে <strong>'সেভ ও সিঙ্ক করুন'</strong> চাপুন।
                           </div>
                         </div>
                       ) : (
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
+                        <div className="flex items-center gap-2">
                           <label
                             htmlFor="ga4-sa-file-input"
-                            className="flex-1 px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer text-center"
+                            className="flex-1 px-3 py-2 rounded-xl text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                           >
-                            <Upload className="h-4 w-4" />
-                            <span>১-ক্লিকে JSON ফাইল আপলোড করুন (.json)</span>
+                            <Upload className="h-3.5 w-3.5" />
+                            <span>Upload Service Account (.json)</span>
                           </label>
 
                           <button
                             type="button"
                             onClick={() => setShowServiceAccountPaste(!showServiceAccountPaste)}
-                            className="px-4 py-2.5 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                            className="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                           >
-                            <FileCode className="h-4 w-4 text-amber-500" />
-                            <span>{showServiceAccountPaste ? 'কোড হাইড করুন' : 'JSON টেক্সট পেস্ট করুন'}</span>
+                            <FileCode className="h-3.5 w-3.5 text-slate-400" />
+                            <span>{showServiceAccountPaste ? 'Close' : 'Paste'}</span>
                           </button>
                         </div>
                       )}
@@ -2358,73 +2323,66 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
 
                       {/* Expandable Manual JSON Paste Box */}
                       {showServiceAccountPaste && (
-                        <div className="space-y-2 pt-2 border-t border-amber-500/20">
-                          <label className="block text-[11px] font-bold text-slate-400">
-                            Service Account JSON কোড পেস্ট করুন:
-                          </label>
+                        <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-800">
                           <textarea
-                            rows={5}
+                            rows={4}
                             value={serviceAccountRawInput}
                             onChange={(e) => setServiceAccountRawInput(e.target.value)}
                             placeholder='{"type": "service_account", "project_id": "...", "private_key": "...", "client_email": "..."}'
-                            className="w-full rounded-xl border border-slate-700 bg-black/40 p-3 text-xs font-mono outline-none text-emerald-400 placeholder-slate-500 focus:border-amber-500"
+                            className="w-full rounded-xl border border-slate-700 bg-black/40 p-2.5 text-xs font-mono outline-none text-emerald-400 placeholder-slate-500"
                           />
                           <div className="flex items-center justify-end gap-2">
                             <button
                               type="button"
                               onClick={() => setShowServiceAccountPaste(false)}
-                              className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:bg-slate-800 cursor-pointer"
+                              className="px-2.5 py-1 rounded-lg text-xs text-slate-400 hover:bg-slate-800 cursor-pointer"
                             >
-                              বাতিল
+                              Cancel
                             </button>
                             <button
                               type="button"
                               onClick={() => handleServiceAccountJsonLoad(serviceAccountRawInput, 'Pasted JSON')}
-                              className="px-4 py-1.5 rounded-lg text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white cursor-pointer"
+                              className="px-3 py-1 rounded-lg text-xs font-semibold bg-amber-600 hover:bg-amber-500 text-white cursor-pointer"
                             >
-                              JSON প্রয়োগ করুন
+                              Apply JSON
                             </button>
                           </div>
                         </div>
                       )}
-
-                      <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
-                        💡 <strong>কোথায় পাবেন:</strong> Google Cloud Console &gt; <em>IAM &amp; Admin</em> &gt; <em>Service Accounts</em> &gt; আপনার Service Account &gt; <em>Keys</em> &gt; <em>Add Key</em> &gt; <em>Create new key (JSON)</em> ডাউনলোড করে সরাসরি এখানে আপলোড অথবা পেস্ট করুন। এটি AES-256 দিয়ে ডাটাবেসে সুরক্ষিতভাবে সেভ থাকবে।
-                      </p>
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex items-center justify-between pt-2">
-                    {serverGoogleConfig?.hasDevToken || serverGoogleConfig?.hasServiceAccount || googleSettings.customerId || googleSettings.developerToken || googleSettings.serviceAccountJson || googleSettings.serviceAccountEmail ? (
+                  {/* Action Bar */}
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                    {(serverGoogleConfig?.hasDevToken || serverGoogleConfig?.hasServiceAccount || googleSettings.customerId || googleSettings.developerToken || googleSettings.serviceAccountJson || googleSettings.serviceAccountEmail) ? (
                       <button
                         type="button"
                         onClick={handleDeleteGoogle}
-                        className="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-500/10 border border-rose-500/30 flex items-center gap-1.5 transition-all cursor-pointer"
-                        title="ডাটাবেস ও স্টোরেজ থেকে Google Ads ও GA4 ক্রেডেনশিয়াল মুছে ফেলুন"
+                        className="px-3 py-2 rounded-xl text-xs font-semibold text-rose-500 hover:bg-rose-500/10 transition-all flex items-center gap-1.5 cursor-pointer"
+                        title="মুছে ফেলুন / Disconnect"
                       >
-                        <Trash2 className="h-4 w-4" />
-                        <span>মুছে ফেলুন (Delete)</span>
+                        <Trash2 className="h-3.5 w-3.5" />
+                        <span>Disconnect</span>
                       </button>
                     ) : (
                       <div />
                     )}
 
                     <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1.5 text-xs font-medium">
+                      <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-medium">
                         {autoSaveStatus === 'saving' && (
                           <span className="text-amber-500 flex items-center gap-1">
-                            <RefreshCw className="h-3 w-3 animate-spin" /> ডাটাবেসে সেভ হচ্ছে...
+                            <RefreshCw className="h-3 w-3 animate-spin" /> Saving...
                           </span>
                         )}
                         {autoSaveStatus === 'saved' && (
                           <span className="text-emerald-500 flex items-center gap-1">
-                            <CheckCircle2 className="h-3.5 w-3.5" /> ডাটাবেসে অটো-সেভ হয়েছে
+                            <Check className="h-3 w-3" /> Auto-saved
                           </span>
                         )}
                         {autoSaveStatus === 'idle' && (
-                          <span className="text-slate-400 flex items-center gap-1">
-                            <Database className="h-3.5 w-3.5" /> অটো-সেভ সক্রিয়
+                          <span className="flex items-center gap-1 text-slate-400">
+                            <Database className="h-3 w-3" /> Auto-save active
                           </span>
                         )}
                       </div>
@@ -2432,10 +2390,10 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                       <button
                         onClick={handleVerifyGoogle}
                         disabled={isVerifyingGoogle}
-                        className="px-6 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 via-rose-500 to-pink-500 hover:from-amber-400 hover:to-pink-400 disabled:opacity-50 text-white shadow-md flex items-center gap-2 transition-all cursor-pointer"
+                        className="h-9 px-5 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 via-rose-500 to-pink-500 hover:from-amber-400 hover:to-pink-400 disabled:opacity-50 text-white shadow-sm flex items-center gap-2 transition-all cursor-pointer"
                       >
-                        {isVerifyingGoogle ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4 fill-current" />}
-                        <span>{isVerifyingGoogle ? 'সিঙ্ক হচ্ছে...' : 'সেভ ও সিঙ্ক করুন (Save & Sync Live Data)'}</span>
+                        {isVerifyingGoogle ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5 fill-current" />}
+                        <span>{isVerifyingGoogle ? 'Syncing...' : 'Save & Sync Data'}</span>
                       </button>
                     </div>
                   </div>
@@ -2445,95 +2403,69 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
           )}
 
           {/* ======================================================== */}
-          {/* TAB 4: TIKTOK FOR BUSINESS MARKETING API (Image 2)        */}
+          {/* TAB 4: TIKTOK MARKETING API                               */}
           {/* ======================================================== */}
           {activeTab === 'TIKTOK_DIRECT' && (
             <div className="space-y-6">
-              <div className={`rounded-2xl border p-6 ${cardBg} space-y-6 relative overflow-hidden`}>
-                {/* Brand Header Line */}
+              <div className={`rounded-2xl border p-5 sm:p-6 ${cardBg} space-y-5 relative overflow-hidden`}>
+                {/* Brand Line */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 via-pink-500 to-cyan-500" />
 
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800/80">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="h-11 w-11 rounded-xl bg-black text-white flex items-center justify-center shrink-0 shadow-md shadow-rose-500/20 border border-slate-800">
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-black text-white flex items-center justify-center shrink-0 shadow-sm border border-slate-800">
                       <svg className="h-5 w-5 fill-current text-white" viewBox="0 0 24 24">
                         <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298-.002.595.042.88.13V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.82 4.49 6.29 6.29 0 0 0 1.95-4.48v-6.3a8.16 8.16 0 0 0 4.82 1.57v-3.5a4.85 4.85 0 0 1-1-.75z"/>
                       </svg>
                     </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className={`text-base font-black tracking-tight ${textTitle} whitespace-nowrap`}>
-                          TikTok for Business Marketing API
-                        </h3>
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 whitespace-nowrap">
-                          v1.3 Open API
-                        </span>
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 whitespace-nowrap">
-                          <Check className="h-3 w-3" />
-                          Read + Write
-                        </span>
-                        {serverTiktokConfig?.hasToken && (
-                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 whitespace-nowrap">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            {serverTiktokConfig.source === 'database' ? '✓ ডাটাবেসে সেভ আছে' : '✓ .env.local এ সেভ আছে'}
-                          </span>
-                        )}
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className={`text-sm font-bold ${textTitle}`}>TikTok Marketing API</h3>
+                        <span className="text-[10px] font-semibold text-slate-400 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800">v1.3</span>
                       </div>
-                      <p className="text-xs text-slate-400 mt-1 font-medium line-clamp-1">
-                        Direct Marketing API credentials for automated bid optimization and ad scheduling.
-                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Campaign bids &amp; ad scheduling</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0 self-start md:self-auto">
-                    <button
-                      onClick={handleVerifyTiktok}
-                      disabled={isVerifyingTiktok}
-                      className={`h-9 px-4 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-60 ${
-                        isLight
-                          ? 'bg-slate-900 hover:bg-slate-800 text-white shadow-sm'
-                          : 'bg-white hover:bg-slate-100 text-slate-900 shadow-sm shadow-white/10'
-                      }`}
-                      title="ক্রেডেনশিয়াল সেভ ও লাইভ সিঙ্ক করুন"
-                    >
-                      {isVerifyingTiktok ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5 fill-current text-rose-500" />}
-                      <span>{serverTiktokConfig?.hasToken ? 'Sync Live Data' : 'Save & Connect'}</span>
-                    </button>
-                    {(serverTiktokConfig?.hasToken || tiktokSettings.advertiserId || tiktokSettings.accessToken) && (
-                      <button
-                        onClick={handleDeleteTiktok}
-                        className="h-9 w-9 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-rose-500 hover:border-rose-500/30 hover:bg-rose-500/10 flex items-center justify-center transition-all cursor-pointer"
-                        title="মুছে ফেলুন / Disconnect"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                  <div className="flex items-center gap-2">
+                    {serverTiktokConfig?.hasToken ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Connected
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700">
+                        <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                        Not connected
+                      </span>
                     )}
                   </div>
                 </div>
 
                 {/* Form Fields: 2-column grid */}
-                <div className="space-y-5">
+                <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Advertiser ID */}
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                           <Hash className="h-3.5 w-3.5 text-rose-500" />
-                          <span>TIKTOK ADVERTISER ID (TIKTOK_ADVERTISER_ID) *</span>
+                          <span>Advertiser ID</span>
+                          <span className="text-rose-500 font-bold">*</span>
                         </label>
                         {tiktokSettings.advertiserId && (
                           <button
                             type="button"
                             onClick={() => copyToClipboard(tiktokSettings.advertiserId, 'ttAdv')}
-                            className="text-[11px] text-slate-400 hover:text-rose-500 flex items-center gap-1 cursor-pointer transition-colors"
+                            className="text-[11px] text-slate-400 hover:text-rose-500 flex items-center gap-1 transition-colors cursor-pointer"
                           >
                             {copiedKey === 'ttAdv' ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
                             <span>{copiedKey === 'ttAdv' ? 'Copied' : 'Copy'}</span>
                           </button>
                         )}
                       </div>
-                      <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2.5 ${inputContainerBg}`}>
+                      <div className={`rounded-xl border px-3.5 py-2 transition-all flex items-center gap-2.5 focus-within:ring-2 focus-within:ring-rose-500/20 focus-within:border-rose-500 ${inputContainerBg}`}>
                         <span className="text-slate-400 text-xs font-mono font-bold">#</span>
                         <input
                           type="text"
@@ -2545,13 +2477,42 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                       </div>
                     </div>
 
+                    {/* Access Token */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                          <KeyRound className="h-3.5 w-3.5 text-rose-500" />
+                          <span>Access Token</span>
+                          <span className="text-rose-500 font-bold">*</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowTiktokToken(!showTiktokToken)}
+                          className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 transition-colors cursor-pointer"
+                        >
+                          {showTiktokToken ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                          <span>{showTiktokToken ? 'Hide' : 'Show'}</span>
+                        </button>
+                      </div>
+                      <div className={`rounded-xl border px-3.5 py-2 transition-all flex items-center gap-2.5 focus-within:ring-2 focus-within:ring-rose-500/20 focus-within:border-rose-500 ${inputContainerBg}`}>
+                        <Key className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                        <input
+                          type={showTiktokToken ? 'text' : 'password'}
+                          value={tiktokSettings.accessToken}
+                          onChange={(e) => setTiktokSettings({ ...tiktokSettings, accessToken: e.target.value })}
+                          placeholder="act.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                          className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
+                        />
+                      </div>
+                    </div>
+
                     {/* App ID */}
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider mb-2 flex items-center gap-1.5">
-                        <KeyRound className="h-3.5 w-3.5 text-rose-500" />
-                        <span>TIKTOK APP ID (TIKTOK_APP_ID) *</span>
+                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
+                        <span>App ID</span>
+                        <span className="text-[10px] text-slate-400 font-normal">(Optional)</span>
                       </label>
-                      <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2.5 ${inputContainerBg}`}>
+                      <div className={`rounded-xl border px-3.5 py-2 transition-all flex items-center gap-2.5 focus-within:ring-2 focus-within:ring-rose-500/20 focus-within:border-rose-500 ${inputContainerBg}`}>
                         <Hash className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                         <input
                           type="text"
@@ -2565,55 +2526,27 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
 
                     {/* App Secret */}
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
-                          <Lock className="h-3.5 w-3.5 text-rose-500" />
-                          <span>TIKTOK APP SECRET (TIKTOK_APP_SECRET) *</span>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                          <span>App Secret</span>
+                          <span className="text-[10px] text-slate-400 font-normal">(Optional)</span>
                         </label>
                         <button
                           type="button"
                           onClick={() => setShowTiktokSecret(!showTiktokSecret)}
-                          className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 cursor-pointer transition-colors"
+                          className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 transition-colors cursor-pointer"
                         >
                           {showTiktokSecret ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
                           <span>{showTiktokSecret ? 'Hide' : 'Show'}</span>
                         </button>
                       </div>
-                      <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2.5 ${inputContainerBg}`}>
+                      <div className={`rounded-xl border px-3.5 py-2 transition-all flex items-center gap-2.5 focus-within:ring-2 focus-within:ring-rose-500/20 focus-within:border-rose-500 ${inputContainerBg}`}>
                         <Lock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                         <input
                           type={showTiktokSecret ? 'text' : 'password'}
                           value={tiktokSettings.appSecret}
                           onChange={(e) => setTiktokSettings({ ...tiktokSettings, appSecret: e.target.value })}
-                          placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                          className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Long-Lived Access Token */}
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
-                          <KeyRound className="h-3.5 w-3.5 text-rose-500" />
-                          <span>LONG-LIVED ACCESS TOKEN (TIKTOK_ACCESS_TOKEN) *</span>
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() => setShowTiktokToken(!showTiktokToken)}
-                          className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 cursor-pointer transition-colors"
-                        >
-                          {showTiktokToken ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                          <span>{showTiktokToken ? 'Hide' : 'Show'}</span>
-                        </button>
-                      </div>
-                      <div className={`rounded-xl border px-3.5 py-2.5 transition-all flex items-center gap-2.5 ${inputContainerBg}`}>
-                        <Key className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                        <input
-                          type={showTiktokToken ? 'text' : 'password'}
-                          value={tiktokSettings.accessToken}
-                          onChange={(e) => setTiktokSettings({ ...tiktokSettings, accessToken: e.target.value })}
-                          placeholder="act.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                          placeholder="••••••••••••••••"
                           className="w-full bg-transparent text-xs font-mono outline-none text-inherit placeholder-slate-400"
                         />
                       </div>
@@ -2621,63 +2554,70 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                   </div>
 
                   {/* Setup Guide Accordion */}
-                  <div className={`rounded-xl border overflow-hidden ${
-                    isLight ? 'bg-slate-50/80 border-slate-200/90' : 'bg-[#060911] border-slate-800/80'
+                  <div className={`rounded-xl border overflow-hidden transition-all ${
+                    isLight ? 'bg-slate-50/70 border-slate-200' : 'bg-[#080d1a] border-slate-800'
                   }`}>
                     <button
                       type="button"
                       onClick={() => setIsTiktokGuideOpen(!isTiktokGuideOpen)}
-                      className="w-full px-4.5 py-3.5 text-left flex items-center justify-between text-xs font-bold cursor-pointer"
+                      className="w-full px-4 py-2.5 text-left flex items-center justify-between text-xs font-semibold cursor-pointer text-slate-600 dark:text-slate-300 hover:text-rose-500"
                     >
-                      <div className="flex items-center gap-2 text-rose-500">
-                        <BookOpen className="h-4 w-4" />
-                        <span>TikTok Marketing API Setup Guide</span>
+                      <div className="flex items-center gap-2">
+                        <BookOpen className="h-3.5 w-3.5 text-rose-500" />
+                        <span>Setup Guide</span>
                       </div>
-                      {isTiktokGuideOpen ? <ChevronUp className="h-4 w-4 text-slate-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />}
+                      {isTiktokGuideOpen ? <ChevronUp className="h-3.5 w-3.5 text-slate-400" /> : <ChevronDown className="h-3.5 w-3.5 text-slate-400" />}
                     </button>
 
                     {isTiktokGuideOpen && (
-                      <div className="px-5 pb-4 pt-1 border-t border-slate-200 dark:border-slate-800 text-xs space-y-2 text-slate-600 dark:text-slate-300 leading-relaxed">
-                        <ol className="list-decimal pl-5 space-y-1.5">
-                          <li>TikTok for Business Developer Portal-এ গিয়ে অ্যাপ তৈরি করুন।</li>
-                          <li>Marketing API এক্সেসের জন্য আবেদন করুন এবং অনুমোদিত Advertiser ID সংগ্রহ করুন।</li>
-                          <li>দীর্ঘমেয়াদী Access Token জেনারেট করে উপরের ফিল্ডে প্রদান করুন।</li>
-                        </ol>
+                      <div className="px-4 pb-3.5 pt-1 border-t border-slate-200 dark:border-slate-800 text-xs space-y-1.5 text-slate-500 dark:text-slate-400">
+                        <div className="flex items-start gap-2">
+                          <span className="font-bold text-rose-500">1.</span>
+                          <span>TikTok for Business Developer Portal-এ গিয়ে অ্যাপ তৈরি করুন।</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="font-bold text-rose-500">2.</span>
+                          <span>Marketing API এক্সেসের জন্য আবেদন করে অনুমোদিত Advertiser ID সংগ্রহ করুন।</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="font-bold text-rose-500">3.</span>
+                          <span>দীর্ঘমেয়াদী Access Token জেনারেট করে এখানে পেস্ট করুন।</span>
+                        </div>
                       </div>
                     )}
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex items-center justify-between pt-2">
-                    {serverTiktokConfig?.hasToken || tiktokSettings.advertiserId || tiktokSettings.accessToken ? (
+                  {/* Action Bar */}
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                    {(serverTiktokConfig?.hasToken || tiktokSettings.advertiserId || tiktokSettings.accessToken) ? (
                       <button
                         type="button"
                         onClick={handleDeleteTiktok}
-                        className="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-500/10 border border-rose-500/30 flex items-center gap-1.5 transition-all cursor-pointer"
-                        title="ডাটাবেস ও স্টোরেজ থেকে TikTok ক্রেডেনশিয়াল মুছে ফেলুন"
+                        className="px-3 py-2 rounded-xl text-xs font-semibold text-rose-500 hover:bg-rose-500/10 transition-all flex items-center gap-1.5 cursor-pointer"
+                        title="মুছে ফেলুন / Disconnect"
                       >
-                        <Trash2 className="h-4 w-4" />
-                        <span>মুছে ফেলুন (Delete)</span>
+                        <Trash2 className="h-3.5 w-3.5" />
+                        <span>Disconnect</span>
                       </button>
                     ) : (
                       <div />
                     )}
 
                     <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1.5 text-xs font-medium">
+                      <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-medium">
                         {autoSaveStatus === 'saving' && (
                           <span className="text-amber-500 flex items-center gap-1">
-                            <RefreshCw className="h-3 w-3 animate-spin" /> ডাটাবেসে সেভ হচ্ছে...
+                            <RefreshCw className="h-3 w-3 animate-spin" /> Saving...
                           </span>
                         )}
                         {autoSaveStatus === 'saved' && (
                           <span className="text-emerald-500 flex items-center gap-1">
-                            <CheckCircle2 className="h-3.5 w-3.5" /> ডাটাবেসে অটো-সেভ হয়েছে
+                            <Check className="h-3 w-3" /> Auto-saved
                           </span>
                         )}
                         {autoSaveStatus === 'idle' && (
-                          <span className="text-slate-400 flex items-center gap-1">
-                            <Database className="h-3.5 w-3.5" /> অটো-সেভ সক্রিয়
+                          <span className="flex items-center gap-1 text-slate-400">
+                            <Database className="h-3 w-3" /> Auto-save active
                           </span>
                         )}
                       </div>
@@ -2685,10 +2625,10 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                       <button
                         onClick={handleVerifyTiktok}
                         disabled={isVerifyingTiktok}
-                        className="px-6 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 disabled:opacity-50 shadow-md flex items-center gap-2 transition-all cursor-pointer"
+                        className="h-9 px-5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 disabled:opacity-50 shadow-sm flex items-center gap-2 transition-all cursor-pointer"
                       >
-                        {isVerifyingTiktok ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4 fill-current text-rose-500" />}
-                        <span>{isVerifyingTiktok ? 'সিঙ্ক হচ্ছে...' : 'সেভ ও সিঙ্ক করুন (Save & Sync Live Data)'}</span>
+                        {isVerifyingTiktok ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5 fill-current text-rose-500" />}
+                        <span>{isVerifyingTiktok ? 'Syncing...' : 'Save & Sync Data'}</span>
                       </button>
                     </div>
                   </div>

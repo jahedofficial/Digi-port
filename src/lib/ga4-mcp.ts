@@ -28,7 +28,7 @@ export class GA4AnalyticsMCP {
     const dbConfig = await getGoogleDirectConfig();
     const fileConfig = getStoredGA4Config();
 
-    const propertyId = dbConfig.ga4PropertyId || fileConfig?.propertyId || '551294668';
+    const propertyId = dbConfig.ga4PropertyId || fileConfig?.propertyId || '';
     const serviceAccount = dbConfig.serviceAccountJson || fileConfig?.serviceAccount || null;
 
     try {
@@ -80,7 +80,7 @@ export class GA4AnalyticsMCP {
     const dbConfig = await getGoogleDirectConfig();
     const fileConfig = getStoredGA4Config();
 
-    const propertyId = dbConfig.ga4PropertyId || fileConfig?.propertyId || '551294668';
+    const propertyId = dbConfig.ga4PropertyId || fileConfig?.propertyId || '';
     const serviceAccount = dbConfig.serviceAccountJson || fileConfig?.serviceAccount || null;
 
     try {

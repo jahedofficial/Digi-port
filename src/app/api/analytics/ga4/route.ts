@@ -12,7 +12,7 @@ const SECURE_CONFIG_DIR = path.join(process.cwd(), '.config');
 const SECURE_GA4_FILE = path.join(SECURE_CONFIG_DIR, 'ga4_credentials.json');
 
 // Safely load persisted GA4 credentials from local file fallback
-function loadPersistedGA4Config(): { propertyId: string; serviceAccount: any } | null {
+function loadPersistedGA4Config(): { propertyId: string; measurementId?: string; serviceAccount: any } | null {
   try {
     if (fs.existsSync(SECURE_GA4_FILE)) {
       const raw = fs.readFileSync(SECURE_GA4_FILE, 'utf-8');
@@ -23,12 +23,12 @@ function loadPersistedGA4Config(): { propertyId: string; serviceAccount: any } |
 }
 
 // Safely save credentials to file fallback
-function savePersistedGA4Config(propertyId: string, serviceAccount: any) {
+function savePersistedGA4Config(propertyId: string, serviceAccount: any, measurementId?: string) {
   try {
     if (!fs.existsSync(SECURE_CONFIG_DIR)) {
       fs.mkdirSync(SECURE_CONFIG_DIR, { recursive: true });
     }
-    fs.writeFileSync(SECURE_GA4_FILE, JSON.stringify({ propertyId, serviceAccount }, null, 2), 'utf-8');
+    fs.writeFileSync(SECURE_GA4_FILE, JSON.stringify({ propertyId, serviceAccount, measurementId: measurementId || '' }, null, 2), 'utf-8');
   } catch {}
 }
 
@@ -37,7 +37,8 @@ export async function GET() {
     const dbConfig = await getGoogleDirectConfig();
     const persisted = loadPersistedGA4Config();
 
-    const effectivePropId = dbConfig.ga4PropertyId || persisted?.propertyId || '551294668';
+    const effectivePropId = dbConfig.ga4PropertyId || persisted?.propertyId || '';
+    const effectiveMeasId = dbConfig.ga4MeasurementId || persisted?.measurementId || '';
     const effectiveSa = dbConfig.serviceAccountJson || persisted?.serviceAccount || null;
 
     let saEmail = dbConfig.serviceAccountEmail || '';
@@ -56,6 +57,7 @@ export async function GET() {
       success: true,
       isConfigured,
       propertyId: effectivePropId,
+      measurementId: effectiveMeasId,
       clientEmail: saEmail,
       projectId: saProjectId,
     });
@@ -70,21 +72,33 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { action, propertyId, serviceAccount, datePreset, startDate, endDate } = body;
+    const { action, propertyId, measurementId, serviceAccount, datePreset, startDate, endDate } = body;
 
     const dbConfig = await getGoogleDirectConfig();
     const persisted = loadPersistedGA4Config();
 
-    const activePropertyId = propertyId || dbConfig.ga4PropertyId || persisted?.propertyId || '551294668';
+    const rawProp = (propertyId || '').trim();
+    const activePropertyId = rawProp 
+      || dbConfig.ga4PropertyId 
+      || persisted?.propertyId 
+      || '';
+
+    const activeMeasId = (measurementId || '').trim() 
+      || dbConfig.ga4MeasurementId 
+      || persisted?.measurementId 
+      || '';
+
     const activeServiceAccount = serviceAccount || dbConfig.serviceAccountJson || persisted?.serviceAccount || null;
 
     // 1. Save GA4 Configuration
     if (action === 'save_config') {
-      if (!propertyId) {
+      const targetPropId = rawProp || activePropertyId;
+      if (!targetPropId) {
         return NextResponse.json({ success: false, error: 'Property ID is required.' }, { status: 400 });
       }
 
-      savePersistedGA4Config(propertyId, serviceAccount || null);
+      const targetMeasId = (measurementId || '').trim() || activeMeasId;
+      savePersistedGA4Config(targetPropId, serviceAccount || null, targetMeasId);
 
       let saEmail = '';
       let saProjId = '';
@@ -99,7 +113,8 @@ export async function POST(req: NextRequest) {
       // Also persist to database settings
       try {
         await saveGoogleDirectConfig({
-          ga4PropertyId: propertyId,
+          ga4PropertyId: targetPropId,
+          ga4MeasurementId: targetMeasId,
           serviceAccountJson: serviceAccount || undefined,
           serviceAccountEmail: saEmail || undefined,
           serviceAccountProjectId: saProjId || undefined,
@@ -109,7 +124,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         success: true,
         message: 'Google Analytics 4 credentials securely saved to server database!',
-        propertyId,
+        propertyId: targetPropId,
+        measurementId: targetMeasId,
         isConfigured: Boolean(serviceAccount && saEmail),
       });
     }
@@ -130,6 +146,7 @@ export async function POST(req: NextRequest) {
         success: true,
         isConfigured: Boolean(activeServiceAccount && saEmail),
         propertyId: activePropertyId,
+        measurementId: activeMeasId,
         clientEmail: saEmail,
         projectId: saProjectId,
       });
@@ -153,7 +170,7 @@ export async function POST(req: NextRequest) {
 
       const result = await testGa4Connection(activePropertyId, activeServiceAccount);
       if (result.success) {
-        savePersistedGA4Config(activePropertyId, activeServiceAccount);
+        savePersistedGA4Config(activePropertyId, activeServiceAccount, activeMeasId);
 
         let saEmail = '';
         let saProjId = '';
@@ -166,6 +183,7 @@ export async function POST(req: NextRequest) {
         try {
           await saveGoogleDirectConfig({
             ga4PropertyId: activePropertyId,
+            ga4MeasurementId: activeMeasId,
             serviceAccountJson: activeServiceAccount,
             serviceAccountEmail: saEmail || undefined,
             serviceAccountProjectId: saProjId || undefined,
@@ -176,6 +194,7 @@ export async function POST(req: NextRequest) {
           success: true,
           message: `Successfully connected & verified with ${result.propertyName}! Saved to server schema.`,
           propertyId: activePropertyId,
+          measurementId: activeMeasId,
         });
       } else {
         return NextResponse.json({

@@ -87,22 +87,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Attempt live GA4 metrics fetch if Service Account or GA4 Property is provided
+    // Attempt real live GA4 validation
     let ga4MetricsData: any = null;
     let ga4FetchError: string | null = null;
     const effectiveSa = serviceAccountJson || (await getGoogleDirectConfig()).serviceAccountJson;
     const effectivePropId = ga4PropertyId || (await getGoogleDirectConfig()).ga4PropertyId;
 
-    if (effectiveSa && effectivePropId) {
+    if (effectivePropId && !effectiveSa) {
+      ga4FetchError = 'Google Cloud Service Account JSON Key আপলোড করা হয়নি। কি আপলোড না করলে GA4 ডাটাবেস যাচাই করা অসম্ভব।';
+    } else if (effectiveSa && effectivePropId) {
       try {
         ga4MetricsData = await fetchGa4LiveMetrics(effectiveSa, effectivePropId);
+        if (!ga4MetricsData || !ga4MetricsData.success) {
+          ga4FetchError = ga4MetricsData?.error || 'গুগল এপিআই থেকে ডাটা আনা যায়নি। প্রোপার্টি আইডি বা সার্ভিস একাউন্ট অনুমতি যাচাই করুন।';
+        }
       } catch (ga4Err: any) {
         ga4FetchError = ga4Err.message;
         console.warn('[GA4 POST] Live fetch notice:', ga4Err.message);
       }
     }
 
-    const isLive = Boolean(ga4MetricsData && ga4MetricsData.success);
+    const isLive = Boolean(ga4MetricsData && ga4MetricsData.success && !ga4FetchError);
     const ga4Metrics = isLive ? {
       activeUsers: ga4MetricsData.activeUsers,
       newUsers: ga4MetricsData.newUsers,
@@ -119,12 +124,37 @@ export async function POST(req: NextRequest) {
     if ((ga4PropertyId || saEmail) && !customerId) {
       if (ga4PropertyId && !/^\d{6,12}$/.test(ga4PropertyId)) {
         return NextResponse.json(
-          { success: false, error: 'GA4 Property ID অবশ্যই ৬ থেকে ১২ সংখ্যার হতে হবে (যেমন: 123456789)।' },
+          { success: false, error: 'GA4 Property ID অবশ্যই ৬ থেকে ১২ সংখ্যার হতে হবে (যেমন: 482910541)।' },
           { status: 400 }
         );
       }
 
-      // Automatically persist verified GA4 credentials to Database Vault server-side
+      // If live verification failed, do NOT mark as connected!
+      if (ga4FetchError || !isLive) {
+        const errorMsg = ga4FetchError || 'গুগল অ্যানালিটিক্স ৪ প্রোপার্টি ভেরিফাই করা যায়নি। Service Account-এ অনুমতি চেক করুন।';
+        try {
+          await saveGoogleDirectConfig({
+            ga4PropertyId,
+            serviceAccountJson,
+            serviceAccountEmail: saEmail,
+            serviceAccountProjectId: saProjectId,
+            isGa4Connected: false,
+          });
+        } catch {}
+
+        return NextResponse.json({
+          success: false,
+          isGa4Connected: false,
+          isLive: false,
+          error: errorMsg,
+          serviceAccountEmail: saEmail,
+          serviceAccountProjectId: saProjectId,
+          ga4PropertyId,
+          message: `⚠️ GA4 ভেরিফিকেশন ব্যর্থ হয়েছে: ${errorMsg}`,
+        }, { status: 400 });
+      }
+
+      // Automatically persist REAL verified GA4 credentials to Database Vault
       try {
         await saveGoogleDirectConfig({
           ga4PropertyId,
@@ -137,25 +167,12 @@ export async function POST(req: NextRequest) {
         console.warn('Failed to auto-save GA4 direct config on sync:', saveErr);
       }
 
-      if (ga4FetchError) {
-        return NextResponse.json({
-          success: false,
-          isGa4Connected: true,
-          isLive: false,
-          error: ga4FetchError,
-          serviceAccountEmail: saEmail,
-          serviceAccountProjectId: saProjectId,
-          ga4PropertyId,
-          message: `GA4 সংযোগ হয়েছে কিন্তু লাইভ ডাটা আনা যায়নি: ${ga4FetchError}`,
-        }, { status: 400 });
-      }
-
       return NextResponse.json({
         success: true,
         isLive: true,
         message: saEmail
-          ? `Google Cloud Service Account (${saEmail}) ও GA4 (${ga4PropertyId}) সফলভাবে যাচাই ও লাইভ সিঙ্ক হয়েছে!`
-          : `Google Analytics 4 (GA4 ID: ${ga4PropertyId}) লাইভ ডাটা সফলভাবে সিঙ্ক হয়েছে!`,
+          ? `✓ Google Cloud Service Account (${saEmail}) ও GA4 (#${ga4PropertyId}) গুগল সার্ভারে সফলভাবে যাচাই ও লাইভ কানেক্ট হয়েছে!`
+          : `✓ Google Analytics 4 (GA4 ID: #${ga4PropertyId}) লাইভ ডাটা সফলভাবে সিঙ্ক হয়েছে!`,
         isGa4Connected: true,
         isGoogleConnected: false,
         accountName: saEmail ? `GA4 (${saEmail.split('@')[0]})` : `GA4 Property (${ga4PropertyId})`,
