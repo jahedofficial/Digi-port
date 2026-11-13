@@ -193,9 +193,13 @@ export default function Home() {
           if (hasTiktok) {
             updatedConnected.tiktok = { id: tiktokId, name: `TikTok Ads (${tiktokId})`, status: 'CONNECTED' };
           }
+          const cleanClientName = (ws.clientName && !ws.clientName.startsWith('GA4 Property') && !ws.clientName.startsWith('GA4 (') && ws.clientName !== 'Main Brand Account')
+            ? ws.clientName
+            : 'Fakeit';
           return {
             ...ws,
-            clientName: hasMeta ? 'Fakeit' : ws.clientName,
+            clientName: cleanClientName,
+            currency: (ws.currency === 'USD' && cleanClientName === 'Fakeit') ? 'BDT' : (ws.currency || 'BDT'),
             connectedAccounts: updatedConnected,
           };
         }
@@ -433,10 +437,21 @@ export default function Home() {
           const existingCreatives = ws.creatives.filter((c) => c.platform !== data.platform);
           const newCreatives = [...(data.creatives || []), ...existingCreatives];
 
+          // Never overwrite workspace brand clientName with GA4 Property ID or generic platform labels
+          let preservedClientName = ws.clientName;
+          const isGenericOrCorrupted = !preservedClientName 
+            || preservedClientName === 'Main Brand Account' 
+            || preservedClientName.startsWith('GA4 Property') 
+            || preservedClientName.startsWith('GA4 (');
+
+          if (isGenericOrCorrupted) {
+            preservedClientName = 'Fakeit';
+          }
+
           return {
             ...ws,
-            clientName: data.accountName || ws.clientName,
-            currency: (data.currency as 'BDT' | 'USD') || ws.currency,
+            clientName: preservedClientName,
+            currency: (ws.currency === 'USD' && preservedClientName === 'Fakeit') ? 'BDT' : (ws.currency || 'BDT'),
             connectedAccounts: {
               ...ws.connectedAccounts,
               [platKey]: {
@@ -522,9 +537,13 @@ export default function Home() {
                 if (hasServerTiktok) {
                   updatedConnected.tiktok = { id: tiktokDirect.advertiserId, name: `TikTok Ads (${tiktokDirect.advertiserId})`, status: 'CONNECTED' };
                 }
+                const cleanClientName = (ws.clientName && !ws.clientName.startsWith('GA4 Property') && !ws.clientName.startsWith('GA4 (') && ws.clientName !== 'Main Brand Account')
+                  ? ws.clientName
+                  : 'Fakeit';
                 return {
                   ...ws,
-                  clientName: hasServerMeta ? 'Fakeit' : ws.clientName,
+                  clientName: cleanClientName,
+                  currency: (ws.currency === 'USD' && cleanClientName === 'Fakeit') ? 'BDT' : (ws.currency || 'BDT'),
                   connectedAccounts: updatedConnected,
                 };
               }

@@ -5,7 +5,7 @@ export const INITIAL_CLIENT_WORKSPACES: ClientWorkspace[] = [
   {
     id: 'ws-primary-default',
     name: 'Primary Workspace',
-    clientName: 'Main Brand Account',
+    clientName: 'Fakeit',
     category: 'E-commerce & Growth',
     currency: 'BDT',
     colorTag: 'blue',
