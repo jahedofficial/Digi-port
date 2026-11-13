@@ -1,29 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CampaignData } from '@/types';
-import { saveTiktokDirectConfig } from '@/lib/settings-db';
+import { saveTiktokDirectConfig, getTiktokDirectConfig } from '@/lib/settings-db';
 
-export async function POST(req: NextRequest) {
+async function executeTiktokSync(
+  advertiserId: string,
+  accessToken: string,
+  appId?: string,
+  appSecret?: string
+) {
   try {
-    const body = await req.json();
-    const advertiserId = body?.advertiserId?.trim();
-    const accessToken = body?.accessToken?.trim();
-    const appId = body?.appId?.trim();
-    const appSecret = body?.appSecret?.trim();
-
-    if (!advertiserId) {
-      return NextResponse.json(
-        { success: false, error: 'দয়া করে TikTok Advertiser ID প্রদান করুন।' },
-        { status: 400 }
-      );
-    }
-
-    if (!accessToken) {
-      return NextResponse.json(
-        { success: false, error: 'দয়া করে TikTok Long-Lived Access Token প্রদান করুন।' },
-        { status: 400 }
-      );
-    }
-
     // Verify against TikTok Open API v1.3
     const testUrl = `https://business-api.tiktok.com/open_api/v1.3/advertiser/info/?advertiser_ids=["${advertiserId}"]`;
     
@@ -137,6 +122,62 @@ export async function POST(req: NextRequest) {
     console.error('TikTok sync error:', error);
     return NextResponse.json(
       { success: false, error: error.message || 'TikTok API ভেরিফিকেশন ব্যর্থ হয়েছে' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET() {
+  try {
+    const dbTiktok = await getTiktokDirectConfig();
+    if (!dbTiktok.accessToken || !dbTiktok.advertiserId) {
+      return NextResponse.json({
+        success: true,
+        isConnected: false,
+        message: 'সার্ভারে TikTok ক্রেডেনশিয়াল সেভ করা নেই।',
+      });
+    }
+    return await executeTiktokSync(
+      dbTiktok.advertiserId,
+      dbTiktok.accessToken,
+      dbTiktok.appId,
+      dbTiktok.appSecret
+    );
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message || 'TikTok GET sync failed' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json().catch(() => ({}));
+    const dbTiktok = await getTiktokDirectConfig();
+    const advertiserId = (body?.advertiserId || dbTiktok.advertiserId)?.trim();
+    const accessToken = (body?.accessToken || dbTiktok.accessToken)?.trim();
+    const appId = (body?.appId || dbTiktok.appId)?.trim();
+    const appSecret = (body?.appSecret || dbTiktok.appSecret)?.trim();
+
+    if (!advertiserId) {
+      return NextResponse.json(
+        { success: false, error: 'দয়া করে TikTok Advertiser ID প্রদান করুন।' },
+        { status: 400 }
+      );
+    }
+
+    if (!accessToken) {
+      return NextResponse.json(
+        { success: false, error: 'দয়া করে TikTok Long-Lived Access Token প্রদান করুন।' },
+        { status: 400 }
+      );
+    }
+
+    return await executeTiktokSync(advertiserId, accessToken, appId, appSecret);
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message || 'TikTok POST sync failed' },
       { status: 500 }
     );
   }

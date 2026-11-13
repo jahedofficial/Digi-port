@@ -559,6 +559,26 @@ export default function Home() {
             })
             .catch(() => {});
         }
+
+        // Trigger background sync for TikTok if credentials exist on server
+        if (hasServerTiktok) {
+          fetch('/api/platforms/tiktok/sync')
+            .then((r) => r.json())
+            .then((syncData) => {
+              if (syncData.success) {
+                handlePlatformSync({
+                  campaigns: syncData.campaigns || [],
+                  creatives: [],
+                  metrics: syncData.metrics || {},
+                  platform: 'TIKTOK',
+                  accountName: syncData.accountName,
+                  accountId: tiktokDirect.advertiserId,
+                  currency: syncData.currency,
+                });
+              }
+            })
+            .catch(() => {});
+        }
       })
       .catch((err) => {
         console.warn('[Multi-Device Vault Sync Notice]:', err);

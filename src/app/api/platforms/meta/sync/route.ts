@@ -1,27 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CampaignData, CreativeData, MetricSummary } from '@/types';
-import { saveMetaDirectConfig } from '@/lib/settings-db';
+import { saveMetaDirectConfig, getMetaDirectConfig } from '@/lib/settings-db';
 
-export async function POST(req: NextRequest) {
+async function executeMetaSync(token: string, rawAccountId: string) {
   try {
-    const body = await req.json();
-    const token = body?.token?.trim();
-    let adAccountId = body?.adAccountId?.trim();
-
-    if (!token) {
-      return NextResponse.json(
-        { success: false, error: 'দয়া করে Meta System User Access Token ইনপুট করুন।' },
-        { status: 400 }
-      );
-    }
-
-    if (!adAccountId) {
-      return NextResponse.json(
-        { success: false, error: 'দয়া করে Target Meta Ad Account ID ইনপুট করুন।' },
-        { status: 400 }
-      );
-    }
-
+    let adAccountId = rawAccountId.trim();
     // Clean account ID to always have 'act_' prefix
     adAccountId = adAccountId.replace(/^act_?/i, '');
     const cleanId = `act_${adAccountId}`;
@@ -211,6 +194,55 @@ export async function POST(req: NextRequest) {
     console.error('Meta sync error:', error);
     return NextResponse.json(
       { success: false, error: error.message || 'Meta API sync failed' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET() {
+  try {
+    const dbMeta = await getMetaDirectConfig();
+    if (!dbMeta.token || !dbMeta.adAccountId) {
+      return NextResponse.json({
+        success: true,
+        isConnected: false,
+        message: 'সার্ভারে Meta ক্রেডেনশিয়াল সেভ করা নেই।',
+      });
+    }
+    return await executeMetaSync(dbMeta.token, dbMeta.adAccountId);
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message || 'Meta GET sync failed' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json().catch(() => ({}));
+    const dbMeta = await getMetaDirectConfig();
+    const token = (body?.token || dbMeta.token)?.trim();
+    const adAccountId = (body?.adAccountId || dbMeta.adAccountId)?.trim();
+
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: 'দয়া করে Meta System User Access Token ইনপুট করুন।' },
+        { status: 400 }
+      );
+    }
+
+    if (!adAccountId) {
+      return NextResponse.json(
+        { success: false, error: 'দয়া করে Target Meta Ad Account ID ইনপুট করুন।' },
+        { status: 400 }
+      );
+    }
+
+    return await executeMetaSync(token, adAccountId);
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message || 'Meta POST sync failed' },
       { status: 500 }
     );
   }
