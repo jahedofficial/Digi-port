@@ -37,7 +37,8 @@ import {
   Check,
   X,
   Key,
-  Loader2
+  Loader2,
+  Upload
 } from 'lucide-react';
 import { CampaignData, CreativeData, MetricSummary } from '@/types';
 import { GA4UnifiedReport, Ga4RealtimeReport } from '@/lib/ga4-api';
@@ -2986,9 +2987,37 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
               </div>
 
               <div>
-                <label className="text-[11px] font-bold uppercase text-slate-400 block mb-1">
-                  Google Cloud Service Account JSON Key *
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-bold uppercase text-slate-400">
+                    Google Cloud Service Account JSON Key *
+                  </label>
+                  <label
+                    htmlFor="ga4-dashboard-file-upload"
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-500 hover:text-amber-400 cursor-pointer hover:underline"
+                  >
+                    <Upload className="h-3 w-3" />
+                    <span>Upload JSON File</span>
+                  </label>
+                  <input
+                    id="ga4-dashboard-file-upload"
+                    type="file"
+                    accept=".json,application/json"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = (ev) => {
+                        const content = ev.target?.result as string;
+                        if (content) {
+                          setGa4ServiceAccountJson(content);
+                        }
+                      };
+                      reader.readAsText(file);
+                      e.target.value = '';
+                    }}
+                  />
+                </div>
                 <textarea
                   rows={5}
                   placeholder={`{\n  "type": "service_account",\n  "project_id": "...",\n  "private_key_id": "...",\n  "private_key": "-----BEGIN PRIVATE KEY-----...",\n  "client_email": "...@...iam.gserviceaccount.com"\n}`}

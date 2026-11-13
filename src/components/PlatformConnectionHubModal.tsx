@@ -2237,15 +2237,19 @@ export const PlatformConnectionHubModal: React.FC<PlatformConnectionHubModalProp
                           <KeyRound className="h-3.5 w-3.5 text-amber-500" />
                           <span>Service Account JSON Key</span>
                         </span>
-                        {(googleSettings.serviceAccountEmail || serverGoogleConfig?.serviceAccountEmail) && (
+                        {(googleSettings.serviceAccountJson || (serverGoogleConfig?.hasServiceAccount && (googleSettings.serviceAccountEmail || serverGoogleConfig?.serviceAccountEmail))) ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
                             <Check className="h-2.5 w-2.5" />
-                            Loaded
+                            Key Loaded
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25">
+                            ফাইল আপলোড প্রয়োজন
                           </span>
                         )}
                       </div>
 
-                      {(googleSettings.serviceAccountEmail || serverGoogleConfig?.serviceAccountEmail) ? (
+                      {(googleSettings.serviceAccountJson || (serverGoogleConfig?.hasServiceAccount && (googleSettings.serviceAccountEmail || serverGoogleConfig?.serviceAccountEmail))) ? (
                         <div className="space-y-2">
                           <div className="rounded-lg bg-black/10 dark:bg-black/30 border border-emerald-500/20 p-2.5 flex items-center justify-between gap-3 text-xs">
                             <div className="min-w-0">

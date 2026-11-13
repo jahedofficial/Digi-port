@@ -506,7 +506,7 @@ export async function getGoogleDirectConfig(): Promise<StoredGoogleDirectSetting
       } catch {}
     }
 
-    const hasSa = Boolean(plainSaJson || saEmail);
+    const hasFullSa = Boolean(plainSaJson && plainSaJson.includes('private_key'));
 
     return {
       customerId: dbData.customerId || '',
@@ -517,11 +517,11 @@ export async function getGoogleDirectConfig(): Promise<StoredGoogleDirectSetting
       ga4MeasurementId: dbData.ga4MeasurementId || '',
       scope: dbData.scope || 'READ_WRITE',
       isConnected: Boolean(dbData.isConnected),
-      isGa4Connected: Boolean(dbData.isGa4Connected || hasSa || dbData.ga4PropertyId),
+      isGa4Connected: Boolean(dbData.isGa4Connected && hasFullSa),
       serviceAccountJson: plainSaJson,
       serviceAccountEmail: saEmail,
       serviceAccountProjectId: saProjectId,
-      hasServiceAccount: hasSa,
+      hasServiceAccount: hasFullSa,
       savedAt: dbData.savedAt,
       source: 'database',
     };
