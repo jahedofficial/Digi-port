@@ -72,12 +72,35 @@ export default function Home() {
     }
     setIsAuthLoaded(true);
 
-    // Support direct tab links like ?tab=copilot or ?tab=ai
+    // Load persisted sidebar navigation tab from URL query or localStorage
     try {
       const params = new URLSearchParams(window.location.search);
-      const tabParam = params.get('tab')?.toLowerCase();
-      if (tabParam === 'copilot' || tabParam === 'ai' || tabParam === 'ai_copilot') {
-        setActiveNav('AI_COPILOT');
+      const tabParam = params.get('tab')?.toUpperCase();
+      const savedNav = localStorage.getItem('dm_active_nav')?.toUpperCase();
+
+      const tabMap: Record<string, MainNavId> = {
+        ANALYTICS: 'ANALYTICS',
+        META_ADS: 'META_ADS',
+        META: 'META_ADS',
+        GOOGLE_ADS: 'GOOGLE_ADS',
+        GOOGLE: 'GOOGLE_ADS',
+        TIKTOK_ADS: 'TIKTOK_ADS',
+        TIKTOK: 'TIKTOK_ADS',
+        CONTENT_ANALYTICS: 'CONTENT_ANALYTICS',
+        CONTENT: 'CONTENT_ANALYTICS',
+        AI_COPILOT: 'AI_COPILOT',
+        COPILOT: 'AI_COPILOT',
+        AI: 'AI_COPILOT',
+        APPROVALS: 'APPROVALS',
+        TRACKING: 'TRACKING',
+        PIXEL: 'TRACKING',
+        RULES: 'RULES',
+        REPORTS: 'REPORTS',
+      };
+
+      const resolvedNav = (tabParam && tabMap[tabParam]) || (savedNav && tabMap[savedNav]);
+      if (resolvedNav) {
+        setActiveNav(resolvedNav);
       }
     } catch {}
 
@@ -91,6 +114,21 @@ export default function Home() {
       })
       .catch(() => {});
   }, []);
+
+  // Persist activeNav to localStorage & URL query parameter on change
+  React.useEffect(() => {
+    if (!activeNav) return;
+    try {
+      localStorage.setItem('dm_active_nav', activeNav);
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        if (url.searchParams.get('tab')?.toLowerCase() !== activeNav.toLowerCase()) {
+          url.searchParams.set('tab', activeNav.toLowerCase());
+          window.history.replaceState({}, '', url.toString());
+        }
+      }
+    } catch {}
+  }, [activeNav]);
 
   // Hydrate workspaces & active direct credentials from localStorage on mount
   React.useEffect(() => {

@@ -79,6 +79,23 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
   const [currency, setCurrency] = useState<'BDT' | 'USD'>('BDT');
   const [timeFilter, setTimeFilter] = useState<'today' | 'yesterday' | '7d' | '30d' | 'month'>('7d');
   const [activeReportSubTab, setActiveReportSubTab] = useState<'SNAPSHOT' | 'TRAFFIC' | 'ECOMMERCE' | 'REALTIME'>('SNAPSHOT');
+
+  // Hydrate GA4 subtab from localStorage
+  useEffect(() => {
+    try {
+      const savedSub = localStorage.getItem('dm_ga4_subtab');
+      if (savedSub && ['SNAPSHOT', 'TRAFFIC', 'ECOMMERCE', 'REALTIME'].includes(savedSub)) {
+        setActiveReportSubTab(savedSub as any);
+      }
+    } catch {}
+  }, []);
+
+  // Persist GA4 subtab to localStorage on change
+  useEffect(() => {
+    try {
+      localStorage.setItem('dm_ga4_subtab', activeReportSubTab);
+    } catch {}
+  }, [activeReportSubTab]);
   const [chartMetric, setChartMetric] = useState<'REVENUE' | 'PURCHASES' | 'SESSIONS' | 'ROAS'>('REVENUE');
   const [searchTableQuery, setSearchTableQuery] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);

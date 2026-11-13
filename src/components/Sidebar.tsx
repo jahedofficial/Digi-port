@@ -66,6 +66,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [isControlOpen, setIsControlOpen] = useState(true);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
+  // Auto-expand section containing currently active tab
+  React.useEffect(() => {
+    if (['APPROVALS', 'TRACKING', 'RULES', 'REPORTS'].includes(activeNav)) {
+      setIsControlOpen(true);
+    } else {
+      setIsMarketingOpen(true);
+    }
+  }, [activeNav]);
+
   const handleNavClick = (id: MainNavId) => {
     onSelectNav(id);
     if (onCloseMobile) onCloseMobile();
