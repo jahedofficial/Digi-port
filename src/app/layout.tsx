@@ -16,6 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Digiport — Ads Intelligence & Unified Command Center",
   description: "Enterprise Google Analytics 4 (GA4) Tracking & Cross-Channel Attribution Engine",
+  referrer: "no-referrer",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -18,6 +18,7 @@ import {
   BadgeAlert
 } from 'lucide-react';
 import { CreativeData } from '@/types';
+import AdCreativeThumbnail from '@/components/AdCreativeThumbnail';
 
 interface CreativeAnalysisLabProps {
   creatives: CreativeData[];
@@ -152,18 +153,13 @@ export const CreativeAnalysisLab: React.FC<CreativeAnalysisLabProps> = ({
               >
                 <div className="flex gap-4">
                   {/* Thumbnail */}
-                  <div className={`relative h-28 w-24 shrink-0 overflow-hidden rounded-lg ${
-                    isLight ? 'bg-slate-100' : 'bg-slate-800'
-                  }`}>
-                    <img
-                      src={cr.thumbnailUrl}
-                      alt={cr.adName}
-                      className="h-full w-full object-cover"
-                    />
-                    <div className="absolute bottom-1 right-1 rounded bg-black/70 px-1 py-0.5 text-[9px] font-bold text-white">
-                      {cr.mediaType}
-                    </div>
-                  </div>
+                  <AdCreativeThumbnail
+                    src={cr.thumbnailUrl}
+                    adName={cr.adName}
+                    mediaType={cr.mediaType}
+                    className="h-28 w-24 shrink-0 rounded-lg"
+                    isLight={isLight}
+                  />
 
                   {/* Creative Core Info */}
                   <div className="flex-1 min-w-0">
@@ -282,13 +278,13 @@ export const CreativeAnalysisLab: React.FC<CreativeAnalysisLabProps> = ({
               </div>
 
               {/* Media Preview */}
-              <div className={`mt-4 overflow-hidden rounded-lg border ${
-                isLight ? 'border-slate-200 bg-slate-100' : 'border-slate-800 bg-slate-950'
-              }`}>
-                <img
+              <div className="mt-4 overflow-hidden rounded-lg">
+                <AdCreativeThumbnail
                   src={selectedCreative.thumbnailUrl}
-                  alt={selectedCreative.headline}
-                  className="h-48 w-full object-cover"
+                  adName={selectedCreative.adName}
+                  mediaType={selectedCreative.mediaType}
+                  className="h-48 w-full rounded-lg"
+                  isLight={isLight}
                 />
               </div>
 

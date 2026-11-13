@@ -101,21 +101,70 @@ async function executeMetaSync(token: string, rawAccountId: string) {
     // 5. Fetch Ads with creatives
     let creatives: CreativeData[] = [];
     try {
-      const adsUrl = `https://graph.facebook.com/v20.0/${cleanId}/ads?fields=id,name,creative{id,name,title,body,image_url,thumbnail_url}&limit=25&access_token=${token}`;
+      const adsUrl = `https://graph.facebook.com/v20.0/${cleanId}/ads?fields=id,name,status,effective_status,creative{id,name,title,body,image_url,thumbnail_url,object_story_spec,asset_feed_spec}&limit=35&access_token=${token}`;
       const adsRes = await fetch(adsUrl);
       const adsJson = await adsRes.json();
       if (!adsJson.error && adsJson.data) {
         creatives = adsJson.data.map((ad: any, index: number) => {
+          let mediaType: 'IMAGE' | 'VIDEO' | 'CAROUSEL' = 'IMAGE';
+          const adNameLower = (ad.name || '').toLowerCase();
+          const cr = ad.creative || {};
+          const oss = cr.object_story_spec;
+          const afs = cr.asset_feed_spec;
+
+          let rawThumb = '';
+
+          // Check Carousel
+          const childAttachments = oss?.link_data?.child_attachments;
+          if (
+            (Array.isArray(childAttachments) && childAttachments.length > 0) ||
+            adNameLower.includes('carosole') ||
+            adNameLower.includes('carousel')
+          ) {
+            mediaType = 'CAROUSEL';
+            rawThumb = childAttachments?.[0]?.picture || childAttachments?.[0]?.image_url || '';
+          }
+
+          // Check Video
+          if (
+            oss?.video_data ||
+            adNameLower.includes('video') ||
+            (cr.name && cr.name.toLowerCase().includes('video'))
+          ) {
+            mediaType = 'VIDEO';
+            rawThumb = oss?.video_data?.image_url || cr.thumbnail_url || rawThumb;
+          }
+
+          // Check Asset Feed Spec (Dynamic Creative)
+          if (!rawThumb && afs) {
+            if (afs.videos?.[0]?.thumbnail_url) {
+              mediaType = 'VIDEO';
+              rawThumb = afs.videos[0].thumbnail_url;
+            } else if (afs.images?.[0]?.url) {
+              rawThumb = afs.images[0].url;
+            }
+          }
+
+          // Standard fallback
+          if (!rawThumb) {
+            rawThumb = oss?.link_data?.picture || cr.image_url || cr.thumbnail_url || '';
+          }
+
+          // Route via server-side media proxy to prevent Meta CDN 403 hotlink blocks and provide sleek fallback
+          const safeThumb = rawThumb
+            ? `/api/media-proxy?url=${encodeURIComponent(rawThumb)}&title=${encodeURIComponent(ad.name || 'Ad')}&type=${mediaType}`
+            : `/api/media-proxy?title=${encodeURIComponent(ad.name || 'Ad')}&type=${mediaType}`;
+
           return {
             id: `cr-${ad.id}`,
             adId: ad.id,
             adName: ad.name || `Ad Creative ${index + 1}`,
             campaignName: 'Meta Campaign',
             platform: 'META',
-            thumbnailUrl: ad.creative?.thumbnail_url || ad.creative?.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80',
-            mediaType: 'IMAGE',
-            headline: ad.creative?.title || ad.name,
-            bodyCopy: ad.creative?.body || 'Direct response campaign creative',
+            thumbnailUrl: safeThumb,
+            mediaType,
+            headline: cr.title || ad.name,
+            bodyCopy: cr.body || 'Direct response campaign creative',
             callToAction: 'Shop Now',
             spend: 0,
             conversions: 0,
@@ -130,8 +179,8 @@ async function executeMetaSync(token: string, rawAccountId: string) {
             isUnderperformer: false,
             isMvpWinner: false,
             aiTags: {
-              format: 'Product Showcase',
-              hookType: 'Direct Visual Hook',
+              format: mediaType === 'VIDEO' ? 'Short Video / Reel' : mediaType === 'CAROUSEL' ? 'Multi-Card Carousel' : 'Product Showcase',
+              hookType: mediaType === 'VIDEO' ? 'Motion Graphic Hook' : 'Direct Visual Hook',
               offer: 'Standard Offer',
               cta: 'Shop Now',
               first3SecondsDescription: 'High clarity creative asset',

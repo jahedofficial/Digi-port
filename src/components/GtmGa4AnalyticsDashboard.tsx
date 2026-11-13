@@ -42,6 +42,7 @@ import {
 } from 'lucide-react';
 import { CampaignData, CreativeData, MetricSummary } from '@/types';
 import { GA4UnifiedReport, Ga4RealtimeReport } from '@/lib/ga4-api';
+import AdCreativeThumbnail from '@/components/AdCreativeThumbnail';
 
 
 interface GtmGa4AnalyticsDashboardProps {
@@ -2050,10 +2051,12 @@ export const GtmGa4AnalyticsDashboard: React.FC<GtmGa4AnalyticsDashboardProps> =
                         {/* Creative info with thumbnail */}
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
-                            <img
+                            <AdCreativeThumbnail
                               src={cr.thumbnailUrl}
-                              alt={cr.adName}
-                              className={`h-10 w-10 rounded-lg object-cover border shrink-0 ${isLight ? 'border-slate-200' : 'border-slate-800'}`}
+                              adName={cr.adName}
+                              mediaType={cr.mediaType}
+                              className="h-10 w-10 rounded-lg"
+                              isLight={isLight}
                             />
                             <div>
                               <div className={`font-bold flex items-center gap-1.5 ${textTitle}`}>
